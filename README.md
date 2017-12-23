@@ -1,4 +1,6 @@
-# cryptoquant
+#### *** This repository is currently in planning stage. ***
+
+# cryptoverse
 Cryptocurrency focused quantitative finance tools.
 
 
