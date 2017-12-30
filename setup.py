@@ -1,7 +1,7 @@
 from setuptools import setup
 setup(
     name="cryptoverse",
-    version="0.0.1.dev2",
+    version="0.0.1.dev3",
     description="Cryptocurrency focused quantitative finance tools.",
     url="https://github.com/quantimoto/cryptoverse",
     maintainer='Bruteque',
