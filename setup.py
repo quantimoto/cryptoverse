@@ -1,4 +1,5 @@
 from setuptools import setup
+
 setup(
     name="cryptoverse",
     version="0.0.1.dev3",
@@ -18,7 +19,18 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Office/Business :: Financial",
     ],
-    packages=["cryptoverse"],
     keywords=["cryptocurrency", "quantitative", "finance"],
     license='GPLv3',
+    install_requires=[
+        'requests',
+    ],
+    packages=["cryptoverse"],
+    entry_points = {
+        'console_scripts': [
+            'cryptoverse = cryptoverse.__main__:main',
+        ],
+    },
+    zip_safe=True,
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 )
