@@ -21,6 +21,7 @@ class Pairs(object):
 class Market(object):
     context = None  # 'Spot', 'Margin', 'Funding'
     pair = None
+    exchange = None
     order_mininum = {
         'amount': None,
         'price': None,
@@ -42,11 +43,27 @@ class Markets(object):
 
 
 class Order(object):
+
+    trades = None
+
+    def place(self):
+        raise NotImplementedError
+
+    def cancel(self):
+        raise NotImplementedError
+
+
+class Orders():
     pass
 
+    def trades(self):
+        raise NotImplementedError
 
-class Orders(object):
-    trades = None
+    def totals(self):
+        raise NotImplementedError
+
+    def results(self):
+        raise NotImplementedError
 
 
 class Trade(object):
@@ -74,11 +91,11 @@ class Offers(object):
     pass
 
 
-class Lend(objects):
+class Lend(object):
     pass
 
 
-class Lends(objects):
+class Lends(object):
     pass
 
 
@@ -86,7 +103,6 @@ class Balance(object):
     amount = None
     instrument = None
     exchange = None
-
 
 
 class Balances(object):
@@ -118,5 +134,7 @@ class Account(object):
     def balances(self):
         raise NotImplemented
 
+
 class Portfolio(object):
-    pass
+
+    accounts = None

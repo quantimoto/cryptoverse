@@ -1,8 +1,7 @@
 from cryptoverse.base import RESTClient, ResponseObj, rate_limit
 
 
-class BitfinexPublic(RESTClient):
-
+class BitfinexREST(RESTClient):
     url = 'https://api.bitfinex.com/v1'
 
     @rate_limit(30, 60)

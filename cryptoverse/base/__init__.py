@@ -1,3 +1,3 @@
-from decorators import rate_limit
-from restclient import RESTClient
-from restclient import ResponseObj
+from .decorators import rate_limit
+from cryptoverse.base.rest.rest_client import RESTClient
+from cryptoverse.base.rest.rest_client import ResponseObj
