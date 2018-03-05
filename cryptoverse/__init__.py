@@ -1,8 +1,8 @@
-from . import base
-from . import datatypes
-from . import domain
-from . import exchanges
-from . import explorers
-from . import notifications
-from . import providers
-from . import wallets
+from .domain import Exchanges
+from .exchanges import bitfinex, bl3p, kraken, poloniex
+
+exchanges = Exchanges()
+exchanges.append(bitfinex)
+exchanges.append(bl3p)
+exchanges.append(kraken)
+exchanges.append(poloniex)

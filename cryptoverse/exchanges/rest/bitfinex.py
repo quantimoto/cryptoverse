@@ -1,11 +1,14 @@
-from cryptoverse.base import RESTClient, ResponseObj, rate_limit
+from ...base.rest import RESTClient, rate_limit
 
 
 class BitfinexREST(RESTClient):
-    url = 'https://api.bitfinex.com/v1'
+    base_url = 'https://api.bitfinex.com'
+    public_endpoint = '/v{version}/{command}'
+    authenticated_endpoint = '/v{version}/{command}'
 
     @rate_limit(30, 60)
-    def ticker(self, symbol):
+    def pubticker(self, symbol):
+        # https://docs.bitfinex.com/v1/reference#rest-public-ticker
         """
         Ticker
 
@@ -16,10 +19,18 @@ class BitfinexREST(RESTClient):
         :param str symbol: The symbol you want information about. You can find the list of valid symbols by calling the
             symbols() endpoint.
         """
-        raise NotImplementedError
+
+        response = self.public_request(
+            command='pubticker',
+            params={
+                'symbol': symbol,
+            }
+        )
+        return response
 
     @rate_limit(10, 60)
     def stats(self, symbol):
+        # https://docs.bitfinex.com/v1/reference#rest-public-stats
         """
         Stats
 
@@ -28,10 +39,17 @@ class BitfinexREST(RESTClient):
         :param str symbol: The symbol you want information about. You can find the list of valid symbols by calling the
             symbols() endpoint.
         """
-        raise NotImplementedError
+        response = self.public_request(
+            command='stats',
+            params={
+                'symbol': symbol,
+            }
+        )
+        return response
 
     @rate_limit(45, 60)
-    def fundingbook(self, currency, limit_bids=50, limit_asks=50):
+    def lendbook(self, currency, limit_bids=50, limit_asks=50):
+        # https://docs.bitfinex.com/v1/reference#rest-public-fundingbook
         """
         Fundingbook
 
@@ -43,10 +61,19 @@ class BitfinexREST(RESTClient):
         :param int limit_asks: Limit the number of funding offers returned. May be 0 in which case the array of asks is
             empty
         """
-        raise NotImplementedError
+        response = self.public_request(
+            command='lendbook',
+            params={
+                'currency': currency,
+                'limit_bids': limit_bids,
+                'limit_asks': limit_asks,
+            }
+        )
+        return response
 
     @rate_limit(60, 60)
-    def orderbook(self, symbol, limit_bids=50, limit_asks=50, group=1):
+    def book(self, symbol, limit_bids=50, limit_asks=50, group=1):
+        # https://docs.bitfinex.com/v1/reference#rest-public-orderbook
         """
         Orderbook
 
@@ -59,10 +86,20 @@ class BitfinexREST(RESTClient):
         :param int group: If 1, orders are grouped by price in the orderbook. If 0, orders are not grouped and sorted
             individually
         """
-        raise NotImplementedError
+        response = self.public_request(
+            command='book',
+            params={
+                'symbol': symbol,
+                'limit_bids': limit_bids,
+                'limit_asks': limit_asks,
+                'group': group,
+            }
+        )
+        return response
 
     @rate_limit(45, 60)
     def trades(self, symbol, timestamp=None, limit_trades=50):
+        # https://docs.bitfinex.com/v1/reference#rest-public-trades
         """
         Trades
 
@@ -73,10 +110,19 @@ class BitfinexREST(RESTClient):
         :param timestamp: Only show trades at or after this timestamp
         :param int limit_trades: Limit the number of trades returned. Must be >= 1
         """
-        raise NotImplementedError
+        response = self.public_request(
+            command='trades',
+            params={
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'limit_trades': limit_trades,
+            }
+        )
+        return response
 
     @rate_limit(60, 60)
     def lends(self, currency, timestamp=None, limit_lends=50):
+        # https://docs.bitfinex.com/v1/reference#rest-public-lends
         """
         Lends
 
@@ -87,35 +133,56 @@ class BitfinexREST(RESTClient):
         :param timestamp: Only show data at or after this timestamp
         :param int limit_lends: Limit the amount of funding data returned. Must be >= 1
         """
-        raise NotImplementedError
+        response = self.public_request(
+            command='lends',
+            params={
+                'currency': currency,
+                'timestamp': timestamp,
+                'limit_lends': limit_lends,
+            }
+        )
+        return response
 
     @rate_limit(5, 60)
     def symbols(self):
+        # https://docs.bitfinex.com/v1/reference#rest-public-symbols
         """
         Symbols
 
         A list of symbol names.
         """
-        raise NotImplementedError
+        response = self.public_request(
+            command='symbols',
+        )
+        return response
 
     @rate_limit(5, 60)
-    def symbol_details(self):
+    def symbols_details(self):
+        # https://docs.bitfinex.com/v1/reference#rest-public-symbol-details
         """
         Symbol Details
 
         Get a list of valid symbol IDs and the pair details.
         """
-        raise NotImplementedError
+        response = self.public_request(
+            command='symbols_details',
+        )
+        return response
 
-    def account_infos(self):
+    def account_infos(self, key, secret):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-account-info
         """
         Account Info
 
         Return information about your account (trading fees)
         """
-        raise NotImplementedError
+        response = self.authenticated_request(
+            command='symbols_details',
+        )
+        return response
 
     def account_fees(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-fees
         """
         Account Fees
 
@@ -124,6 +191,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def summary(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-summary
         """
         Summary
 
@@ -132,6 +200,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def deposit_new(self, method, wallet_name, renew=0):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-deposit
         """
         Deposit
 
@@ -146,6 +215,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def key_info(self):
+        # https://docs.bitfinex.com/v1/reference#auth-key-permissions
         """
         Key Permissions
 
@@ -154,6 +224,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def margin_infos(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-margin-information
         """
         Margin Information
 
@@ -163,6 +234,7 @@ class BitfinexREST(RESTClient):
 
     @rate_limit(20, 60)
     def balances(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
         """
         Wallet Balances
 
@@ -171,6 +243,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def transfer(self, amount, currency, walletfrom, walletto):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-transfer-between-wallets
         """
         Transfer Between Wallets
 
@@ -188,6 +261,7 @@ class BitfinexREST(RESTClient):
                  detail_payment=None, express_wire=None, intermediary_bank_name=None, intermediary_bank_address=None,
                  intermediary_bank_city=None, intermediary_bank_country=None, intermediary_bank_account=None,
                  intermediary_bank_swift=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-withdrawal
         """
         Withdrawal
 
@@ -219,6 +293,7 @@ class BitfinexREST(RESTClient):
 
     def order_new(self, symbol, amount, price, side, type_, exchange=None, is_hidden=None, is_postonly=None,
                   use_all_available=None, ocoorder=None, buy_price_oco=None, sell_price_oco=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-new-order
         """
         New Order
 
@@ -242,6 +317,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def order_new_multi(self, symbol, amount, price, side, type_, exchange=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-multiple-new-orders
         """
         Multiple New Orders
 
@@ -257,6 +333,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def order_cancel(self, order_id):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-order
         """
         Cancel Order
 
@@ -267,6 +344,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def order_cancel_multi(self, order_ids):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-multiple-orders
         """
         Cancel Multiple Orders
 
@@ -277,6 +355,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def order_cancel_all(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-all-orders
         """
         Cancel All Orders
 
@@ -286,6 +365,7 @@ class BitfinexREST(RESTClient):
 
     def order_cancel_replace(self, order_id, symbol=None, amount=None, price=None, exchange=None, side=None, type_=None,
                              is_hidden=None, is_postonly=None, use_remaining=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-replace-order
         """
         Replace Order
 
@@ -307,6 +387,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def order_status(self, order_id):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-order-status
         """
         Order Status
 
@@ -317,6 +398,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def orders(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-active-orders
         """
         Active Orders
 
@@ -326,6 +408,7 @@ class BitfinexREST(RESTClient):
 
     @rate_limit(1, 60)
     def orders_hist(self, limit=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-orders-history
         """
         Orders History
 
@@ -337,6 +420,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def positions(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-active-positions
         """
         Active Positions
 
@@ -345,6 +429,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def positions_claim(self, position_id, amount):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-claim-position
         """
         Claim Position
 
@@ -366,6 +451,7 @@ class BitfinexREST(RESTClient):
 
     @rate_limit(20, 60)
     def history(self, currency, since=None, until=None, limit=None, wallet=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-balance-history
         """
         Balance History
 
@@ -382,6 +468,7 @@ class BitfinexREST(RESTClient):
 
     @rate_limit(20, 60)
     def history_movements(self, currency, method=None, since=None, until=None, limit=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-deposit-withdrawal-history
         """
         Deposit-Withdrawal History
 
@@ -397,6 +484,7 @@ class BitfinexREST(RESTClient):
 
     @rate_limit(45, 60)
     def mytrades(self, symbol, timestamp=None, until=None, limit_trades=None, reverse=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-past-trades
         """
         Past Trades
 
@@ -412,6 +500,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def offer_new(self, currency, amount, rate, period, direction):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-new-offer
         """
         New Offer
 
@@ -426,6 +515,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def offer_cancel(self, offer_id):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-offer
         """
         Cancel Offer
 
@@ -436,6 +526,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def offer_status(self, offer_id):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-offer-status
         """
         Offer Status
 
@@ -446,6 +537,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def credits(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-active-credits
         """
         Active Credits
 
@@ -454,6 +546,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def offers(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-offers
         """
         Offers
 
@@ -463,6 +556,7 @@ class BitfinexREST(RESTClient):
 
     @rate_limit(1, 60)
     def offer_hist(self, limit=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-offers-hist
         """
         Offers History
 
@@ -475,6 +569,7 @@ class BitfinexREST(RESTClient):
 
     @rate_limit(45, 60)
     def mytrades_funding(self, symbol, until=None, limit_trades=None):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-mytrades-funding
         """
         Past Funding Trades
 
@@ -487,12 +582,14 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def taken_funds(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-used-in-a-margin-position
         """
         Active Funding Used in a margin position
         """
         raise NotImplementedError
 
     def unused_taken_funds(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-not-used-in-a-margin-position
         """
         Active Funding Not Used in a margin position
 
@@ -501,6 +598,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def total_taken_funds(self):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-total-taken-funds
         """
         Total Taken Funds
 
@@ -509,6 +607,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def funding_close(self, swap_id):
+        # https://docs.bitfinex.com/v1/reference#rest-auth-close-margin-funding
         """
         Close Margin Funding
 
@@ -518,6 +617,7 @@ class BitfinexREST(RESTClient):
         """
         raise NotImplementedError
 
+    # https://docs.bitfinex.com/v1/reference#basket-manage
     def basket_manage(self, amount=None, dir_=None, name=None):
         """
         Basket Manage
@@ -532,6 +632,7 @@ class BitfinexREST(RESTClient):
         raise NotImplementedError
 
     def positions_close(self, position_id):
+        # https://docs.bitfinex.com/v1/reference#close-position
         """
         Close Position
 

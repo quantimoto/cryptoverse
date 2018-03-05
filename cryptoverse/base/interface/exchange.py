@@ -1,81 +1,118 @@
+from ...domain import Order, Offer, Orders, Offers
+
+
 class ExchangeInterface(object):
-    name = 'dingen'
+    rest = None
 
-    def __init__(self):
-        pass
+    def __str__(self):
+        return repr(self)
 
-    def instruments(self):
-        self.name
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return '{}()'.format(class_name)
+
+    def instruments(self, *args, **kwargs):
         raise NotImplementedError
 
-    def pairs(self):
+    def pairs(self, *args, **kwargs):
         raise NotImplementedError
 
-    def markets(self):
+    def markets(self, *args, **kwargs):
         raise NotImplementedError
 
-    def fees(self):
+    def fees(self, *args, **kwargs):
         raise NotImplementedError
 
-    def orderbook(self):
+    def ticker(self, *args, **kwargs):
         raise NotImplementedError
 
-    def fundingbook(self):
+    def orders(self, *args, **kwargs):
         raise NotImplementedError
 
-    def trades(self):
+    def offers(self, *args, **kwargs):
         raise NotImplementedError
 
-    def lends(self):
+    def trades(self, *args, **kwargs):
         raise NotImplementedError
 
-    def place(self):
+    def lends(self, *args, **kwargs):
         raise NotImplementedError
 
-    def cancel(self):
+    def place_order(self, *args, **kwargs):
         raise NotImplementedError
 
-    def replace(self):
+    def cancel_order(self, *args, **kwargs):
         raise NotImplementedError
 
-    def status(self):
+    def replace_order(self, *args, **kwargs):
         raise NotImplementedError
 
-    def place_order(self):
+    def update_order(self, *args, **kwargs):
         raise NotImplementedError
 
-    def cancel_order(self):
+    def cancel_all_orders(self, *args, **kwargs):
         raise NotImplementedError
 
-    def replace_order(self):
+    def place_offer(self, *args, **kwargs):
         raise NotImplementedError
 
-    def order_status(self):
+    def cancel_offer(self, *args, **kwargs):
         raise NotImplementedError
 
-    def cancel_all_orders(self):
+    def replace_offer(self, *args, **kwargs):
         raise NotImplementedError
 
-    def place_offer(self):
+    def update_offer(self, *args, **kwargs):
         raise NotImplementedError
 
-    def cancel_offers(self):
+    def cancel_all_offers(self, *args, **kwargs):
         raise NotImplementedError
 
-    def replace_offer(self):
+    def place(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.place_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.place_offer(obj)
+        return obj
+
+    def cancel(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.cancel_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.cancel_offer(obj)
+        return obj
+
+    def replace(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.replace_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.replace_offer(obj)
+        return obj
+
+    def update(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.update_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.update_offer(obj)
+        return obj
+
+    def my_orders(self, *args, **kwargs):
         raise NotImplementedError
 
-    def orders(self):
+    def my_trades(self, *args, **kwargs):
         raise NotImplementedError
 
-    def update_orders(self):
+    def my_offers(self, *args, **kwargs):
         raise NotImplementedError
 
-    def balances(self):
+    def my_lends(self, *args, **kwargs):
         raise NotImplementedError
 
-    def deposits(self):
+    def my_balances(self, *args, **kwargs):
         raise NotImplementedError
-    
-    def withdraws(self):
+
+    def my_deposits(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def my_withdraws(self, *args, **kwargs):
         raise NotImplementedError
