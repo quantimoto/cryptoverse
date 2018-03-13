@@ -34,6 +34,7 @@ class RESTClient(object):
             )
             return response
 
+    @retry(exceptions=requests.exceptions.ConnectionError, tries=3, delay=0, max_delay=None, backoff=1)
     @retry(exceptions=requests.exceptions.ReadTimeout, tries=3, delay=0, max_delay=None, backoff=1)
     def request(self, method, url, params=None, data=None, headers=None, timeout=None, allow_redirects=True,
                 verify=None):
