@@ -79,17 +79,17 @@ class Account(object):
     def set_exchange(self, exchange):
         self.exchange = exchange
 
-    def set_credentials(self, credentials):
-        self.credentials = credentials
-
-    def set_label(self, label):
-        self.label = label
-
     def get_exchange(self):
         return self.exchange
 
+    def set_credentials(self, credentials):
+        self.credentials = credentials
+
     def get_credentials(self):
         return self.credentials
+
+    def set_label(self, label):
+        self.label = label
 
     def get_label(self):
         return self.label
@@ -107,6 +107,9 @@ class Account(object):
         raise NotImplementedError
 
     def lends(self):
+        raise NotImplementedError
+
+    def wallets(self):
         raise NotImplementedError
 
     def balances(self):

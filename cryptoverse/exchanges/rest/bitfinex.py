@@ -20,7 +20,7 @@ class BitfinexREST(RESTClient):
             symbols() endpoint.
         """
 
-        response = self.public_request(
+        response = self.public_query(
             command='pubticker',
             params={
                 'symbol': symbol,
@@ -39,7 +39,7 @@ class BitfinexREST(RESTClient):
         :param str symbol: The symbol you want information about. You can find the list of valid symbols by calling the
             symbols() endpoint.
         """
-        response = self.public_request(
+        response = self.public_query(
             command='stats',
             params={
                 'symbol': symbol,
@@ -61,7 +61,7 @@ class BitfinexREST(RESTClient):
         :param int limit_asks: Limit the number of funding offers returned. May be 0 in which case the array of asks is
             empty
         """
-        response = self.public_request(
+        response = self.public_query(
             command='lendbook',
             params={
                 'currency': currency,
@@ -86,7 +86,7 @@ class BitfinexREST(RESTClient):
         :param int group: If 1, orders are grouped by price in the orderbook. If 0, orders are not grouped and sorted
             individually
         """
-        response = self.public_request(
+        response = self.public_query(
             command='book',
             params={
                 'symbol': symbol,
@@ -110,7 +110,7 @@ class BitfinexREST(RESTClient):
         :param timestamp: Only show trades at or after this timestamp
         :param int limit_trades: Limit the number of trades returned. Must be >= 1
         """
-        response = self.public_request(
+        response = self.public_query(
             command='trades',
             params={
                 'symbol': symbol,
@@ -133,7 +133,7 @@ class BitfinexREST(RESTClient):
         :param timestamp: Only show data at or after this timestamp
         :param int limit_lends: Limit the amount of funding data returned. Must be >= 1
         """
-        response = self.public_request(
+        response = self.public_query(
             command='lends',
             params={
                 'currency': currency,
@@ -151,7 +151,7 @@ class BitfinexREST(RESTClient):
 
         A list of symbol names.
         """
-        response = self.public_request(
+        response = self.public_query(
             command='symbols',
         )
         return response
@@ -164,7 +164,7 @@ class BitfinexREST(RESTClient):
 
         Get a list of valid symbol IDs and the pair details.
         """
-        response = self.public_request(
+        response = self.public_query(
             command='symbols_details',
         )
         return response
@@ -176,7 +176,9 @@ class BitfinexREST(RESTClient):
 
         Return information about your account (trading fees)
         """
-        response = self.authenticated_request(
+        response = self.authenticated_query(
+            key=key,
+            secret=secret,
             command='symbols_details',
         )
         return response

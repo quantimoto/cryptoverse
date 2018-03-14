@@ -36,5 +36,6 @@ class Exchange(object):
         markets = self.interface.get_markets()
         self.instruments = markets
 
+
 class Exchanges(ObjectList):
     pass

@@ -2,7 +2,26 @@ from ...domain import Order, Offer, Orders, Offers
 
 
 class ExchangeInterface(object):
+    # Methods names in this class should to be very explicit
     rest = None
+
+    def place_single_order(self):
+        raise NotImplementedError
+
+    def place_multiple_orders(self):
+        raise NotImplementedError
+
+    def update_single_order(self):
+        raise NotImplementedError
+
+    def update_multiple_orders(self):
+        raise NotImplementedError
+
+    def get_open_orders(self):
+        raise NotImplementedError
+
+    def get_instruments(self):
+        raise NotImplementedError
 
     def __str__(self):
         return repr(self)

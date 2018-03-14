@@ -10,9 +10,6 @@ class TestRESTClient(TestCase):
             base_url = 'https://httpbin.org'
             public_endpoint = '/{command}'
 
-            def get(self):
-
-
         my_client = MyClient()
 
-        my_client.public_request('get')
+        print(my_client.public_request('get'))

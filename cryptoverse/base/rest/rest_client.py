@@ -10,12 +10,13 @@ class RESTClient(object):
     session = None
 
     base_url = None
-    endpoint = None
+    public_endpoint = None
+    authenticated_endpoint = None
 
-    def public_request(self, command, version=1, params=None):
-        if self.base_url is not None and self.endpoint is not None:
-            url = '{}{}'.format(self.base_url, self.endpoint)
-            self.request(
+    def public_query(self, command, version=1, params=None):
+        if self.base_url is not None and self.public_endpoint is not None:
+            url = '{}{}'.format(self.base_url, self.public_endpoint)
+            response = self.request(
                 method='GET',
                 url=url,
             )
@@ -25,10 +26,10 @@ class RESTClient(object):
     def nonce():
         return str(long(time.time() * 100000))
 
-    def authenticated_request(self, command, version=1, params=None):
-        if self.base_url is not None and self.endpoint is not None:
-            url = '{}{}'.format(self.base_url, self.endpoint)
-            self.request(
+    def authenticated_query(self, key, secret, command, version=1, params=None):
+        if self.base_url is not None and self.public_endpoint is not None:
+            url = '{}{}'.format(self.base_url, self.public_endpoint)
+            response = self.request(
                 method='POST',
                 url=url,
             )
@@ -36,8 +37,8 @@ class RESTClient(object):
 
     @retry(exceptions=requests.exceptions.ConnectionError, tries=3, delay=0, max_delay=None, backoff=1)
     @retry(exceptions=requests.exceptions.ReadTimeout, tries=3, delay=0, max_delay=None, backoff=1)
-    def request(self, method, url, params=None, data=None, headers=None, timeout=None, allow_redirects=True,
-                verify=None):
+    def query(self, method, url, params=None, data=None, headers=None, timeout=None, allow_redirects=True,
+              verify=None):
         if self.session is None:
             self.session = requests.Session()
 
@@ -53,4 +54,3 @@ class RESTClient(object):
         )
 
         return response
-
