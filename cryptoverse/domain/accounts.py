@@ -56,7 +56,9 @@ class Account(object):
     credentials = None
     label = None
 
-    __all__ = ['orders', 'trades', 'positions', 'offers', 'lends', 'balances', 'deposits', 'withdraws']
+    __all__ = ['orders', 'trades', 'positions', 'offers', 'lends', 'wallets', 'balances', 'deposits', 'withdraws',
+               'create_order', 'create_offer', 'create_deposit_address', 'create_withdraw', 'create_transfer', 'place',
+               'cancel', 'replace', 'update']
 
     def __init__(self, exchange=None, credentials=None, label=None):
         self.set_exchange(exchange)
@@ -68,13 +70,12 @@ class Account(object):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        kwargstrings = list()
-        for kw in ['exchange', 'credentials', 'label']:
-            if kw in self.__dict__.keys():
-                arg = self.__dict__[kw]
-                if arg is not None:
-                    kwargstrings.append('{}={}'.format(kw, arg))
-        return '{}({})'.format(class_name, ', '.join(kwargstrings))
+        attributes = list()
+        for key in ['exchange', 'credentials', 'label']:
+            value = self.__dict__[key]
+            if value is not None:
+                attributes.append('{}={!r}'.format(key, value))
+        return '{class_name}({attributes})'.format(class_name=class_name, attributes=', '.join(attributes))
 
     def set_exchange(self, exchange):
         self.exchange = exchange
@@ -120,6 +121,49 @@ class Account(object):
 
     def withdraws(self):
         raise NotImplementedError
+
+    def create_order(self):
+        raise NotImplementedError
+
+    def create_offer(self):
+        raise NotImplementedError
+
+    def create_deposit_address(self):
+        raise NotImplementedError
+
+    def create_withdraw(self):
+        raise NotImplementedError
+
+    def create_transfer(self):
+        raise NotImplementedError
+
+    def place(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.place_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.place_offer(obj)
+        return obj
+
+    def cancel(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.cancel_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.cancel_offer(obj)
+        return obj
+
+    def replace(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.replace_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.replace_offer(obj)
+        return obj
+
+    def update(self, obj):
+        if type(obj) is Order or type(obj) is Orders:
+            self.update_order(obj)
+        elif type(obj) is Offer or type(obj) is Offers:
+            self.update_offer(obj)
+        return obj
 
 
 class Accounts(ObjectList):

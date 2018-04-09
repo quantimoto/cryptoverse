@@ -3,15 +3,52 @@ from ...base.rest import RESTClient
 
 class PoloniexREST(RESTClient):
     # https://poloniex.com/support/api/
-    base_url = 'https://poloniex.com/public'
-    public_endpoint = 'https://poloniex.com/public'
-    authenticated_endpoint = 'https://poloniex.com/tradingApi'
+    """
+    Complete implementation of the Poloniex REST-api as documented at:
+    https://poloniex.com/support/api/
+    """
+
+    base_url = 'https://poloniex.com'
+    url_structure = '{base_url}/{endpoint}'
+
+    # Authentication methods
+
+    def get_headers(self, credentials, payload):
+        headers = {
+            'Key': credentials['key'],
+            'Sign': self.get_signature(credentials, payload)
+        }
+        return headers
+
+    def get_payload(self, params):
+        payload = {
+            'nonce': self.nonce(),
+            'command': params['command'],
+        }
+        payload.update(params)
+        return payload
+
+    def get_signature(self, credentials, payload):
+        payload = urllib.urlencode(payload)
+        m = hmac.new(credentials['secret'], payload, hashlib.sha512)
+        signature = m.hexdigest()
+        return signature
+
+    #
+    # Public Endpoints
+    #
 
     def return_ticker(self):
         """
         Returns the ticker for all markets.
         """
-        pass
+
+        response = self.query(
+            endpoint='public',
+            command='returnTicker',
+        )
+
+        return response
 
     def return_24_volume(self):
         """
@@ -55,11 +92,21 @@ class PoloniexREST(RESTClient):
         """
         pass
 
+    #
+    # Authenticated Endpoints
+    #
+
     def return_balances(self):
         """
         Returns all of your available balances.
         """
-        pass
+
+        response = self.query(
+            endpoint='tradingApi',
+            command='returnBalances',
+        )
+
+        return response
 
     def return_complete_balances(self):
         """

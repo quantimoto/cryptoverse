@@ -2,7 +2,9 @@ from .object_list import ObjectList
 
 
 class Exchange(object):
+    # High level exchange access. Simple friendly methods with smart responses
     interface = None
+    rest_client = None
 
     instruments = None
     pairs = None
@@ -23,19 +25,29 @@ class Exchange(object):
 
     def set_interface(self, obj):
         self.interface = obj
+        self.rest_client = obj.rest_client
 
-    def set_instruments(self):
+    def set_rest_client(self):
+        if self.interface is not None:
+            self.rest_client = self.interface.rest_client
+
+    def update_instruments(self):
         instruments = self.interface.get_instruments()
         self.instruments = instruments
 
-    def set_pairs(self):
-        pairs = self.interface.get_pairs()
-        self.instruments = pairs
-
-    def set_markets(self):
+    def update_markets(self):
         markets = self.interface.get_markets()
         self.instruments = markets
 
 
 class Exchanges(ObjectList):
-    pass
+
+    def __getattr__(self, item):
+        for exchange in self:
+            if exchange.interface.slug == item:
+                return exchange
+
+    def __getitem__(self, item):
+        for exchange in self:
+            if exchange.interface.slug == item:
+                return exchange

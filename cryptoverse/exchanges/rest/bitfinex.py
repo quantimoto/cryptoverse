@@ -1,12 +1,21 @@
-from ...base.rest import RESTClient, rate_limit
+from ...base.rest import RESTClient
 
 
 class BitfinexREST(RESTClient):
-    base_url = 'https://api.bitfinex.com'
-    public_endpoint = '/v{version}/{command}'
-    authenticated_endpoint = '/v{version}/{command}'
+    # https://docs.bitfinex.com/docs
+    """
+    Complete implementation of the Bitfinex REST-api as documented at:
+    https://docs.bitfinex.com/docs
+    """
 
-    @rate_limit(30, 60)
+    url_structure = '{base_url}/v{version}/{endpoint}'
+    base_url = 'https://api.bitfinex.com'
+
+    #
+    # V1 Public Endpoints
+    #
+
+    # @rate_limit(30, 60)
     def pubticker(self, symbol):
         # https://docs.bitfinex.com/v1/reference#rest-public-ticker
         """
@@ -20,15 +29,18 @@ class BitfinexREST(RESTClient):
             symbols() endpoint.
         """
 
-        response = self.public_query(
-            command='pubticker',
+        response = self.query(
+            method='GET',
+            endpoint='pubticker/{symbol}',
             params={
+                'version': 1,
                 'symbol': symbol,
-            }
+            },
         )
+
         return response
 
-    @rate_limit(10, 60)
+    # @rate_limit(10, 60)
     def stats(self, symbol):
         # https://docs.bitfinex.com/v1/reference#rest-public-stats
         """
@@ -39,15 +51,19 @@ class BitfinexREST(RESTClient):
         :param str symbol: The symbol you want information about. You can find the list of valid symbols by calling the
             symbols() endpoint.
         """
-        response = self.public_query(
-            command='stats',
+
+        response = self.query(
+            method='GET',
+            endpoint='stats/{symbol}',
             params={
+                'version': 1,
                 'symbol': symbol,
-            }
+            },
         )
+
         return response
 
-    @rate_limit(45, 60)
+    # @rate_limit(45, 60)
     def lendbook(self, currency, limit_bids=50, limit_asks=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-fundingbook
         """
@@ -61,17 +77,21 @@ class BitfinexREST(RESTClient):
         :param int limit_asks: Limit the number of funding offers returned. May be 0 in which case the array of asks is
             empty
         """
-        response = self.public_query(
-            command='lendbook',
+
+        response = self.query(
+            method='GET',
+            endpoint='lendbook/{currency}',
             params={
+                'version': 1,
                 'currency': currency,
                 'limit_bids': limit_bids,
                 'limit_asks': limit_asks,
-            }
+            },
         )
+
         return response
 
-    @rate_limit(60, 60)
+    # @rate_limit(60, 60)
     def book(self, symbol, limit_bids=50, limit_asks=50, group=1):
         # https://docs.bitfinex.com/v1/reference#rest-public-orderbook
         """
@@ -86,18 +106,21 @@ class BitfinexREST(RESTClient):
         :param int group: If 1, orders are grouped by price in the orderbook. If 0, orders are not grouped and sorted
             individually
         """
-        response = self.public_query(
-            command='book',
+        response = self.query(
+            method='GET',
+            endpoint='book/{symbol}',
             params={
+                'version': 1,
                 'symbol': symbol,
                 'limit_bids': limit_bids,
                 'limit_asks': limit_asks,
                 'group': group,
-            }
+            },
         )
+
         return response
 
-    @rate_limit(45, 60)
+    # @rate_limit(45, 60)
     def trades(self, symbol, timestamp=None, limit_trades=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-trades
         """
@@ -110,17 +133,19 @@ class BitfinexREST(RESTClient):
         :param timestamp: Only show trades at or after this timestamp
         :param int limit_trades: Limit the number of trades returned. Must be >= 1
         """
-        response = self.public_query(
-            command='trades',
+        response = self.query(
+            method='GET',
+            endpoint='trades/{symbol}',
             params={
+                'version': 1,
                 'symbol': symbol,
                 'timestamp': timestamp,
                 'limit_trades': limit_trades,
-            }
+            },
         )
         return response
 
-    @rate_limit(60, 60)
+    # @rate_limit(60, 60)
     def lends(self, currency, timestamp=None, limit_lends=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-lends
         """
@@ -133,17 +158,21 @@ class BitfinexREST(RESTClient):
         :param timestamp: Only show data at or after this timestamp
         :param int limit_lends: Limit the amount of funding data returned. Must be >= 1
         """
-        response = self.public_query(
-            command='lends',
+
+        response = self.query(
+            method='GET',
+            endpoint='lends/{currency}',
             params={
+                'version': 1,
                 'currency': currency,
                 'timestamp': timestamp,
                 'limit_lends': limit_lends,
-            }
+            },
         )
+
         return response
 
-    @rate_limit(5, 60)
+    # @rate_limit(5, 60)
     def symbols(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbols
         """
@@ -151,12 +180,18 @@ class BitfinexREST(RESTClient):
 
         A list of symbol names.
         """
-        response = self.public_query(
-            command='symbols',
+
+        response = self.query(
+            method='GET',
+            endpoint='symbols',
+            params={
+                'version': 1,
+            },
         )
+
         return response
 
-    @rate_limit(5, 60)
+    # @rate_limit(5, 60)
     def symbols_details(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbol-details
         """
@@ -164,33 +199,58 @@ class BitfinexREST(RESTClient):
 
         Get a list of valid symbol IDs and the pair details.
         """
-        response = self.public_query(
-            command='symbols_details',
+
+        response = self.query(
+            method='GET',
+            endpoint='symbols_details',
+            params={
+                'version': 1,
+            },
         )
+
         return response
 
-    def account_infos(self, key, secret):
+    #
+    # V1 Authenticated Endpoints
+    #
+
+    def account_infos(self, credentials):
         # https://docs.bitfinex.com/v1/reference#rest-auth-account-info
         """
         Account Info
 
         Return information about your account (trading fees)
         """
-        response = self.authenticated_query(
-            key=key,
-            secret=secret,
-            command='symbols_details',
+
+        response = self.query(
+            method='POST',
+            endpoint='account_infos',
+            credentials=credentials,
+            params={
+                'version': 1,
+            },
         )
+
         return response
 
-    def account_fees(self):
+    def account_fees(self, credentials):
         # https://docs.bitfinex.com/v1/reference#rest-auth-fees
         """
         Account Fees
 
         See the fees applied to your withdrawals
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='account_fees',
+            credentials=credentials,
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def summary(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-summary
@@ -199,7 +259,17 @@ class BitfinexREST(RESTClient):
 
         Returns a 30-day summary of your trading volume and return on margin funding.
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='summary',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def deposit_new(self, method, wallet_name, renew=0):
         # https://docs.bitfinex.com/v1/reference#rest-auth-deposit
@@ -214,7 +284,22 @@ class BitfinexREST(RESTClient):
             already exist
         :param int renew: Default is 0. If set to 1, will return a new unused deposit address
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='deposit/new',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'method': method,
+                'wallet_name': wallet_name,
+                'renew': renew,
+            },
+        )
+
+        return response
 
     def key_info(self):
         # https://docs.bitfinex.com/v1/reference#auth-key-permissions
@@ -223,7 +308,17 @@ class BitfinexREST(RESTClient):
 
         Check the permissions of the key being used to generate this request.
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='key_info',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def margin_infos(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-margin-information
@@ -232,9 +327,19 @@ class BitfinexREST(RESTClient):
 
         See your trading wallet information for margin trading.
         """
-        raise NotImplementedError
 
-    @rate_limit(20, 60)
+        response = self.query(
+            method='POST',
+            endpoint='margin_infos',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
+
+    # @rate_limit(20, 60)
     def balances(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
         """
@@ -242,7 +347,17 @@ class BitfinexREST(RESTClient):
 
         See your balances
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='balances',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def transfer(self, amount, currency, walletfrom, walletto):
         # https://docs.bitfinex.com/v1/reference#rest-auth-transfer-between-wallets
@@ -256,7 +371,23 @@ class BitfinexREST(RESTClient):
         :param str walletfrom: Wallet to transfer from. Can be "trading", "deposit" or "exchange"
         :param str walletto: Wallet to transfer to. Can be "trading", "deposit" or "exchange"
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='transfer',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'amount': amount,
+                'currency': currency,
+                'walletfrom': walletfrom,
+                'walletto': walletto,
+            },
+        )
+
+        return response
 
     def withdraw(self, withdraw_type, walletselected, amount, address, payment_id=None, account_name=None,
                  account_number=None, swift=None, bank_name=None, bank_address=None, bank_city=None, bank_country=None,
@@ -291,7 +422,41 @@ class BitfinexREST(RESTClient):
         :param str intermediary_bank_account: Intermediary bank account
         :param str intermediary_bank_swift: Intermediary bank SWIFT
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='withdraw',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'withdraw_type': withdraw_type,
+                'walletselected': walletselected,
+                'amount': amount,
+                'address': address,
+                'payment_id': payment_id,
+                'account_name': account_name,
+                'account_number': account_number,
+                'swift': swift,
+                'bank_name': bank_name,
+                'bank_address': bank_address,
+                'bank_city': bank_city,
+                'bank_country': bank_country,
+                'detail_payment': detail_payment,
+                'express_wire': express_wire,
+                'intermediary_bank_name': intermediary_bank_name,
+                'intermediary_bank_address': intermediary_bank_address,
+                'intermediary_bank_city': intermediary_bank_city,
+                'intermediary_bank_country': intermediary_bank_country,
+                'intermediary_bank_account': intermediary_bank_account,
+                'intermediary_bank_swift': intermediary_bank_swift,
+            },
+        )
+
+        return response
+
+    # Orders
 
     def order_new(self, symbol, amount, price, side, type_, exchange=None, is_hidden=None, is_postonly=None,
                   use_all_available=None, ocoorder=None, buy_price_oco=None, sell_price_oco=None):
@@ -316,7 +481,31 @@ class BitfinexREST(RESTClient):
         :param float buy_price_oco: If ocoorder is true, this field represent the price of the OCO stop order to place
         :param float sell_price_oco: If ocoorder is true, this field represent the price of the OCO stop order to place
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='order/new',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'symbol': symbol,
+                'amount': amount,
+                'price': price,
+                'side': side,
+                'type_': type_,
+                'exchange': exchange,
+                'is_hidden': is_hidden,
+                'is_postonly': is_postonly,
+                'use_all_available': use_all_available,
+                'ocoorder': ocoorder,
+                'buy_price_oco': buy_price_oco,
+                'sell_price_oco': sell_price_oco,
+            },
+        )
+
+        return response
 
     def order_new_multi(self, symbol, amount, price, side, type_, exchange=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-multiple-new-orders
@@ -332,7 +521,25 @@ class BitfinexREST(RESTClient):
         :param str type_: Either "market" / "limit" / "stop" / "trailing-stop" / "fill-or-kill".
         :param str exchange: "bitfinex"
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='order/new/multi',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'symbol': symbol,
+                'amount': amount,
+                'price': price,
+                'side': side,
+                'type': type_,
+                'exchange': exchange,
+            },
+        )
+
+        return response
 
     def order_cancel(self, order_id):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-order
@@ -343,7 +550,20 @@ class BitfinexREST(RESTClient):
 
         :param int order_id: The order ID given by order_new()
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='order/cancel',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'order_id': order_id,
+            },
+        )
+
+        return response
 
     def order_cancel_multi(self, order_ids):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-multiple-orders
@@ -354,7 +574,20 @@ class BitfinexREST(RESTClient):
 
         :param list(int) order_ids: An array of the order IDs given by order_new() or order_new_multi().
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='order/cancel/multi',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'order_ids': order_ids,
+            },
+        )
+
+        return response
 
     def order_cancel_all(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-all-orders
@@ -363,7 +596,17 @@ class BitfinexREST(RESTClient):
 
         Cancel all active orders at once.
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='order/cancel/all',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def order_cancel_replace(self, order_id, symbol=None, amount=None, price=None, exchange=None, side=None, type_=None,
                              is_hidden=None, is_postonly=None, use_remaining=None):
@@ -386,7 +629,29 @@ class BitfinexREST(RESTClient):
         :param bool is_postonly: true if the order should be post only. Only relevant for limit orders.
         :param bool use_remaining: True if the new order should use the remaining amount of the original order.
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='order/cancel/replace',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'order_id': order_id,
+                'symbol': symbol,
+                'amount': amount,
+                'price': price,
+                'exchange': exchange,
+                'side': side,
+                'type_': type_,
+                'is_hidden': is_hidden,
+                'is_postonly': is_postonly,
+                'use_remaining': use_remaining,
+            },
+        )
+
+        return response
 
     def order_status(self, order_id):
         # https://docs.bitfinex.com/v1/reference#rest-auth-order-status
@@ -397,7 +662,20 @@ class BitfinexREST(RESTClient):
 
         :param int order_id: The order ID given by order_new()
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='order/status',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'order_id': order_id,
+            },
+        )
+
+        return response
 
     def orders(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-orders
@@ -406,9 +684,19 @@ class BitfinexREST(RESTClient):
 
         View your active orders.
         """
-        raise NotImplementedError
 
-    @rate_limit(1, 60)
+        response = self.query(
+            method='POST',
+            endpoint='orders',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
+
+    # @rate_limit(1, 60)
     def orders_hist(self, limit=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-orders-history
         """
@@ -419,7 +707,22 @@ class BitfinexREST(RESTClient):
 
         :param int limit: Limit number of results
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='orders/hist',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'limit': limit,
+            },
+        )
+
+        return response
+
+    # Positions
 
     def positions(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-positions
@@ -428,7 +731,17 @@ class BitfinexREST(RESTClient):
 
         View your active positions.
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='positions',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def positions_claim(self, position_id, amount):
         # https://docs.bitfinex.com/v1/reference#rest-auth-claim-position
@@ -449,9 +762,25 @@ class BitfinexREST(RESTClient):
         :param int position_id: The position ID given by positions()
         :param float amount: The partial amount you wish to claim.
         """
-        raise NotImplementedError
 
-    @rate_limit(20, 60)
+        response = self.query(
+            method='POST',
+            endpoint='position/claim',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'position_id': position_id,
+                'amount': amount,
+            },
+        )
+
+        return response
+
+    # Historical Data
+
+    # @rate_limit(20, 60)
     def history(self, currency, since=None, until=None, limit=None, wallet=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-balance-history
         """
@@ -466,9 +795,26 @@ class BitfinexREST(RESTClient):
         :param str wallet: Return only entries that took place in this wallet. Accepted inputs are: "trading",
             "exchange", "deposit".
         """
-        raise NotImplementedError
 
-    @rate_limit(20, 60)
+        response = self.query(
+            method='POST',
+            endpoint='history',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'currency': currency,
+                'since': since,
+                'until': until,
+                'limit': limit,
+                'wallet': wallet,
+            },
+        )
+
+        return response
+
+    # @rate_limit(20, 60)
     def history_movements(self, currency, method=None, since=None, until=None, limit=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-deposit-withdrawal-history
         """
@@ -482,9 +828,26 @@ class BitfinexREST(RESTClient):
         :param until: Return only the history before this timestamp.
         :param int limit: Limit the number of entries to return.
         """
-        raise NotImplementedError
 
-    @rate_limit(45, 60)
+        response = self.query(
+            method='POST',
+            endpoint='history/movements',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'currency': currency,
+                'method': method,
+                'since': since,
+                'until': until,
+                'limit': limit,
+            },
+        )
+
+        return response
+
+    # @rate_limit(45, 60)
     def mytrades(self, symbol, timestamp=None, until=None, limit_trades=None, reverse=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-past-trades
         """
@@ -499,7 +862,26 @@ class BitfinexREST(RESTClient):
         :param int reverse: Return trades in reverse order (the oldest comes first). Default is returning newest trades
             first.
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='mytrades',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'until': until,
+                'limit_trades': limit_trades,
+                'reverse': reverse,
+            },
+        )
+
+        return response
+
+    # Margin Funding
 
     def offer_new(self, currency, amount, rate, period, direction):
         # https://docs.bitfinex.com/v1/reference#rest-auth-new-offer
@@ -514,7 +896,24 @@ class BitfinexREST(RESTClient):
         :param int period: Number of days of the funding contract (in days)
         :param str direction: Either "lend" or "loan".
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='offer/new',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'currency': currency,
+                'amount': amount,
+                'rate': rate,
+                'period': period,
+                'direction': direction,
+            },
+        )
+
+        return response
 
     def offer_cancel(self, offer_id):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-offer
@@ -525,7 +924,20 @@ class BitfinexREST(RESTClient):
         
         :param int offer_id: The offer ID given by offer_new().
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='offer/cancel',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'order_id': offer_id,
+            },
+        )
+
+        return response
 
     def offer_status(self, offer_id):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offer-status
@@ -536,7 +948,20 @@ class BitfinexREST(RESTClient):
         
         :param int offer_id: The offer ID given by offer_new().
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='offer/status',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'offer_id': offer_id,
+            },
+        )
+
+        return response
 
     def credits(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-credits
@@ -545,7 +970,17 @@ class BitfinexREST(RESTClient):
 
         View your funds currently taken (active credits).
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='credits',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def offers(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offers
@@ -554,9 +989,19 @@ class BitfinexREST(RESTClient):
 
         View your active offers.
         """
-        raise NotImplementedError
 
-    @rate_limit(1, 60)
+        response = self.query(
+            method='POST',
+            endpoint='offers',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
+
+    # @rate_limit(1, 60)
     def offer_hist(self, limit=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offers-hist
         """
@@ -567,9 +1012,22 @@ class BitfinexREST(RESTClient):
         
         :param int limit: Limit number of results
         """
-        raise NotImplementedError
 
-    @rate_limit(45, 60)
+        response = self.query(
+            method='POST',
+            endpoint='offers/hist',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'limit': limit,
+            },
+        )
+
+        return response
+
+    # @rate_limit(45, 60)
     def mytrades_funding(self, symbol, until=None, limit_trades=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-mytrades-funding
         """
@@ -581,14 +1039,39 @@ class BitfinexREST(RESTClient):
         :param until: Trades made after this timestamp won't be returned.
         :param int limit_trades: Limit the number of trades returned.
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='mytrades_funding',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'symbol': symbol,
+                'until': until,
+                'limit_trades': limit_trades,
+            },
+        )
+
+        return response
 
     def taken_funds(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-used-in-a-margin-position
         """
         Active Funding Used in a margin position
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='taken_funds',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def unused_taken_funds(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-not-used-in-a-margin-position
@@ -597,7 +1080,17 @@ class BitfinexREST(RESTClient):
 
         View your funding currently borrowed and not used (available for a new margin position).
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='unused_taken_funds',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def total_taken_funds(self):
         # https://docs.bitfinex.com/v1/reference#rest-auth-total-taken-funds
@@ -606,7 +1099,17 @@ class BitfinexREST(RESTClient):
 
         View the total of your active funding used in your position(s).
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='total_taken_funds',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+        )
+
+        return response
 
     def funding_close(self, swap_id):
         # https://docs.bitfinex.com/v1/reference#rest-auth-close-margin-funding
@@ -617,7 +1120,20 @@ class BitfinexREST(RESTClient):
 
         :param int swap_id: The ID given by taken_funds() or unused_taken_funds()
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='funding/close',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'swap_id': swap_id,
+            },
+        )
+
+        return response
 
     # https://docs.bitfinex.com/v1/reference#basket-manage
     def basket_manage(self, amount=None, dir_=None, name=None):
@@ -631,7 +1147,22 @@ class BitfinexREST(RESTClient):
         :param int dir_: 1 to split, -1 to merge
         :param str name: the symbol of the token pair you wish to create or destroy
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='basket_manage',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'amount': amount,
+                'dir': dir_,
+                'name': name,
+            },
+        )
+
+        return response
 
     def positions_close(self, position_id):
         # https://docs.bitfinex.com/v1/reference#close-position
@@ -642,4 +1173,365 @@ class BitfinexREST(RESTClient):
 
         :param int position_id: The position ID given by positions().
         """
-        raise NotImplementedError
+
+        response = self.query(
+            method='POST',
+            endpoint='position/close',
+            credentials={'key': 'asdf', 'secret': 'asdf'},
+            params={
+                'version': 1,
+            },
+            data={
+                'position_id': position_id,
+            },
+        )
+
+        return response
+
+    #
+    # V2 Public Endpoints
+    #
+
+    def platform_status(self):
+        # https://docs.bitfinex.com/v2/reference#rest-public-platform-status
+        """
+        Platform Status
+
+        Get the current status of the platform.
+        Maintenance periods last for just few minutes and might be necessary from time to time during upgrades of core
+        components of our infrastructure.
+        Even if rare it is important to have a way to notify users.
+        For a real-time notification we suggest to use websockets and listen to events 20060/20061
+
+        Maintenance mode
+        When the platform is marked in maintenance mode bots should stop trading activity. Cancelling orders will be
+        still possible.
+        """
+
+        response = self.query(
+            method='GET',
+            endpoint='platform/status',
+            params={
+                'version': 2,
+            },
+        )
+
+        return response
+
+    def tickers(self, symbols):
+        # https://docs.bitfinex.com/v2/reference#rest-public-tickers
+        """
+        Tickers
+
+        The ticker is a high level overview of the state of the market. It shows you the current best bid and ask, as
+        well as the last trade price. It also includes information such as daily volume and how much the price has moved
+        over the last day.
+
+        :param str symbols: The symbols you want information about. ex: tBTCUSD,fUSD
+        :return:
+        """
+
+        response = self.query(
+            method='GET',
+            endpoint='tickers',
+            params={
+                'version': 2,
+                'symbols': symbols,
+            },
+        )
+
+        return response
+
+    def ticker(self, symbol):
+        # https://docs.bitfinex.com/v2/reference#rest-public-ticker
+        """
+        Ticker
+
+        The ticker is a high level overview of the state of the market. It shows you the current best bid and ask, as
+        well as the last trade price. It also includes information such as daily volume and how much the price has moved
+        over the last day.
+
+        :param str symbol: The symbol you want information about. You can find the list of valid symbols by calling the
+            /symbols endpoint.
+        :return:
+        """
+
+        response = self.query(
+            method='GET',
+            endpoint='ticker/{symbol}',
+            params={
+                'version': 2,
+                'symbol': symbol,
+            },
+        )
+
+        return response
+
+    def trades_v2(self, symbol, limit, start, end, sort):
+        # https://docs.bitfinex.com/v2/reference#rest-public-trades
+        """
+        Trades
+
+        Trades endpoint includes all the pertinent details of the trade, such as price, size and time.
+
+        :param str symbol: The symbol you want information about.
+        :param int limit: Number of records
+        :param int start: Millisecond start time
+        :param int end: Millisecond end time
+        :param int sort: if = 1 it sorts results returned with old > new
+        :return:
+        """
+
+        response = self.query(
+            method='GET',
+            endpoint='trades/{symbol}/hist',
+            params={
+                'version': 2,
+            },
+            data={
+                'symbol': symbol,
+                'limit': limit,
+                'start': start,
+                'end': end,
+                'sort': sort,
+            },
+        )
+
+        return response
+
+    def books(self, symbol, precision, len_):
+        # https://docs.bitfinex.com/v2/reference#rest-public-books
+        """
+        Books
+
+        The Order Books channel allow you to keep track of the state of the Bitfinex order book.
+        It is provided on a price aggregated basis, with customizable precision.
+
+        :param str symbol: The symbol you want information about. You can find the list of valid symbols by calling the
+            /symbols endpoint.
+        :param str precision: Level of price aggregation (P0, P1, P2, P3, R0)
+        :param int len_: Number of price points ("25", "100")
+        :return:
+        """
+
+        response = self.query(
+            method='GET',
+            endpoint='book/{symbol}/{precision}',
+            params={
+                'version': 2,
+            },
+            data={
+                'symbol': symbol,
+                'precision': precision,
+                'len': len_,
+            },
+        )
+
+        return response
+
+    def stats_v2(self, key, size, symbol, side, section, sort):
+        # https://docs.bitfinex.com/v2/reference#rest-public-stats
+        """
+        Stats
+
+        Various statistics about the requested pair.
+
+        :param str key: Allowed values: "funding.size", "credits.size", "credits.size.sym", "pos.size"
+        :param str size: Available values: '1m'
+        :param str symbol: The symbol you want information about.
+        :param str side: Available values: "long", "short"
+        :param str section: Available values: "last", "hist"
+        :param int sort: if = 1 it sorts results returned with old > new
+        :return:
+        """
+
+        response = self.query(
+            method='GET',
+            endpoint='stats1/{key}:{size}:{symbol}:{side}/{section}',
+            params={
+                'version': 2,
+            },
+            data={
+                'key': key,
+                'size': size,
+                'symbol': symbol,
+                'side': side,
+                'section': section,
+                'sort': sort,
+            },
+        )
+
+        return response
+
+    def candles(self, timeframe, symbol, section, limit, start, end, sort):
+        # https://docs.bitfinex.com/v2/reference#rest-public-candles
+        """
+        Candles
+
+        Provides a way to access charting candle info
+
+        :param str timeframe: Available values: '1m', '5m', '15m', '30m', '1h', '3h', '6h', '12h', '1D', '7D', '14D',
+            '1M'
+        :param str symbol: The symbol you want information about.
+        :param str section: Available values: "last", "hist"
+        :param int limit: Number of candles requested
+        :param str start: Filter start (ms)
+        :param str end: Filter end (ms)
+        :param int sort: if = 1 it sorts results returned with old > new
+        :return:
+        """
+
+        response = self.query(
+            method='GET',
+            endpoint='candles/trade:{timeframe}:{symbol}/{section}',
+            params={
+                'version': 2,
+            },
+            data={
+                'time': timeframe,
+                'symbol': symbol,
+                'section': section,
+                'limit': limit,
+                'start': start,
+                'end': end,
+                'sort': sort,
+            },
+        )
+
+        return response
+
+    #
+    # V2 Calculation Endpoints
+    #
+
+    def calc_trade_avg(self, symbol, amount, period, rate_limit):
+        # https://docs.bitfinex.com/v2/reference#rest-calc-market-average-price
+        """
+        Market Average Price
+
+        Calculate the average execution rate for Trading or Margin funding.
+
+        :param str symbol: The symbol you want information about.
+        :param str amount: Amount. Positive for buy, negative for sell (ex. "1.123")
+        :param int period: (optional) Maximum period for Margin Funding
+        :param str rate_limit: Limit rate/price (ex. "1000.5")
+        :return:
+        """
+
+        response = self.query(
+            method='POST',
+            endpoint='calc/trade/avg',
+            params={
+                'version': 2,
+            },
+            data={
+                'symbol': symbol,
+                'amount': amount,
+                'period': period,
+                'rate_limit': rate_limit,
+            },
+        )
+
+        return response
+
+    def calc_fx(self, ccy1, ccy2):
+        # https://docs.bitfinex.com/v2/reference#foreign-exchange-rate
+        """
+        Foreign Exchange Rate
+
+        :param str ccy1: First currency
+        :param str ccy2: Second currency
+        :return:
+        """
+
+        response = self.query(
+            method='POST',
+            endpoint='calc/fx',
+            params={
+                'version': 2,
+            },
+            data={
+                'ccy1': ccy1,
+                'ccy2': ccy2,
+            },
+        )
+
+        return response
+
+    #
+    # V2 Authenticated Endpoints
+    #
+
+    def wallets(self):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-wallets
+        """
+        Wallets
+
+        Get account wallets
+
+        :return:
+        """
+
+        response = self.query(
+            method='POST',
+            endpoint='auth/r/wallets',
+            params={
+                'version': 2,
+            },
+        )
+
+        return response
+
+    def orders_v2(self, symbol=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-orders
+        """
+        Orders
+
+        Get active orders
+
+        :param symbol:
+        :return:
+        """
+
+        response = self.query(
+            method='POST',
+            endpoint='auth/r/orders/{symbol}',
+            params={
+                'version': 2,
+            },
+            data={
+                'symbol': symbol,
+            },
+        )
+
+        return response
+
+    def orders_hist_v2(self, symbol, start, end, limit):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-orders
+        """
+        Orders History
+
+        Returns the most recent closed or canceled orders up to circa two weeks ago
+
+        :param str symbol: Symbol (tBTCUSD, ...)
+        :param int start: Millisecond start time
+        :param int end: Millisecond end time
+        :param int limit: Number of records
+        :return:
+        """
+
+        response = self.query(
+            method='POST',
+            endpoint='auth/r/orders/{symbol}/hist',
+            params={
+                'version': 2,
+            },
+            data={
+                'symbol': symbol,
+                'start': start,
+                'end': end,
+                'limit': limit,
+            },
+        )
+
+        return response

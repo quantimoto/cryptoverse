@@ -1,39 +1,34 @@
 from ..rest import BitfinexREST
 from ...base.interface import ExchangeInterface
-from ...domain import Instruments, Pairs, Markets
+from ...domain import Instruments, Markets, Orders, Trades, Offers, Lends
 
 
 class BitfinexInterface(ExchangeInterface):
+    slug = 'bitfinex'
+
     def __init__(self):
-        self.rest = BitfinexREST()
+        self.rest_client = BitfinexREST()
 
-    def instruments(self):
+    def get_spot_instruments(self):
         results = Instruments()
-        response = self.rest.symbols_details()
-        for entry in response:
-            print(entry)
         return results
 
-    def pairs(self):
-        results = Pairs()
-        return results
-
-    def markets(self):
+    def get_spot_markets(self):
         results = Markets()
         return results
 
-    def orders(self):
+    def get_market_orders(self, market):
         results = Orders()
         return results
 
-    def trades(self):
+    def get_market_trades(self, market):
         results = Trades()
         return results
 
-    def offers(self):
+    def get_market_offers(self, instrument):
         results = Offers()
         return results
 
-    def lends(self):
+    def get_market_lends(self, instrument):
         results = Lends()
         return results
