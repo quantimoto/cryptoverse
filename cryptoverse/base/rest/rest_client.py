@@ -199,7 +199,7 @@ class RESTClient(object):
             params=params,
             data=data,
         )
-        return request_obj
+        # return request_obj
         return self.execute(request_obj)
 
     # @retry(exceptions=requests.exceptions.ConnectionError, tries=3, delay=0, max_delay=None, backoff=1)
