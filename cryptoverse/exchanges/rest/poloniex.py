@@ -1,4 +1,9 @@
+import hashlib
+import hmac
+import urllib
+
 from ...base.rest import RESTClient
+from ...exceptions import MissingCredentialsError
 
 
 class PoloniexREST(RESTClient):
@@ -8,31 +13,36 @@ class PoloniexREST(RESTClient):
     https://poloniex.com/support/api/
     """
 
-    base_url = 'https://poloniex.com'
-    url_structure = '{base_url}/{endpoint}'
+    address = 'https://poloniex.com'
+    uri_template = '/{endpoint}'
+
+    credentials = None
 
     # Authentication methods
 
-    def get_headers(self, credentials, payload):
+    def sign(self, request_obj, credentials):
+        """
+        Signs the request object using the supplied credentials according to Poloniex's requirements.
+
+        :param request_obj: Object containing all the attributes required to do the request.
+        :param credentials: Credentials object that contains the key and secret, required to sign the request.
+        """
+        payload = request_obj.get_data().copy()
+        payload.update({
+            'nonce': self.nonce(),
+        })
+
+        encoded_payload = urllib.parse.urlencode(payload).encode('utf8')
+
+        h = hmac.new(credentials['secret'].encode('utf8'), encoded_payload, hashlib.sha512)
+        signature = h.hexdigest()
+
         headers = {
             'Key': credentials['key'],
-            'Sign': self.get_signature(credentials, payload)
+            'Sign': signature,
         }
-        return headers
-
-    def get_payload(self, params):
-        payload = {
-            'nonce': self.nonce(),
-            'command': params['command'],
-        }
-        payload.update(params)
-        return payload
-
-    def get_signature(self, credentials, payload):
-        payload = urllib.urlencode(payload)
-        m = hmac.new(credentials['secret'], payload, hashlib.sha512)
-        signature = m.hexdigest()
-        return signature
+        request_obj.set_headers(headers)
+        request_obj.set_data(payload)
 
     #
     # Public Endpoints
@@ -44,8 +54,11 @@ class PoloniexREST(RESTClient):
         """
 
         response = self.query(
+            method='GET',
             endpoint='public',
-            command='returnTicker',
+            params={
+                'command': 'returnTicker',
+            },
         )
 
         return response
@@ -96,25 +109,50 @@ class PoloniexREST(RESTClient):
     # Authenticated Endpoints
     #
 
-    def return_balances(self):
+    def return_balances(self, credentials=None):
         """
         Returns all of your available balances.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
 
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
+
         response = self.query(
+            method='POST',
             endpoint='tradingApi',
-            command='returnBalances',
+            data={
+                'command': 'returnBalances',
+            },
+            credentials=credentials,
         )
 
         return response
 
-    def return_complete_balances(self):
+    def return_complete_balances(self, account='all', credentials=None):
         """
         Returns all of your balances, including available balance, balance on orders, and the estimated BTC value of
         your balance. By default, this call is limited to your exchange account; set the "account" POST parameter to
         "all" to include your margin and lending accounts.
         """
-        pass
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
+
+        response = self.query(
+            method='POST',
+            endpoint='tradingApi',
+            data={
+                'command': 'returnCompleteBalances',
+                'account': account,
+            },
+            credentials=credentials,
+        )
+
+        return response
 
     def return_deposit_addresses(self):
         """

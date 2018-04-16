@@ -1,4 +1,10 @@
+import base64
+import hashlib
+import hmac
+import json
+
 from ...base.rest import RESTClient
+from ...exceptions import MissingCredentialsError
 
 
 class BitfinexREST(RESTClient):
@@ -8,8 +14,37 @@ class BitfinexREST(RESTClient):
     https://docs.bitfinex.com/docs
     """
 
-    url_structure = '{base_url}/v{version}/{endpoint}'
-    base_url = 'https://api.bitfinex.com'
+    address = 'https://api.bitfinex.com'
+    uri_template = '/v{version}/{endpoint}'
+
+    credentials = None
+
+    # Authentication methods
+
+    def sign(self, request_obj, credentials):
+        """
+        Signs the request object using the supplied credentials, according to Bitfinex's requirements.
+
+        :param request_obj: Object containing all the attributes required to do the request.
+        :param credentials: Credentials object that contains the key and secret, required to sign the request.
+        """
+        payload = request_obj.get_params().copy()
+        payload.update({
+            'nonce': self.nonce(),
+            'request': request_obj.get_uri(),
+        })
+
+        encoded_payload = base64.standard_b64encode(json.dumps(payload).encode('utf8'))
+
+        h = hmac.new(credentials['secret'].encode('utf8'), encoded_payload, hashlib.sha384)
+        signature = h.hexdigest()
+
+        headers = {
+            'X-BFX-APIKEY': credentials['key'],
+            'X-BFX-PAYLOAD': encoded_payload,
+            'X-BFX-SIGNATURE': signature,
+        }
+        request_obj.set_headers(headers)
 
     #
     # V1 Public Endpoints
@@ -32,7 +67,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='pubticker/{symbol}',
-            params={
+            path_params={
                 'version': 1,
                 'symbol': symbol,
             },
@@ -55,7 +90,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='stats/{symbol}',
-            params={
+            path_params={
                 'version': 1,
                 'symbol': symbol,
             },
@@ -81,9 +116,11 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='lendbook/{currency}',
-            params={
+            path_params={
                 'version': 1,
                 'currency': currency,
+            },
+            params={
                 'limit_bids': limit_bids,
                 'limit_asks': limit_asks,
             },
@@ -109,9 +146,11 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='book/{symbol}',
-            params={
+            path_params={
                 'version': 1,
                 'symbol': symbol,
+            },
+            params={
                 'limit_bids': limit_bids,
                 'limit_asks': limit_asks,
                 'group': group,
@@ -136,9 +175,11 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='trades/{symbol}',
-            params={
+            path_params={
                 'version': 1,
                 'symbol': symbol,
+            },
+            params={
                 'timestamp': timestamp,
                 'limit_trades': limit_trades,
             },
@@ -162,9 +203,11 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='lends/{currency}',
-            params={
+            path_params={
                 'version': 1,
                 'currency': currency,
+            },
+            params={
                 'timestamp': timestamp,
                 'limit_lends': limit_lends,
             },
@@ -184,7 +227,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='symbols',
-            params={
+            path_params={
                 'version': 1,
             },
         )
@@ -203,7 +246,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='symbols_details',
-            params={
+            path_params={
                 'version': 1,
             },
         )
@@ -214,64 +257,82 @@ class BitfinexREST(RESTClient):
     # V1 Authenticated Endpoints
     #
 
-    def account_infos(self, credentials):
+    def account_infos(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-account-info
         """
         Account Info
 
         Return information about your account (trading fees)
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='account_infos',
-            credentials=credentials,
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def account_fees(self, credentials):
+    def account_fees(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-fees
         """
         Account Fees
 
         See the fees applied to your withdrawals
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='account_fees',
-            credentials=credentials,
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def summary(self):
+    def summary(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-summary
         """
         Summary
 
         Returns a 30-day summary of your trading volume and return on margin funding.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='summary',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def deposit_new(self, method, wallet_name, renew=0):
+    def deposit_new(self, method, wallet_name, renew=0, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-deposit
         """
         Deposit
@@ -283,13 +344,17 @@ class BitfinexREST(RESTClient):
         :param str wallet_name: Wallet to deposit in (accepted: "trading", "exchange", "deposit"). Your wallet needs to
             already exist
         :param int renew: Default is 0. If set to 1, will return a new unused deposit address
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='deposit/new',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -297,69 +362,88 @@ class BitfinexREST(RESTClient):
                 'wallet_name': wallet_name,
                 'renew': renew,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def key_info(self):
+    def key_info(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#auth-key-permissions
         """
         Key Permissions
 
         Check the permissions of the key being used to generate this request.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='key_info',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def margin_infos(self):
+    def margin_infos(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-margin-information
         """
         Margin Information
 
         See your trading wallet information for margin trading.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='margin_infos',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
     # @rate_limit(20, 60)
-    def balances(self):
+    def balances(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
         """
         Wallet Balances
 
         See your balances
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='balances',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def transfer(self, amount, currency, walletfrom, walletto):
+    def transfer(self, amount, currency, walletfrom, walletto, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-transfer-between-wallets
         """
         Transfer Between Wallets
@@ -370,13 +454,17 @@ class BitfinexREST(RESTClient):
         :param str currency: Currency of funds to transfer.
         :param str walletfrom: Wallet to transfer from. Can be "trading", "deposit" or "exchange"
         :param str walletto: Wallet to transfer to. Can be "trading", "deposit" or "exchange"
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='transfer',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -385,6 +473,7 @@ class BitfinexREST(RESTClient):
                 'walletfrom': walletfrom,
                 'walletto': walletto,
             },
+            credentials=credentials,
         )
 
         return response
@@ -393,7 +482,7 @@ class BitfinexREST(RESTClient):
                  account_number=None, swift=None, bank_name=None, bank_address=None, bank_city=None, bank_country=None,
                  detail_payment=None, express_wire=None, intermediary_bank_name=None, intermediary_bank_address=None,
                  intermediary_bank_city=None, intermediary_bank_country=None, intermediary_bank_account=None,
-                 intermediary_bank_swift=None):
+                 intermediary_bank_swift=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-withdrawal
         """
         Withdrawal
@@ -421,13 +510,17 @@ class BitfinexREST(RESTClient):
         :param str intermediary_bank_country: Intermediary bank country
         :param str intermediary_bank_account: Intermediary bank account
         :param str intermediary_bank_swift: Intermediary bank SWIFT
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='withdraw',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -452,6 +545,7 @@ class BitfinexREST(RESTClient):
                 'intermediary_bank_account': intermediary_bank_account,
                 'intermediary_bank_swift': intermediary_bank_swift,
             },
+            credentials=credentials,
         )
 
         return response
@@ -459,7 +553,7 @@ class BitfinexREST(RESTClient):
     # Orders
 
     def order_new(self, symbol, amount, price, side, type_, exchange=None, is_hidden=None, is_postonly=None,
-                  use_all_available=None, ocoorder=None, buy_price_oco=None, sell_price_oco=None):
+                  use_all_available=None, ocoorder=None, buy_price_oco=None, sell_price_oco=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-new-order
         """
         New Order
@@ -480,13 +574,17 @@ class BitfinexREST(RESTClient):
         :param bool ocoorder: Set an additional STOP OCO order that will be linked with the current order.
         :param float buy_price_oco: If ocoorder is true, this field represent the price of the OCO stop order to place
         :param float sell_price_oco: If ocoorder is true, this field represent the price of the OCO stop order to place
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='order/new',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -503,11 +601,12 @@ class BitfinexREST(RESTClient):
                 'buy_price_oco': buy_price_oco,
                 'sell_price_oco': sell_price_oco,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def order_new_multi(self, symbol, amount, price, side, type_, exchange=None):
+    def order_new_multi(self, symbol, amount, price, side, type_, exchange=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-multiple-new-orders
         """
         Multiple New Orders
@@ -520,13 +619,17 @@ class BitfinexREST(RESTClient):
         :param str side: Either "buy" or "sell".
         :param str type_: Either "market" / "limit" / "stop" / "trailing-stop" / "fill-or-kill".
         :param str exchange: "bitfinex"
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='order/new/multi',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -537,11 +640,12 @@ class BitfinexREST(RESTClient):
                 'type': type_,
                 'exchange': exchange,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def order_cancel(self, order_id):
+    def order_cancel(self, order_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-order
         """
         Cancel Order
@@ -549,23 +653,28 @@ class BitfinexREST(RESTClient):
         Cancel an order.
 
         :param int order_id: The order ID given by order_new()
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='order/cancel',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'order_id': order_id,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def order_cancel_multi(self, order_ids):
+    def order_cancel_multi(self, order_ids, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-multiple-orders
         """
         Cancel Multiple Orders
@@ -573,43 +682,54 @@ class BitfinexREST(RESTClient):
         Cancel multiples orders at once.
 
         :param list(int) order_ids: An array of the order IDs given by order_new() or order_new_multi().
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='order/cancel/multi',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'order_ids': order_ids,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def order_cancel_all(self):
+    def order_cancel_all(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-all-orders
         """
         Cancel All Orders
 
         Cancel all active orders at once.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='order/cancel/all',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
     def order_cancel_replace(self, order_id, symbol=None, amount=None, price=None, exchange=None, side=None, type_=None,
-                             is_hidden=None, is_postonly=None, use_remaining=None):
+                             is_hidden=None, is_postonly=None, use_remaining=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-replace-order
         """
         Replace Order
@@ -628,13 +748,17 @@ class BitfinexREST(RESTClient):
         :param bool is_hidden: true if the order should be hidden.
         :param bool is_postonly: true if the order should be post only. Only relevant for limit orders.
         :param bool use_remaining: True if the new order should use the remaining amount of the original order.
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='order/cancel/replace',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -649,11 +773,12 @@ class BitfinexREST(RESTClient):
                 'is_postonly': is_postonly,
                 'use_remaining': use_remaining,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def order_status(self, order_id):
+    def order_status(self, order_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-order-status
         """
         Order Status
@@ -661,43 +786,54 @@ class BitfinexREST(RESTClient):
         Get the status of an order. Is it active? Was it cancelled? To what extent has it been executed? etc.
 
         :param int order_id: The order ID given by order_new()
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='order/status',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'order_id': order_id,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def orders(self):
+    def orders(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-orders
         """
         Active Orders
 
         View your active orders.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='orders',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
     # @rate_limit(1, 60)
-    def orders_hist(self, limit=None):
+    def orders_hist(self, limit=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-orders-history
         """
         Orders History
@@ -706,44 +842,56 @@ class BitfinexREST(RESTClient):
         Limited to last 3 days and 1 request per minute.
 
         :param int limit: Limit number of results
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='orders/hist',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'limit': limit,
             },
+            credentials=credentials,
         )
 
         return response
 
     # Positions
 
-    def positions(self):
+    def positions(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-positions
         """
         Active Positions
 
         View your active positions.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='positions',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def positions_claim(self, position_id, amount):
+    def positions_claim(self, position_id, amount, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-claim-position
         """
         Claim Position
@@ -761,19 +909,24 @@ class BitfinexREST(RESTClient):
 
         :param int position_id: The position ID given by positions()
         :param float amount: The partial amount you wish to claim.
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='position/claim',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'position_id': position_id,
                 'amount': amount,
             },
+            credentials=credentials,
         )
 
         return response
@@ -781,7 +934,7 @@ class BitfinexREST(RESTClient):
     # Historical Data
 
     # @rate_limit(20, 60)
-    def history(self, currency, since=None, until=None, limit=None, wallet=None):
+    def history(self, currency, since=None, until=None, limit=None, wallet=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-balance-history
         """
         Balance History
@@ -794,13 +947,17 @@ class BitfinexREST(RESTClient):
         :param int limit: Limit the number of entries to return.
         :param str wallet: Return only entries that took place in this wallet. Accepted inputs are: "trading",
             "exchange", "deposit".
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='history',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -810,12 +967,13 @@ class BitfinexREST(RESTClient):
                 'limit': limit,
                 'wallet': wallet,
             },
+            credentials=credentials,
         )
 
         return response
 
     # @rate_limit(20, 60)
-    def history_movements(self, currency, method=None, since=None, until=None, limit=None):
+    def history_movements(self, currency, method=None, since=None, until=None, limit=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-deposit-withdrawal-history
         """
         Deposit-Withdrawal History
@@ -827,13 +985,17 @@ class BitfinexREST(RESTClient):
         :param since: Return only the history after this timestamp.
         :param until: Return only the history before this timestamp.
         :param int limit: Limit the number of entries to return.
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='history/movements',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -843,12 +1005,13 @@ class BitfinexREST(RESTClient):
                 'until': until,
                 'limit': limit,
             },
+            credentials=credentials,
         )
 
         return response
 
     # @rate_limit(45, 60)
-    def mytrades(self, symbol, timestamp=None, until=None, limit_trades=None, reverse=None):
+    def mytrades(self, symbol, timestamp=None, until=None, limit_trades=None, reverse=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-past-trades
         """
         Past Trades
@@ -861,13 +1024,17 @@ class BitfinexREST(RESTClient):
         :param int limit_trades: Limit the number of trades returned.
         :param int reverse: Return trades in reverse order (the oldest comes first). Default is returning newest trades
             first.
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='mytrades',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -877,13 +1044,14 @@ class BitfinexREST(RESTClient):
                 'limit_trades': limit_trades,
                 'reverse': reverse,
             },
+            credentials=credentials,
         )
 
         return response
 
     # Margin Funding
 
-    def offer_new(self, currency, amount, rate, period, direction):
+    def offer_new(self, currency, amount, rate, period, direction, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-new-offer
         """
         New Offer
@@ -895,13 +1063,17 @@ class BitfinexREST(RESTClient):
         :param float rate: Rate to lend or borrow at. In percentage per 365 days. (Set to 0 for FRR).
         :param int period: Number of days of the funding contract (in days)
         :param str direction: Either "lend" or "loan".
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='offer/new',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -911,11 +1083,12 @@ class BitfinexREST(RESTClient):
                 'period': period,
                 'direction': direction,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def offer_cancel(self, offer_id):
+    def offer_cancel(self, offer_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-offer
         """
         Cancel Offer
@@ -923,23 +1096,28 @@ class BitfinexREST(RESTClient):
         Cancel an offer.
         
         :param int offer_id: The offer ID given by offer_new().
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='offer/cancel',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'order_id': offer_id,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def offer_status(self, offer_id):
+    def offer_status(self, offer_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offer-status
         """
         Offer Status
@@ -947,62 +1125,79 @@ class BitfinexREST(RESTClient):
         Get the status of an offer. Is it active? Was it cancelled? To what extent has it been executed? etc.
         
         :param int offer_id: The offer ID given by offer_new().
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='offer/status',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'offer_id': offer_id,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def credits(self):
+    def credits(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-credits
         """
         Active Credits
 
         View your funds currently taken (active credits).
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='credits',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def offers(self):
+    def offers(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offers
         """
         Offers
 
         View your active offers.
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='offers',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
     # @rate_limit(1, 60)
-    def offer_hist(self, limit=None):
+    def offer_hist(self, limit=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offers-hist
         """
         Offers History
@@ -1011,24 +1206,29 @@ class BitfinexREST(RESTClient):
         Limited to last 3 days and 1 request per minute.
         
         :param int limit: Limit number of results
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='offers/hist',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'limit': limit,
             },
+            credentials=credentials,
         )
 
         return response
 
     # @rate_limit(45, 60)
-    def mytrades_funding(self, symbol, until=None, limit_trades=None):
+    def mytrades_funding(self, symbol, until=None, limit_trades=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-mytrades-funding
         """
         Past Funding Trades
@@ -1038,13 +1238,17 @@ class BitfinexREST(RESTClient):
         :param str symbol: The pair traded (USD, ...).
         :param until: Trades made after this timestamp won't be returned.
         :param int limit_trades: Limit the number of trades returned.
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='mytrades_funding',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -1052,66 +1256,85 @@ class BitfinexREST(RESTClient):
                 'until': until,
                 'limit_trades': limit_trades,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def taken_funds(self):
+    def taken_funds(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-used-in-a-margin-position
         """
         Active Funding Used in a margin position
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='taken_funds',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def unused_taken_funds(self):
+    def unused_taken_funds(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-not-used-in-a-margin-position
         """
         Active Funding Not Used in a margin position
 
         View your funding currently borrowed and not used (available for a new margin position).
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='unused_taken_funds',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def total_taken_funds(self):
+    def total_taken_funds(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-total-taken-funds
         """
         Total Taken Funds
 
         View the total of your active funding used in your position(s).
+
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='total_taken_funds',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def funding_close(self, swap_id):
+    def funding_close(self, swap_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-close-margin-funding
         """
         Close Margin Funding
@@ -1119,24 +1342,29 @@ class BitfinexREST(RESTClient):
         Allow you to close an unused or used taken fund
 
         :param int swap_id: The ID given by taken_funds() or unused_taken_funds()
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='funding/close',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'swap_id': swap_id,
             },
+            credentials=credentials,
         )
 
         return response
 
     # https://docs.bitfinex.com/v1/reference#basket-manage
-    def basket_manage(self, amount=None, dir_=None, name=None):
+    def basket_manage(self, amount=None, dir_=None, name=None, credentials=None):
         """
         Basket Manage
 
@@ -1146,13 +1374,17 @@ class BitfinexREST(RESTClient):
         :param str amount: The amount you wish to split or merge
         :param int dir_: 1 to split, -1 to merge
         :param str name: the symbol of the token pair you wish to create or destroy
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='basket_manage',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
@@ -1160,11 +1392,12 @@ class BitfinexREST(RESTClient):
                 'dir': dir_,
                 'name': name,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def positions_close(self, position_id):
+    def positions_close(self, position_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#close-position
         """
         Close Position
@@ -1172,18 +1405,23 @@ class BitfinexREST(RESTClient):
         Closes the selected position with a market order.
 
         :param int position_id: The position ID given by positions().
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='position/close',
-            credentials={'key': 'asdf', 'secret': 'asdf'},
-            params={
+            path_params={
                 'version': 1,
             },
             data={
                 'position_id': position_id,
             },
+            credentials=credentials,
         )
 
         return response
@@ -1211,7 +1449,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='platform/status',
-            params={
+            path_params={
                 'version': 2,
             },
         )
@@ -1234,7 +1472,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='tickers',
-            params={
+            path_params={
                 'version': 2,
                 'symbols': symbols,
             },
@@ -1259,7 +1497,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='ticker/{symbol}',
-            params={
+            path_params={
                 'version': 2,
                 'symbol': symbol,
             },
@@ -1285,7 +1523,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='trades/{symbol}/hist',
-            params={
+            path_params={
                 'version': 2,
             },
             data={
@@ -1317,7 +1555,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='book/{symbol}/{precision}',
-            params={
+            path_params={
                 'version': 2,
             },
             data={
@@ -1348,7 +1586,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='stats1/{key}:{size}:{symbol}:{side}/{section}',
-            params={
+            path_params={
                 'version': 2,
             },
             data={
@@ -1384,7 +1622,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='GET',
             endpoint='candles/trade:{timeframe}:{symbol}/{section}',
-            params={
+            path_params={
                 'version': 2,
             },
             data={
@@ -1421,7 +1659,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='POST',
             endpoint='calc/trade/avg',
-            params={
+            path_params={
                 'version': 2,
             },
             data={
@@ -1447,7 +1685,7 @@ class BitfinexREST(RESTClient):
         response = self.query(
             method='POST',
             endpoint='calc/fx',
-            params={
+            path_params={
                 'version': 2,
             },
             data={
@@ -1462,7 +1700,7 @@ class BitfinexREST(RESTClient):
     # V2 Authenticated Endpoints
     #
 
-    def wallets(self):
+    def wallets(self, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-wallets
         """
         Wallets
@@ -1472,17 +1710,22 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
+
         response = self.query(
             method='POST',
             endpoint='auth/r/wallets',
-            params={
+            path_params={
                 'version': 2,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def orders_v2(self, symbol=None):
+    def orders_v2(self, symbol=None, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-orders
         """
         Orders
@@ -1490,23 +1733,26 @@ class BitfinexREST(RESTClient):
         Get active orders
 
         :param symbol:
-        :return:
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='auth/r/orders/{symbol}',
-            params={
+            path_params={
                 'version': 2,
-            },
-            data={
                 'symbol': symbol,
             },
+            credentials=credentials,
         )
 
         return response
 
-    def orders_hist_v2(self, symbol, start, end, limit):
+    def orders_hist_v2(self, symbol, start, end, limit, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-orders
         """
         Orders History
@@ -1517,21 +1763,26 @@ class BitfinexREST(RESTClient):
         :param int start: Millisecond start time
         :param int end: Millisecond end time
         :param int limit: Number of records
-        :return:
+        :param dict credentials: dictionary containing authentication information like key and secret
         """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsError
 
         response = self.query(
             method='POST',
             endpoint='auth/r/orders/{symbol}/hist',
-            params={
+            path_params={
                 'version': 2,
+                'symbol': symbol,
             },
             data={
-                'symbol': symbol,
                 'start': start,
                 'end': end,
                 'limit': limit,
             },
+            credentials=credentials,
         )
 
         return response

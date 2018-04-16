@@ -1,5 +1,9 @@
+from ..rest import KrakenREST
 from ...base.interface import ExchangeInterface
 
 
 class KrakenInterface(ExchangeInterface):
-    pass
+    slug = 'kraken'
+
+    def __init__(self):
+        self.rest_client = KrakenREST()
