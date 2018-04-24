@@ -1,6 +1,6 @@
 import hashlib
 import hmac
-import urllib
+from urllib.parse import urlencode
 
 from ...base.rest import RESTClient
 from ...exceptions import MissingCredentialsError
@@ -32,9 +32,14 @@ class PoloniexREST(RESTClient):
             'nonce': self.nonce(),
         })
 
-        encoded_payload = urllib.parse.urlencode(payload).encode('utf8')
+        encoded_payload = urlencode(payload).encode('utf-8')
+        message = encoded_payload
 
-        h = hmac.new(credentials['secret'].encode('utf8'), encoded_payload, hashlib.sha512)
+        h = hmac.new(
+            key=credentials['secret'].encode('utf-8'),
+            msg=message,
+            digestmod=hashlib.sha512,
+        )
         signature = h.hexdigest()
 
         headers = {
@@ -43,6 +48,8 @@ class PoloniexREST(RESTClient):
         }
         request_obj.set_headers(headers)
         request_obj.set_data(payload)
+
+        return request_obj
 
     #
     # Public Endpoints

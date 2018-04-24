@@ -120,6 +120,10 @@ class RESTClient(object):
     To minimize the amount of places in memory where credentials are stored, the RESTClient class and the classes
     inheriting from the RESTClient class should not have save any credentials. Every method required that the
     credentials are passed with them. Only references in the form of a hash may be stored.
+
+    Methods here are a direct translation from python to the exchange's available methods. Method names and parameters
+    reflect those in the official documentation as much as possible. Response is kept in-tact and no additional logic is
+    executed in this obj.
     """
     _session = None
 

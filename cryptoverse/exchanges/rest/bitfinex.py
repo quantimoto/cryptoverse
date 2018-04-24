@@ -12,6 +12,10 @@ class BitfinexREST(RESTClient):
     """
     Complete implementation of the Bitfinex REST-api as documented at:
     https://docs.bitfinex.com/docs
+
+    Methods here are a direct translation from python to the exchange's available methods. Method names and parameters
+    reflect those in the official documentation as much as possible. Response is kept in-tact and no additional logic is
+    executed in this obj.
     """
 
     address = 'https://api.bitfinex.com'
@@ -22,6 +26,8 @@ class BitfinexREST(RESTClient):
     # Authentication methods
 
     def sign(self, request_obj, credentials):
+        # https://docs.bitfinex.com/docs/rest-auth
+        # https://docs.bitfinex.com/v2/docs/rest-auth
         """
         Signs the request object using the supplied credentials, according to Bitfinex's requirements.
 
@@ -34,9 +40,14 @@ class BitfinexREST(RESTClient):
             'request': request_obj.get_uri(),
         })
 
-        encoded_payload = base64.standard_b64encode(json.dumps(payload).encode('utf8'))
+        encoded_payload = base64.standard_b64encode(json.dumps(payload).encode('utf-8'))
+        message = encoded_payload
 
-        h = hmac.new(credentials['secret'].encode('utf8'), encoded_payload, hashlib.sha384)
+        h = hmac.new(
+            key=credentials['secret'].encode('utf-8'),
+            msg=message,
+            digestmod=hashlib.sha384,
+        )
         signature = h.hexdigest()
 
         headers = {
@@ -45,6 +56,8 @@ class BitfinexREST(RESTClient):
             'X-BFX-SIGNATURE': signature,
         }
         request_obj.set_headers(headers)
+
+        return request_obj
 
     #
     # V1 Public Endpoints
@@ -235,7 +248,7 @@ class BitfinexREST(RESTClient):
         return response
 
     # @rate_limit(5, 60)
-    def symbols_details(self):
+    def symbol_details(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbol-details
         """
         Symbol Details
@@ -1363,8 +1376,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # https://docs.bitfinex.com/v1/reference#basket-manage
     def basket_manage(self, amount=None, dir_=None, name=None, credentials=None):
+        # https://docs.bitfinex.com/v1/reference#basket-manage
         """
         Basket Manage
 
@@ -1537,7 +1550,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def books(self, symbol, precision, len_):
+    def book_v2(self, symbol, precision, len_):
         # https://docs.bitfinex.com/v2/reference#rest-public-books
         """
         Books
@@ -1567,7 +1580,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def stats_v2(self, key, size, symbol, side, section, sort):
+    def stats1(self, key, size, symbol, side, section, sort):
         # https://docs.bitfinex.com/v2/reference#rest-public-stats
         """
         Stats
@@ -1642,7 +1655,7 @@ class BitfinexREST(RESTClient):
     # V2 Calculation Endpoints
     #
 
-    def calc_trade_avg(self, symbol, amount, period, rate_limit):
+    def calc_market_average_price(self, symbol, amount, period, rate_limit):
         # https://docs.bitfinex.com/v2/reference#rest-calc-market-average-price
         """
         Market Average Price
@@ -1672,7 +1685,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def calc_fx(self, ccy1, ccy2):
+    def foreign_exchange_rate(self, ccy1, ccy2):
         # https://docs.bitfinex.com/v2/reference#foreign-exchange-rate
         """
         Foreign Exchange Rate
@@ -1700,7 +1713,7 @@ class BitfinexREST(RESTClient):
     # V2 Authenticated Endpoints
     #
 
-    def wallets(self, credentials=None):
+    def auth_wallets(self, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-wallets
         """
         Wallets
@@ -1725,7 +1738,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def orders_v2(self, symbol=None, credentials=None):
+    def auth_orders(self, symbol=None, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-orders
         """
         Orders
@@ -1752,8 +1765,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def orders_hist_v2(self, symbol, start, end, limit, credentials=None):
-        # https://docs.bitfinex.com/v2/reference#rest-auth-orders
+    def auth_orders_history(self, symbol, start, end, limit, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#orders-history
         """
         Orders History
 
@@ -1786,3 +1799,91 @@ class BitfinexREST(RESTClient):
         )
 
         return response
+
+    def auth_order_trades(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-order-trades
+        raise NotImplementedError
+
+    def auth_trades(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-trades-hist
+        raise NotImplementedError
+
+    def auth_positions(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-positions
+        raise NotImplementedError
+
+    def auth_funding_offers(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-funding-offers
+        raise NotImplementedError
+
+    def auth_funding_offers_hist(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-funding-offers-hist
+        raise NotImplementedError
+
+    def auth_funding_loans(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-funding-loans
+        raise NotImplementedError
+
+    def auth_funding_loans_hist(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-funding-loans-hist
+        raise NotImplementedError
+
+    def auth_funding_credits(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-funding-credits
+        raise NotImplementedError
+
+    def auth_funding_credits_hist(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-funding-credits-hist
+        raise NotImplementedError
+
+    def auth_funding_trades_hist(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-funding-trades-hist
+        raise NotImplementedError
+
+    def auth_info_margin(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-info-margin
+        raise NotImplementedError
+
+    def auth_info_funding(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-info-funding
+        raise NotImplementedError
+
+    def auth_movements_hist(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#movements
+        raise NotImplementedError
+
+    def auth_stats_perf_hist(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-performance
+        raise NotImplementedError
+
+    def auth_alerts(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-alert-list
+        raise NotImplementedError
+
+    def auth_alert_set(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-alert-set
+        raise NotImplementedError
+
+    def auth_alert_del(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-alert-delete
+        raise NotImplementedError
+
+    def auth_calc_order_avail(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-calc-bal-avail
+        raise NotImplementedError
+
+    def auth_ledgers_hist(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#ledgers
+        raise NotImplementedError
+
+    def auth_settings(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#user-settings-read
+        raise NotImplementedError
+
+    def auth_settings_set(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#user-settings-write
+        raise NotImplementedError
+
+    def auth_settings_del(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#user-settings-delete
+        raise NotImplementedError

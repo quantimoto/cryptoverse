@@ -22,6 +22,7 @@ class KrakenREST(RESTClient):
     # Authentication methods
 
     def sign(self, request_obj, credentials):
+        # https://www.kraken.com/help/api#general-usage
         """
         Signs the request object using the supplied credentials according to Kraken's requirements.
 
@@ -35,22 +36,30 @@ class KrakenREST(RESTClient):
         })
 
         encoded_payload = urlencode(payload)
-        return
-        message = request_obj.get_uri().encode('utf8') + hashlib.sha256(str(payload['nonce'] + encoded_payload.encode('utf8'))).digest()
-        h = hmac.new(base64.b64decode(credentials['secret']), message, hashlib.sha512)
-        signature = h.hexdigest()
+        message = request_obj.get_uri().encode('utf-8') + hashlib.sha256(
+            (payload['nonce'] + encoded_payload).encode('utf-8')).digest()
+
+        h = hmac.new(
+            key=base64.b64decode(credentials['secret']),
+            msg=message,
+            digestmod=hashlib.sha512,
+        )
+        signature = h.digest()
 
         headers = {
             'API-Key': credentials['key'],
-            'API-Sign': base64.b64encode(signature),
+            'API-Sign': base64.b64encode(signature).decode('utf-8'),
         }
         request_obj.set_headers(headers)
         request_obj.set_data(payload)
+
+        return request_obj
 
     #
     # Public Endpoints
     #
 
+    # @rate_limit(1, 3)  # https://www.kraken.com/help/api#api-call-rate-limit
     def time(self):
         """
         Get server time
