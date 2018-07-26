@@ -6,13 +6,14 @@ from retry import retry
 
 class RequestObj:
     """
-    The RequestObj stores all parameters required to do an api request. It can be serialized and saved, in order for a
+    The RequestObj stores all parameters required to do an api request. It can be serialized and stored, in order for a
     different host to do the actual request to the provider. The RequestObj can be updated with a new signature, in case
     a previous request failed.
 
     Credentials are not stored in the RequestObj. When a request has failed, the host that retries it needs to have
     access to the credentials itself.
     """
+
     method = None
     address = None
     uri = None
@@ -114,7 +115,7 @@ class ResponseObj:
 
 class RESTClient(object):
     """
-    The RESTClient class is a base class on which api provider implementation can be build upon. The Provider class that
+    The RESTClient class is a base class on which api-provider implementation can be build upon. The Provider class that
     inherits from this RESTClient class, should contain all the api methods provided by the api provider.
 
     To minimize the amount of places in memory where credentials are stored, the RESTClient class and the classes
@@ -203,8 +204,9 @@ class RESTClient(object):
             params=params,
             data=data,
         )
-        # return request_obj
-        return self.execute(request_obj)
+
+        response = self.execute(request_obj)
+        return response
 
     # @retry(exceptions=requests.exceptions.ConnectionError, tries=3, delay=0, max_delay=None, backoff=1)
     # @retry(exceptions=requests.exceptions.ReadTimeout, tries=3, delay=0, max_delay=None, backoff=1)
