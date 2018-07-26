@@ -534,7 +534,7 @@ class Bl3pREST(RESTClient):
                 'version': 1,
                 'market': market,
                 'namespace': 'money',
-                'callname': 'trdes',
+                'callname': 'trades',
                 'subcallname': 'fetch',
             },
             data={
