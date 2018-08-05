@@ -15,8 +15,13 @@ If you want to install the sources for development:
 ```bash
 $ git clone https://github.com/quantimoto/cryptoverse
 $ cd cryptoverse
-$ pip install -e .
 $ pip install -r requirements.txt
+$ pip install -e .
+```
+
+To run tests development installation:
+```bash
+$ pytest
 ```
 
 ## Quickstart
