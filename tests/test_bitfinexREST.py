@@ -10,12 +10,10 @@ bitfinex = BitfinexREST()
 class TestBitfinexREST(TestCase):
     def test_pubticker(self):
         response = bitfinex.pubticker(symbol='btcusd')
-        print(response)
         self.assertIsInstance(response, requests.models.Response)
 
     def test_stats(self):
         response = bitfinex.stats(symbol='btcusd')
-        print(response)
         self.assertIsInstance(response, requests.models.Response)
 
     def test_lendbook(self):

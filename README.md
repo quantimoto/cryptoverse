@@ -31,8 +31,10 @@ Using public methods:
 >>> from cryptoverse import exchanges
 >>> exchanges.bitfinex.ticker('LTC/BTC')
 Ticker(exchange=Bitfinex, pair='LTC/BTC')
+
 >>> exchanges.poloniex.ticker('LTC/BTC')
 Ticker(exchange=Poloniex, pair='LTC/BTC')
+
 >>> exchanges.Poloniex.ticker('LTC/BTC')
 Ticker(exchange=Bitfinex, pair='LTC/BTC')
 ```
@@ -45,6 +47,7 @@ Using authenticated methods:
 >>> my_account = Account(exchange=exchanges.bitfinex, credentials=my_credentials, label='your_label_here')
 >>> my_account
 Account(exchange=Bitfinex, key='asd..', secret='qwe..', label='trading account')
+
 >>> my_account.orders()
 Orders()
 ```
