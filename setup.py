@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="cryptoverse",
@@ -24,7 +24,8 @@ setup(
     install_requires=[
         'requests',
     ],
-    packages=["cryptoverse"],
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
     entry_points = {
         'console_scripts': [
             'cryptoverse = cryptoverse.__main__:main',

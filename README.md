@@ -6,12 +6,12 @@ Cryptocurrency focused quantitative finance tools.
 
 ## Install
 
-Install with pip
+To install with pip, open a terminal and enter:
 ```bash
 $ pip install cryptoverse
 ```
 
-Install sources for development
+If you want to install the sources for development:
 ```bash
 $ git clone https://github.com/quantimoto/cryptoverse
 $ cd cryptoverse

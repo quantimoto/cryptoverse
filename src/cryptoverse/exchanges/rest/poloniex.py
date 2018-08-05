@@ -62,8 +62,8 @@ class PoloniexREST(RESTClient):
 
         response = self.query(
             method='GET',
-            endpoint='public',
-            params={
+            path='public',
+            query_params={
                 'command': 'returnTicker',
             },
         )
@@ -129,7 +129,7 @@ class PoloniexREST(RESTClient):
 
         response = self.query(
             method='POST',
-            endpoint='tradingApi',
+            path='tradingApi',
             data={
                 'command': 'returnBalances',
             },
@@ -151,7 +151,7 @@ class PoloniexREST(RESTClient):
 
         response = self.query(
             method='POST',
-            endpoint='tradingApi',
+            path='tradingApi',
             data={
                 'command': 'returnCompleteBalances',
                 'account': account,

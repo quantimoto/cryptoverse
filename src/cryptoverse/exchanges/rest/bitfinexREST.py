@@ -13,13 +13,12 @@ class BitfinexREST(RESTClient):
     Complete implementation of the Bitfinex REST-api as documented at:
     https://docs.bitfinex.com/docs
 
-    Methods here are a direct translation from python to the exchange's available methods. Method names and parameters
-    reflect those in the official documentation as much as possible. Response is kept in-tact and no additional logic is
-    executed in this obj.
+    Methods here are a direct translation from the exchange's available methods to python. Method names and parameters
+    reflect those in the official documentation as much as PEP allows. Response is kept in-tact and no additional logic
+    is executed.
     """
 
-    address = 'https://api.bitfinex.com'
-    uri_template = '/v{version}/{endpoint}'
+    host = 'api.bitfinex.com'
 
     credentials = None
 
@@ -77,9 +76,9 @@ class BitfinexREST(RESTClient):
             symbols() endpoint.
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='pubticker/{symbol}',
+            path='v{version}/pubticker/{symbol}',
             path_params={
                 'version': 1,
                 'symbol': symbol,
@@ -100,9 +99,9 @@ class BitfinexREST(RESTClient):
             symbols() endpoint.
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='stats/{symbol}',
+            path='v{version}/stats/{symbol}',
             path_params={
                 'version': 1,
                 'symbol': symbol,
@@ -126,14 +125,14 @@ class BitfinexREST(RESTClient):
             empty
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='lendbook/{currency}',
+            path='v{version}/lendbook/{currency}',
             path_params={
                 'version': 1,
                 'currency': currency,
             },
-            params={
+            query_params={
                 'limit_bids': limit_bids,
                 'limit_asks': limit_asks,
             },
@@ -156,14 +155,14 @@ class BitfinexREST(RESTClient):
         :param int group: If 1, orders are grouped by price in the orderbook. If 0, orders are not grouped and sorted
             individually
         """
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='book/{symbol}',
+            path='v{version}/book/{symbol}',
             path_params={
                 'version': 1,
                 'symbol': symbol,
             },
-            params={
+            query_params={
                 'limit_bids': limit_bids,
                 'limit_asks': limit_asks,
                 'group': group,
@@ -185,14 +184,14 @@ class BitfinexREST(RESTClient):
         :param timestamp: Only show trades at or after this timestamp
         :param int limit_trades: Limit the number of trades returned. Must be >= 1
         """
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='trades/{symbol}',
+            path='v{version}/trades/{symbol}',
             path_params={
                 'version': 1,
                 'symbol': symbol,
             },
-            params={
+            query_params={
                 'timestamp': timestamp,
                 'limit_trades': limit_trades,
             },
@@ -213,14 +212,14 @@ class BitfinexREST(RESTClient):
         :param int limit_lends: Limit the amount of funding data returned. Must be >= 1
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='lends/{currency}',
+            path='v{version}/lends/{currency}',
             path_params={
                 'version': 1,
                 'currency': currency,
             },
-            params={
+            query_params={
                 'timestamp': timestamp,
                 'limit_lends': limit_lends,
             },
@@ -237,9 +236,9 @@ class BitfinexREST(RESTClient):
         A list of symbol names.
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='symbols',
+            path='v{version}/symbols',
             path_params={
                 'version': 1,
             },
@@ -256,9 +255,9 @@ class BitfinexREST(RESTClient):
         Get a list of valid symbol IDs and the pair details.
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='symbols_details',
+            path='v{version}/symbols_details',
             path_params={
                 'version': 1,
             },
@@ -284,9 +283,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='account_infos',
+            path='v{version}/account_infos',
             path_params={
                 'version': 1,
             },
@@ -309,9 +308,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='account_fees',
+            path='v{version}/account_fees',
             path_params={
                 'version': 1,
             },
@@ -334,9 +333,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='summary',
+            path='v{version}/summary',
             path_params={
                 'version': 1,
             },
@@ -364,9 +363,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='deposit/new',
+            path='v{version}/deposit/new',
             path_params={
                 'version': 1,
             },
@@ -394,9 +393,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='key_info',
+            path='v{version}/key_info',
             path_params={
                 'version': 1,
             },
@@ -419,9 +418,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='margin_infos',
+            path='v{version}/margin_infos',
             path_params={
                 'version': 1,
             },
@@ -445,9 +444,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='balances',
+            path='v{version}/balances',
             path_params={
                 'version': 1,
             },
@@ -474,9 +473,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='transfer',
+            path='v{version}/transfer',
             path_params={
                 'version': 1,
             },
@@ -530,9 +529,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='withdraw',
+            path='v{version}/withdraw',
             path_params={
                 'version': 1,
             },
@@ -594,9 +593,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='order/new',
+            path='v{version}/order/new',
             path_params={
                 'version': 1,
             },
@@ -639,9 +638,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='order/new/multi',
+            path='v{version}/order/new/multi',
             path_params={
                 'version': 1,
             },
@@ -673,9 +672,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='order/cancel',
+            path='v{version}/order/cancel',
             path_params={
                 'version': 1,
             },
@@ -702,9 +701,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='order/cancel/multi',
+            path='v{version}/order/cancel/multi',
             path_params={
                 'version': 1,
             },
@@ -730,9 +729,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='order/cancel/all',
+            path='v{version}/order/cancel/all',
             path_params={
                 'version': 1,
             },
@@ -768,9 +767,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='order/cancel/replace',
+            path='v{version}/order/cancel/replace',
             path_params={
                 'version': 1,
             },
@@ -806,9 +805,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='order/status',
+            path='v{version}/order/status',
             path_params={
                 'version': 1,
             },
@@ -834,9 +833,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='orders',
+            path='v{version}/orders',
             path_params={
                 'version': 1,
             },
@@ -863,9 +862,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='orders/hist',
+            path='v{version}/orders/hist',
             path_params={
                 'version': 1,
             },
@@ -893,9 +892,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='positions',
+            path='v{version}/positions',
             path_params={
                 'version': 1,
             },
@@ -929,9 +928,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='position/claim',
+            path='v{version}/position/claim',
             path_params={
                 'version': 1,
             },
@@ -967,9 +966,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='history',
+            path='v{version}/history',
             path_params={
                 'version': 1,
             },
@@ -1005,9 +1004,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='history/movements',
+            path='v{version}/history/movements',
             path_params={
                 'version': 1,
             },
@@ -1044,9 +1043,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='mytrades',
+            path='v{version}/mytrades',
             path_params={
                 'version': 1,
             },
@@ -1083,9 +1082,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='offer/new',
+            path='v{version}/offer/new',
             path_params={
                 'version': 1,
             },
@@ -1116,9 +1115,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='offer/cancel',
+            path='v{version}/offer/cancel',
             path_params={
                 'version': 1,
             },
@@ -1145,9 +1144,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='offer/status',
+            path='v{version}/offer/status',
             path_params={
                 'version': 1,
             },
@@ -1173,9 +1172,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='credits',
+            path='v{version}/credits',
             path_params={
                 'version': 1,
             },
@@ -1198,9 +1197,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='offers',
+            path='v{version}/offers',
             path_params={
                 'version': 1,
             },
@@ -1226,9 +1225,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='offers/hist',
+            path='v{version}/offers/hist',
             path_params={
                 'version': 1,
             },
@@ -1258,9 +1257,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='mytrades_funding',
+            path='v{version}/mytrades_funding',
             path_params={
                 'version': 1,
             },
@@ -1286,9 +1285,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='taken_funds',
+            path='v{version}/taken_funds',
             path_params={
                 'version': 1,
             },
@@ -1311,9 +1310,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='unused_taken_funds',
+            path='v{version}/unused_taken_funds',
             path_params={
                 'version': 1,
             },
@@ -1336,9 +1335,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='total_taken_funds',
+            path='v{version}/total_taken_funds',
             path_params={
                 'version': 1,
             },
@@ -1362,9 +1361,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='funding/close',
+            path='v{version}/funding/close',
             path_params={
                 'version': 1,
             },
@@ -1394,9 +1393,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='basket_manage',
+            path='v{version}/basket_manage',
             path_params={
                 'version': 1,
             },
@@ -1425,9 +1424,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='position/close',
+            path='v{version}/position/close',
             path_params={
                 'version': 1,
             },
@@ -1459,9 +1458,9 @@ class BitfinexREST(RESTClient):
         still possible.
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='platform/status',
+            path='v{version}/platform/status',
             path_params={
                 'version': 2,
             },
@@ -1482,11 +1481,13 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='tickers',
+            path='v{version}/tickers',
             path_params={
                 'version': 2,
+            },
+            query_params={
                 'symbols': symbols,
             },
         )
@@ -1507,9 +1508,9 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='ticker/{symbol}',
+            path='v{version}/ticker/{symbol}',
             path_params={
                 'version': 2,
                 'symbol': symbol,
@@ -1518,7 +1519,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def trades_v2(self, symbol, limit, start, end, sort):
+    def trades_hist(self, symbol, limit, start, end, sort):
         # https://docs.bitfinex.com/v2/reference#rest-public-trades
         """
         Trades
@@ -1533,14 +1534,14 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='trades/{symbol}/hist',
+            path='v{version}/trades/{symbol}/hist',
             path_params={
                 'version': 2,
-            },
-            data={
                 'symbol': symbol,
+            },
+            query_params={
                 'limit': limit,
                 'start': start,
                 'end': end,
@@ -1550,7 +1551,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def book_v2(self, symbol, precision, len_):
+    def book_v2(self, symbol, precision='P0', len_=25):
         # https://docs.bitfinex.com/v2/reference#rest-public-books
         """
         Books
@@ -1565,15 +1566,15 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='book/{symbol}/{precision}',
+            path='v{version}/book/{symbol}/{precision}',
             path_params={
                 'version': 2,
-            },
-            data={
                 'symbol': symbol,
                 'precision': precision,
+            },
+            query_params={
                 'len': len_,
             },
         )
@@ -1596,25 +1597,25 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='stats1/{key}:{size}:{symbol}:{side}/{section}',
+            path='v{version}/stats1/{key}:{size}:{symbol}:{side}/{section}',
             path_params={
                 'version': 2,
-            },
-            data={
                 'key': key,
                 'size': size,
                 'symbol': symbol,
                 'side': side,
                 'section': section,
+            },
+            query_params={
                 'sort': sort,
             },
         )
 
         return response
 
-    def candles(self, timeframe, symbol, section, limit, start, end, sort):
+    def candles(self, timeframe, symbol, section, limit=100, start=None, end=None, sort='-1'):
         # https://docs.bitfinex.com/v2/reference#rest-public-candles
         """
         Candles
@@ -1632,16 +1633,16 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='candles/trade:{timeframe}:{symbol}/{section}',
+            path='v{version}/candles/trade:{timeframe}:{symbol}/{section}',
             path_params={
                 'version': 2,
-            },
-            data={
-                'time': timeframe,
+                'timeframe': timeframe,
                 'symbol': symbol,
                 'section': section,
+            },
+            query_params={
                 'limit': limit,
                 'start': start,
                 'end': end,
@@ -1669,13 +1670,13 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='calc/trade/avg',
+            path='v{version}/calc/trade/avg',
             path_params={
                 'version': 2,
             },
-            data={
+            query_params={
                 'symbol': symbol,
                 'amount': amount,
                 'period': period,
@@ -1695,9 +1696,9 @@ class BitfinexREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='calc/fx',
+            path='v{version}/calc/fx',
             path_params={
                 'version': 2,
             },
@@ -1727,9 +1728,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/wallets',
+            path='v{version}/auth/r/wallets',
             path_params={
                 'version': 2,
             },
@@ -1753,9 +1754,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/orders/{symbol}',
+            path='v{version}/auth/r/orders/{symbol}',
             path_params={
                 'version': 2,
                 'symbol': symbol,
@@ -1784,14 +1785,14 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/orders/{symbol}/hist',
+            path='v{version}/auth/r/orders/{symbol}/hist',
             path_params={
                 'version': 2,
                 'symbol': symbol,
             },
-            data={
+            query_params={
                 'start': start,
                 'end': end,
                 'limit': limit,
@@ -1819,9 +1820,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/order/{symbol}:{order_id}/trades',
+            path='v{version}/auth/r/order/{symbol}:{order_id}/trades',
             path_params={
                 'version': 2,
                 'symbol': symbol,
@@ -1851,14 +1852,14 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/trades/{symbol}/hist',
+            path='v{version}/auth/r/trades/{symbol}/hist',
             path_params={
                 'version': 2,
                 'symbol': symbol,
             },
-            data={
+            query_params={
                 'start': start,
                 'end': end,
                 'limit': limit,
@@ -1883,9 +1884,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/positions',
+            path='v{version}/auth/r/positions',
             path_params={
                 'version': 2,
             },
@@ -1910,9 +1911,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/funding/offers/{symbol}',
+            path='v{version}/auth/r/funding/offers/{symbol}',
             path_params={
                 'version': 2,
                 'symbol': symbol,
@@ -1941,14 +1942,14 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/funding/offers/{symbol}/hist',
+            path='v{version}/auth/r/funding/offers/{symbol}/hist',
             path_params={
                 'version': 2,
                 'symbol': symbol,
             },
-            data={
+            query_params={
                 'start': start,
                 'end': end,
                 'limit': limit,
@@ -1974,9 +1975,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/funding/loans/{symbol}',
+            path='v{version}/auth/r/funding/loans/{symbol}',
             path_params={
                 'version': 2,
                 'symbol': symbol,
@@ -2005,14 +2006,14 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/funding/loans/{symbol}/hist',
+            path='v{version}/auth/r/funding/loans/{symbol}/hist',
             path_params={
                 'version': 2,
                 'symbol': symbol,
             },
-            data={
+            query_params={
                 'start': start,
                 'end': end,
                 'limit': limit,
@@ -2038,9 +2039,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/funding/credits/{symbol}',
+            path='v{version}/auth/r/funding/credits/{symbol}',
             path_params={
                 'version': 2,
                 'symbol': symbol,
@@ -2069,14 +2070,14 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/funding/credits/{symbol}/hist',
+            path='v{version}/auth/r/funding/credits/{symbol}/hist',
             path_params={
                 'version': 2,
                 'symbol': symbol,
             },
-            data={
+            query_params={
                 'start': start,
                 'end': end,
                 'limit': limit,
@@ -2105,14 +2106,14 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/funding/trades/{symbol}/hist',
+            path='v{version}/auth/r/funding/trades/{symbol}/hist',
             path_params={
                 'version': 2,
                 'symbol': symbol,
             },
-            data={
+            query_params={
                 'start': start,
                 'end': end,
                 'limit': limit,
@@ -2138,9 +2139,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/info/margin/{key}',
+            path='v{version}/auth/r/info/margin/{key}',
             path_params={
                 'version': 2,
                 'key': key,
@@ -2166,9 +2167,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/info/funding/{key}',
+            path='v{version}/auth/r/info/funding/{key}',
             path_params={
                 'version': 2,
                 'key': key,
@@ -2194,9 +2195,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/movements/{currency}/hist',
+            path='v{version}/auth/r/movements/{currency}/hist',
             path_params={
                 'version': 2,
                 'currency': currency,
@@ -2221,9 +2222,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/stats/perf:1D/hist',
+            path='v{version}/auth/r/stats/perf:1D/hist',
             path_params={
                 'version': 2,
             },
@@ -2247,13 +2248,13 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/stats/perf:1D/hist',
+            path='v{version}/auth/r/stats/perf:1D/hist',
             path_params={
                 'version': 2,
             },
-            params={
+            query_params={
                 'type': type_,
             },
             credentials=credentials,
@@ -2279,13 +2280,13 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/w/alert/set',
+            path='v{version}/auth/w/alert/set',
             path_params={
                 'version': 2,
             },
-            params={
+            query_params={
                 'type': type_,
                 'symbol': symbol,
                 'price': price,
@@ -2310,9 +2311,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/w/alert/price:{symbol}:{price}/del',
+            path='v{version}/auth/w/alert/price:{symbol}:{price}/del',
             path_params={
                 'version': 2,
                 'symbol': symbol,
@@ -2342,13 +2343,13 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/calc/order/avail',
+            path='v{version}/auth/calc/order/avail',
             path_params={
                 'version': 2,
             },
-            params={
+            query_params={
                 'symbol': symbol,
                 'dir': dir_,
                 'rate': rate,
@@ -2375,9 +2376,9 @@ class BitfinexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='auth/r/ledgers/{currency}/hist',
+            path='v{version}/auth/r/ledgers/{currency}/hist',
             path_params={
                 'version': 2,
                 'currency': currency,

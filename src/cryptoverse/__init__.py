@@ -7,4 +7,4 @@ exchanges.append(bl3p)
 exchanges.append(kraken)
 exchanges.append(poloniex)
 
-keys = Keepassx()
+# keys = Keepassx()

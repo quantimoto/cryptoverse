@@ -14,7 +14,7 @@ class KrakenREST(RESTClient):
     https://www.kraken.com/help/api
     """
 
-    address = 'https://api.kraken.com'
+    host = 'api.kraken.com'
     uri_template = '/{version}/{endpoint}'
 
     credentials = None
@@ -71,9 +71,9 @@ class KrakenREST(RESTClient):
         Note: This is to aid in approximating the skew time between the server and client.
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='public/Time',
+            path='{version}/public/Time',
             path_params={
                 'version': 0,
             },
@@ -90,13 +90,13 @@ class KrakenREST(RESTClient):
         :param str asset: comma delimited list of assets to get info on (optional.  default = all for given asset class)
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='public/Assets',
+            path='{version}/public/Assets',
             path_params={
                 'version': 0,
             },
-            params={
+            query_params={
                 'info': info,
                 'aclass': aclass,
                 'asset': asset,
@@ -114,13 +114,13 @@ class KrakenREST(RESTClient):
         :param str pair: comma delimited list of asset pairs to get info on (optional.  default = all)
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='public/AssetPairs',
+            path='{version}/public/AssetPairs',
             path_params={
                 'version': 0,
             },
-            params={
+            query_params={
                 'info': info,
                 'pair': pair,
             },
@@ -164,9 +164,9 @@ class KrakenREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='private/TradeBalance',
+            path='{version}/private/TradeBalance',
             path_params={
                 'version': 0,
             },
