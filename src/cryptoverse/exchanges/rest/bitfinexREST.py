@@ -1519,7 +1519,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def trades_hist(self, symbol, limit, start, end, sort):
+    def trades_hist(self, symbol, limit=120, start=None, end=None, sort=-1):
         # https://docs.bitfinex.com/v2/reference#rest-public-trades
         """
         Trades
@@ -1581,7 +1581,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def stats1(self, key, size, symbol, side, section, sort):
+    def stats1(self, key='', size='', symbol='', side='', section='', sort=None):
         # https://docs.bitfinex.com/v2/reference#rest-public-stats
         """
         Stats
@@ -1656,7 +1656,7 @@ class BitfinexREST(RESTClient):
     # V2 Calculation Endpoints
     #
 
-    def calc_market_average_price(self, symbol, amount, period, rate_limit):
+    def calc_market_average_price(self, symbol, amount=None, period=None, rate_limit=None):
         # https://docs.bitfinex.com/v2/reference#rest-calc-market-average-price
         """
         Market Average Price
