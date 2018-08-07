@@ -1,2 +1,2 @@
-from .exchange import ExchangeInterface
-from .explorer import ExplorerInterface
+from .exchange_interface import ExchangeInterface
+from .explorer_interface import ExplorerInterface

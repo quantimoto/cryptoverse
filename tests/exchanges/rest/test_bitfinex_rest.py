@@ -66,7 +66,7 @@ class TestBitfinexREST(TestCase):
         self.assertIsInstance(response, requests.models.Response)
 
     def test_calc_market_average_price(self):
-        response = bitfinex.calc_market_average_price(symbol='tBTCUSD', amount=10)
+        response = bitfinex.calc_market_average_price(symbol='tBTCUSD', amount='10')
         self.assertIsInstance(response, requests.models.Response)
 
     def test_foreign_exchange_rate(self):

@@ -1,6 +1,7 @@
 class ExchangeInterface(object):
     # Methods names in this class should be very explicit and clear. The methods should do one thing quick and simple.
     rest_client = None
+    scrape_client = None
 
     def __str__(self):
         return repr(self)
@@ -43,6 +44,9 @@ class ExchangeInterface(object):
         raise NotImplementedError
 
     def get_market_lends(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def get_market_candles(self, *args, **kwargs):
         raise NotImplementedError
 
     def get_account_orders(self, *args, **kwargs):

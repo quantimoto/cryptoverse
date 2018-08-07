@@ -1615,7 +1615,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    def candles(self, timeframe, symbol, section, limit=100, start=None, end=None, sort='-1'):
+    def candles(self, timeframe, symbol, section, limit=None, start=None, end=None, sort='-1'):
         # https://docs.bitfinex.com/v2/reference#rest-public-candles
         """
         Candles

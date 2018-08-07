@@ -5,6 +5,7 @@ class Exchange(object):
     # High level exchange access. Simple friendly methods with smart responses
     interface = None
     rest_client = None
+    scrape_client = None
 
     instruments = None
     pairs = None
@@ -26,6 +27,7 @@ class Exchange(object):
     def set_interface(self, obj):
         self.interface = obj
         self.rest_client = obj.rest_client
+        self.scrape_client = obj.scrape_client
 
     def set_rest_client(self):
         if self.interface is not None:

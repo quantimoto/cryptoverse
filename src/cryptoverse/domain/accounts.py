@@ -1,67 +1,15 @@
-from hashlib import sha256
-
 from .object_list import ObjectList
-
-
-class Credentials(object):
-    key = None
-    secret = None
-
-    def __init__(self, key=None, secret=None):
-        self.set_key(value=key)
-        self.set_secret(value=secret)
-
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        kwargstrings = list()
-        for kw in ['key', 'secret']:
-            kwargstrings.append('{}={}'.format(kw, self.__dict__[kw]))
-        return '{}({})'.format(class_name, ', '.join(kwargstrings))
-
-    def set_key(self, value):
-        self.key = value
-
-    def set_secret(self, value):
-        self.secret = value
-
-    def get_key(self):
-        return self.key
-
-    def get_secret(self):
-        return self.secret
-
-    def get_hash(self):
-        hash_ = sha256()
-
-        key = self.get_key()
-        if key is not None:
-            key = bytes(self.get_key(), 'utf-8')
-            hash_.update(key)
-
-        secret = self.get_secret()
-        if secret is not None:
-            secret = bytes(self.get_secret(), 'utf-8')
-            hash_.update(secret)
-
-        return hash_.hexdigest()
-
-    def display_hash(self):
-        hash_ = self.get_hash()
-        parts_size = 3
-        return '{}..{}'.format(hash_[:parts_size], hash_[-parts_size:])
+from .offers import Offer, Offers
+from .orders import Order, Orders
 
 
 class Account(object):
-    exchange = None
+    interface = None
     credentials = None
     label = None
 
-    __all__ = ['orders', 'trades', 'positions', 'offers', 'lends', 'wallets', 'balances', 'deposits', 'withdraws',
-               'create_order', 'create_offer', 'create_deposit_address', 'create_withdraw', 'create_transfer', 'place',
-               'cancel', 'replace', 'update']
-
-    def __init__(self, exchange=None, credentials=None, label=None):
-        self.set_exchange(exchange)
+    def __init__(self, interface=None, credentials=None, label=None):
+        self.set_interface(interface)
         self.set_credentials(credentials)
         self.set_label(label)
 
@@ -77,11 +25,11 @@ class Account(object):
                 attributes.append('{}={!r}'.format(key, value))
         return '{class_name}({attributes})'.format(class_name=class_name, attributes=', '.join(attributes))
 
-    def set_exchange(self, exchange):
-        self.exchange = exchange
+    def set_interface(self, interface):
+        self.interface = interface
 
-    def get_exchange(self):
-        return self.exchange
+    def get_interface(self):
+        return self.interface
 
     def set_credentials(self, credentials):
         self.credentials = credentials
@@ -138,31 +86,47 @@ class Account(object):
         raise NotImplementedError
 
     def place(self, obj):
-        if type(obj) is Order or type(obj) is Orders:
-            self.place_order(obj)
-        elif type(obj) is Offer or type(obj) is Offers:
-            self.place_offer(obj)
+        if type(obj) is Order:
+            self.interface.place_single_order(obj)
+        elif type(obj) is Orders:
+            self.interface.place_multiple_orders(obj)
+        elif type(obj) is Offer:
+            self.interface.place_single_offer(obj)
+        elif type(obj) is Offers:
+            self.interface.place_multiple_offers(obj)
         return obj
 
     def cancel(self, obj):
-        if type(obj) is Order or type(obj) is Orders:
-            self.cancel_order(obj)
-        elif type(obj) is Offer or type(obj) is Offers:
-            self.cancel_offer(obj)
+        if type(obj) is Order:
+            self.interface.cancel_single_order(obj)
+        elif type(obj) is Orders:
+            self.interface.cancel_multiple_orders(obj)
+        elif type(obj) is Offer:
+            self.interface.cancel_single_offer(obj)
+        elif type(obj) is Offers:
+            self.interface.cancel_multiple_offers(obj)
         return obj
 
     def replace(self, obj):
-        if type(obj) is Order or type(obj) is Orders:
-            self.replace_order(obj)
-        elif type(obj) is Offer or type(obj) is Offers:
-            self.replace_offer(obj)
+        if type(obj) is Order:
+            self.interface.replace_single_order(obj)
+        elif type(obj) is Orders:
+            self.interface.replace_multiple_orders(obj)
+        elif type(obj) is Offer:
+            self.interface.replace_single_offer(obj)
+        elif type(obj) is Offers:
+            self.interface.replace_multiple_offers(obj)
         return obj
 
     def update(self, obj):
-        if type(obj) is Order or type(obj) is Orders:
-            self.update_order(obj)
-        elif type(obj) is Offer or type(obj) is Offers:
-            self.update_offer(obj)
+        if type(obj) is Order:
+            self.interface.update_single_order(obj)
+        elif type(obj) is Orders:
+            self.interface.update_multiple_orders(obj)
+        elif type(obj) is Offer:
+            self.interface.update_single_offer(obj)
+        elif type(obj) is Offers:
+            self.interface.update_multiple_offers(obj)
         return obj
 
 
