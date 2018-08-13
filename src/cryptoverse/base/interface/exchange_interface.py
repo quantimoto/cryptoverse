@@ -2,6 +2,7 @@ class ExchangeInterface(object):
     # Methods names in this class should be very explicit and clear. The methods should do one thing quick and simple.
     rest_client = None
     scrape_client = None
+    slug = None
 
     def __str__(self):
         return repr(self)
@@ -9,6 +10,12 @@ class ExchangeInterface(object):
     def __repr__(self):
         class_name = self.__class__.__name__
         return '{}()'.format(class_name)
+
+    def __eq__(self, other):
+        if type(other) is self.__class__:
+            if (self.rest_client, self.scrape_client, self.slug) == (other.rest_client, other.scrape_client, other.slug):
+                return True
+        return False
 
     def get_spot_instruments(self):
         raise NotImplementedError

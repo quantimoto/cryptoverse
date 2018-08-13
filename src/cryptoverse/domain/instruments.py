@@ -1,11 +1,11 @@
 from .object_list import ObjectList
 
 
-class Instrument(object):
-    code = None
-    name = None
-    symbol = None
-    precision = None
+class Instrument:
+    code = None  # Example: 'USD'
+    name = None  # Example: 'US Dollar'
+    symbol = None  # Example: '$'
+    precision = None  # Example: 2
 
     def __init__(self, code, name=None, symbol=None, precision=None):
         self.set_code(code)
@@ -16,7 +16,7 @@ class Instrument(object):
     def __repr__(self):
         class_name = self.__class__.__name__
         attributes = list()
-        for entry in self.to_dict().items():
+        for entry in self.as_dict().items():
             attributes.append('{}={!r}'.format(*entry))
         return '{}({})'.format(class_name, ', '.join(attributes))
 
@@ -32,7 +32,7 @@ class Instrument(object):
     def set_precision(self, precision=None):
         self.precision = precision
 
-    def to_dict(self):
+    def as_dict(self):
         dict_obj = dict()
         for key, value in self.__dict__.items():
             if key in ['code', 'name', 'symbol', 'precision']:
@@ -49,6 +49,17 @@ class Instrument(object):
             precision=data['precision'] if 'precision' in data.keys() else None,
         )
         return obj
+
+    def __eq__(self, other):
+        if type(other) is self.__class__ and self.code == other.code:
+            return True
+        elif type(other) is str and self.code == other:
+            return True
+
+        return False
+
+    def __hash__(self):
+        return hash((self.code, self.name))
 
 
 class Instruments(ObjectList):

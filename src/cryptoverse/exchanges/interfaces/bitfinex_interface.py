@@ -7,9 +7,12 @@ from ...domain import Instrument, Instruments, Market, Markets, Orders, Trades, 
 class BitfinexInterface(ExchangeInterface):
     slug = 'bitfinex'
 
+    _markets = None
+
     def __init__(self):
         self.rest_client = BitfinexREST()
         self.scrape_client = BitfinexScrape()
+        self._markets = dict()
 
     def get_spot_instruments(self):
         results = Instruments()
@@ -23,13 +26,8 @@ class BitfinexInterface(ExchangeInterface):
             base = Instrument(code=entry['pair'][:3].upper())
             quote = Instrument(code=entry['pair'][3:].upper())
             exchange = None
-            price_precision = entry['price_precision']
-            order_minimum = {
-                'amount': entry['minimum_order_size'],
-            }
-            order_maximum = {
-                'amount': entry['maximum_order_size'],
-            }
+            order_limits = {'amount': {'min': entry['minimum_order_size'], 'max': entry['maximum_order_size']},
+                            'price': {'significant digits': entry['price_precision']}}
             order_execution_fees = {
                 'maker': fees['order execution']['maker'],
                 'taker': fees['order execution']['taker'],
@@ -40,9 +38,7 @@ class BitfinexInterface(ExchangeInterface):
                     base=base,
                     quote=quote,
                     exchange=exchange,
-                    price_precision=price_precision,
-                    order_minimum=order_minimum,
-                    order_maximum=order_maximum,
+                    order_limits=order_limits,
                     fees=order_execution_fees,
                 )
                 results.append(market)

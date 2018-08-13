@@ -7,7 +7,7 @@ import libkeepass
 class Keepassx(dict):
     """
     >>> keys = Keepassx('test-keys', 'test')
-    >>> keys.bitfinex.empty
+    >>> keys['bitfinex']['empty']
     {'secret': '...',
     'key': '...'}
     """
@@ -25,16 +25,21 @@ class Keepassx(dict):
         attributes.append('{key}={value!r}'.format(key='password', value='***'))
         return '{class_name}({attrs})'.format(class_name=class_name, attrs=', '.join(attributes))
 
+    @staticmethod
+    def _abspath_from_filename(filename):
+        if not os.path.isfile(filename) and os.path.sep not in filename:
+            filename = os.path.join('~/.cryptoverse', '{}.kdbx'.format(filename))
+        filename = os.path.abspath(os.path.expanduser(filename))
+        if not os.path.isfile(filename):
+            raise IOError("No such file: '{}'".format(filename))
+        return filename
+
     def set_filename(self, filename):
         self.filename = filename
 
     @classmethod
     def from_file(cls, filename, password=None):
-        if not os.path.isfile(filename) and '/' not in filename:
-            filename = os.path.join('~/.cryptoverse', '{}.kdbx'.format(filename))
-        filename = os.path.abspath(os.path.expanduser(filename))
-        if not os.path.isfile(filename):
-            raise IOError("No such file or directory: '{}'".format(filename))
+        filename = cls._abspath_from_filename(filename=filename)
 
         basename = os.path.basename(filename)
         environ_key = '{}_PASSWORD'.format(basename.upper().replace('.', '_').replace('-', '_'))

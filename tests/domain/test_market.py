@@ -11,19 +11,37 @@ class TestMarket(TestCase):
         self.assertEqual(m.quote, 'USD')
         self.assertEqual(m.context, 'margin')
         self.assertEqual(m.exchange, 'bitfinex')
-        self.assertEqual(m.order_limits, {'amount': {'max': None, 'min': None, 'precision': None},
-                                          'price': {'max': None, 'min': None, 'precision': 5},
-                                          'total': {'max': None, 'min': None, 'precision': None}})
+        self.assertEqual(m.order_limits, {'amount': {'max': None,
+                                                     'min': None,
+                                                     'precision': None,
+                                                     'significant digits': None},
+                                          'price': {'max': None,
+                                                    'min': None,
+                                                    'precision': 5,
+                                                    'significant digits': None},
+                                          'total': {'max': None,
+                                                    'min': None,
+                                                    'precision': None,
+                                                    'significant digits': None}})
         self.assertEqual(m.fees, {'maker': 0.1, 'taker': None})
 
-    def test_to_dict(self):
+    def test_as_dict(self):
         m = Market('BTC', 'USD')
-        self.assertEqual(m.to_dict(), {'base': 'BTC',
+        self.assertEqual(m.as_dict(), {'base': 'BTC',
                                        'context': 'spot',
                                        'fees': {'maker': None, 'taker': None},
-                                       'order_limits': {'amount': {'max': None, 'min': None, 'precision': None},
-                                                        'price': {'max': None, 'min': None, 'precision': None},
-                                                        'total': {'max': None, 'min': None, 'precision': None}},
+                                       'order_limits': {'amount': {'max': None,
+                                                                   'min': None,
+                                                                   'precision': None,
+                                                                   'significant digits': None},
+                                                        'price': {'max': None,
+                                                                  'min': None,
+                                                                  'precision': None,
+                                                                  'significant digits': None},
+                                                        'total': {'max': None,
+                                                                  'min': None,
+                                                                  'precision': None,
+                                                                  'significant digits': None}},
                                        'quote': 'USD'})
 
     def test_set_base(self):
@@ -47,17 +65,44 @@ class TestMarket(TestCase):
 
     def test_set_order_limits(self):
         m = Market('BTC', 'USD')
-        self.assertEqual(m.order_limits, {'amount': {'max': None, 'min': None, 'precision': None},
-                                          'price': {'max': None, 'min': None, 'precision': None},
-                                          'total': {'max': None, 'min': None, 'precision': None}})
+        self.assertEqual(m.order_limits, {'amount': {'max': None,
+                                                     'min': None,
+                                                     'precision': None,
+                                                     'significant digits': None},
+                                          'price': {'max': None,
+                                                    'min': None,
+                                                    'precision': None,
+                                                    'significant digits': None},
+                                          'total': {'max': None,
+                                                    'min': None,
+                                                    'precision': None,
+                                                    'significant digits': None}})
         m.set_order_limits({'price': {'precision': 5}})
-        self.assertEqual(m.order_limits, {'amount': {'max': None, 'min': None, 'precision': None},
-                                          'price': {'max': None, 'min': None, 'precision': 5},
-                                          'total': {'max': None, 'min': None, 'precision': None}})
+        self.assertEqual(m.order_limits, {'amount': {'max': None,
+                                                     'min': None,
+                                                     'precision': None,
+                                                     'significant digits': None},
+                                          'price': {'max': None,
+                                                    'min': None,
+                                                    'precision': 5,
+                                                    'significant digits': None},
+                                          'total': {'max': None,
+                                                    'min': None,
+                                                    'precision': None,
+                                                    'significant digits': None}})
         m.set_order_limits({'amount': {'min': 20, 'max': 2000}})
-        self.assertEqual(m.order_limits, {'amount': {'max': 2000, 'min': 20, 'precision': None},
-                                          'price': {'max': None, 'min': None, 'precision': 5},
-                                          'total': {'max': None, 'min': None, 'precision': None}})
+        self.assertEqual(m.order_limits, {'amount': {'max': 2000,
+                                                     'min': 20,
+                                                     'precision': None,
+                                                     'significant digits': None},
+                                          'price': {'max': None,
+                                                    'min': None,
+                                                    'precision': 5,
+                                                    'significant digits': None},
+                                          'total': {'max': None,
+                                                    'min': None,
+                                                    'precision': None,
+                                                    'significant digits': None}})
 
     def test_set_fees(self):
         m = Market('BTC', 'USD')

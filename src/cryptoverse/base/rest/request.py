@@ -21,7 +21,7 @@ class RequestObj:
         self.set_data(data)
         self.set_headers(headers)
 
-    def to_dict(self):
+    def as_dict(self):
         dict_obj = {
             'method': self.get_method(),
             'url': self.get_url(),

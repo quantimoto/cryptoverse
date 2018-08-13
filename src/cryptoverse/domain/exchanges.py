@@ -24,14 +24,17 @@ class Exchange(object):
             kwarg_strings.append('{0}={1!r}'.format(kw, self.__dict__[kw]))
         return '{}({})'.format(class_name, ', '.join(kwarg_strings))
 
-    def set_interface(self, obj):
-        self.interface = obj
-        self.rest_client = obj.rest_client
-        self.scrape_client = obj.scrape_client
+    def __eq__(self, other):
+        if type(other) is self.__class__:
+            if self.interface == other.interface:
+                return True
+        return False
 
-    def set_rest_client(self):
-        if self.interface is not None:
-            self.rest_client = self.interface.rest_client
+    def set_interface(self, interface):
+        if interface is not None:
+            self.interface = interface
+            self.rest_client = interface.rest_client
+            self.scrape_client = interface.scrape_client
 
     def update_instruments(self):
         instruments = self.interface.get_instruments()
@@ -48,8 +51,24 @@ class Exchanges(ObjectList):
         for exchange in self:
             if exchange.interface.slug == item:
                 return exchange
+        raise AttributeError("'{}' object has no attribute: '{}'".format(self.__class__.__name__, item))
 
     def __getitem__(self, item):
         for exchange in self:
             if exchange.interface.slug == item:
                 return exchange
+        raise KeyError("'{}' object has no item: '{}'".format(self.__class__.__name__, item))
+
+    def get_slugs(self):
+        result = list()
+        for exchange in self:
+            result.append(exchange.interface.slug)
+        return result
+
+    def as_dict(self):
+        result = dict()
+        for exchange in self:
+            result.update({
+                exchange.interface.slug: exchange
+            })
+        return result

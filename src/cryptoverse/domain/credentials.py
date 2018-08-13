@@ -13,7 +13,7 @@ class Credentials(object):
         class_name = self.__class__.__name__
         kwargstrings = list()
         for kw in ['key', 'secret']:
-            kwargstrings.append('{}={}'.format(kw, self.__dict__[kw]))
+            kwargstrings.append("{}='{}..{}'".format(kw, self.__dict__[kw][:4], self.__dict__[kw][-4:]))
         return '{}({})'.format(class_name, ', '.join(kwargstrings))
 
     def set_key(self, value):

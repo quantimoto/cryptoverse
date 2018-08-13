@@ -11,5 +11,6 @@ exchanges.append(poloniex)
 accounts = Accounts()
 
 
-def load_accounts(keystore=None):
-    keys = Keepassx(keystore)
+def load_accounts():
+    global accounts
+    accounts = Accounts.from_keystore(keystore=Keepassx('default'), exchanges=exchanges)

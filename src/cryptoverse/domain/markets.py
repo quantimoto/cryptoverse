@@ -21,12 +21,12 @@ class Market(object):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        attributes = list()
-        for entry in self.to_dict().items():
-            attributes.append('{}={!r}'.format(*entry))
-        return '{}({})'.format(class_name, ', '.join(attributes))
+        arguments = list()
+        for entry in self.as_dict().items():
+            arguments.append('{}={!r}'.format(*entry))
+        return '{}({})'.format(class_name, ', '.join(arguments))
 
-    def to_dict(self):
+    def as_dict(self):
         dict_obj = dict()
         for key, value in self.__dict__.items():
             if key in ['context', 'base', 'quote', 'price_precision', 'order_limits', 'fees']:
@@ -55,16 +55,19 @@ class Market(object):
                 'min': None,
                 'max': None,
                 'precision': None,
+                'significant digits': None,
             },
             'price': {
                 'min': None,
                 'max': None,
                 'precision': None,
+                'significant digits': None,
             },
             'total': {
                 'min': None,
                 'max': None,
                 'precision': None,
+                'significant digits': None,
             }
         }
         if self.order_limits is None:

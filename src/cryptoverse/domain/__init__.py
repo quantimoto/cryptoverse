@@ -9,5 +9,6 @@ from .lends import Lend, Lends
 from .markets import Market, Markets
 from .offers import Offer, Offers
 from .orders import Order, Orders, OrderChain
+from .pairs import Pair, Pairs
 from .positions import Position, Positions
 from .trades import Trade, Trades
