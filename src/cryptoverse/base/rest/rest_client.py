@@ -28,6 +28,15 @@ class RESTClient(object):
         if host is not None:
             self.host = host
 
+    def __eq__(self, other):
+        if type(self) is type(other):
+            if (self.scheme, self.host, self.url_template) == (other.scheme, other.host, other.url_template):
+                return True
+        return False
+
+    def __hash__(self):
+        return hash((self.scheme, self.host, self.url_template))
+
     def _create_url(self, path, path_params=None):
         url_params = {
             'scheme': self.scheme,

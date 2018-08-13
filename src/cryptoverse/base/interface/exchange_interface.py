@@ -13,9 +13,13 @@ class ExchangeInterface(object):
 
     def __eq__(self, other):
         if type(other) is self.__class__:
-            if (self.rest_client, self.scrape_client, self.slug) == (other.rest_client, other.scrape_client, other.slug):
+            if (self.rest_client, self.scrape_client, self.slug) == (
+                    other.rest_client, other.scrape_client, other.slug):
                 return True
         return False
+
+    def __hash__(self):
+        return hash((self.rest_client, self.scrape_client, self.slug))
 
     def get_spot_instruments(self):
         raise NotImplementedError

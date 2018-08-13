@@ -16,6 +16,15 @@ class Credentials(object):
             kwargstrings.append("{}='{}..{}'".format(kw, self.__dict__[kw][:4], self.__dict__[kw][-4:]))
         return '{}({})'.format(class_name, ', '.join(kwargstrings))
 
+    def __eq__(self, other):
+        if type(other) is self.__class__:
+            if (self.key, self.secret) == (other.key, other.secret):
+                return True
+        return False
+
+    def __hash__(self):
+        return hash((self.key, self.secret))
+
     def set_key(self, value):
         self.key = value
 

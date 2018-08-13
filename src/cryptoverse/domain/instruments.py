@@ -20,6 +20,17 @@ class Instrument:
             attributes.append('{}={!r}'.format(*entry))
         return '{}({})'.format(class_name, ', '.join(attributes))
 
+    def __eq__(self, other):
+        if type(other) is self.__class__ and self.code == other.code:
+            return True
+        elif type(other) is str and self.code == other:
+            return True
+
+        return False
+
+    def __hash__(self):
+        return hash((self.code, self.name))
+
     def set_code(self, code=None):
         self.code = code
 

@@ -26,6 +26,15 @@ class Account(object):
                 attributes.append('{}={!r}'.format(key, value))
         return '{class_name}({attributes})'.format(class_name=class_name, attributes=', '.join(attributes))
 
+    def __eq__(self, other):
+        if type(other) is self.__class__:
+            if (self.exchange, self.credentials) == (other.exchange, other.credentials):
+                return True
+        return False
+
+    def __hash__(self):
+        return hash((self.exchange, self.credentials))
+
     def set_exchange(self, exchange):
         self.exchange = exchange
 

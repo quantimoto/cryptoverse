@@ -11,8 +11,10 @@ class Exchange(object):
     pairs = None
     markets = None
 
-    def __init__(self, interface):
+    def __init__(self, interface=None):
         self.set_interface(interface)
+        self.set_rest_client()
+        self.set_scrape_client()
 
     def __str__(self):
         return repr(self)
@@ -20,7 +22,7 @@ class Exchange(object):
     def __repr__(self):
         class_name = self.__class__.__name__
         kwarg_strings = list()
-        for kw in ['interface']:
+        for kw in []:
             kwarg_strings.append('{0}={1!r}'.format(kw, self.__dict__[kw]))
         return '{}({})'.format(class_name, ', '.join(kwarg_strings))
 
@@ -30,11 +32,20 @@ class Exchange(object):
                 return True
         return False
 
-    def set_interface(self, interface):
+    def __hash__(self):
+        return hash(self.interface)
+
+    def set_interface(self, interface=None):
         if interface is not None:
             self.interface = interface
-            self.rest_client = interface.rest_client
-            self.scrape_client = interface.scrape_client
+
+    def set_rest_client(self):
+        if self.interface is not None:
+            self.rest_client = self.interface.rest_client
+
+    def set_scrape_client(self):
+        if self.interface is not None:
+            self.scrape_client = self.interface.scrape_client
 
     def update_instruments(self):
         instruments = self.interface.get_instruments()
@@ -49,13 +60,13 @@ class Exchanges(ObjectList):
 
     def __getattr__(self, item):
         for exchange in self:
-            if exchange.interface.slug.lower() == item.lower():
+            if str(exchange.interface.slug).lower() == str(item).lower():
                 return exchange
         raise AttributeError("'{}' object has no attribute: '{}'".format(self.__class__.__name__, item))
 
     def __getitem__(self, item):
         for exchange in self:
-            if exchange.interface.slug.lower() == item.lower():
+            if str(exchange.interface.slug).lower() == str(item).lower():
                 return exchange
         raise KeyError("'{}' object has no item: '{}'".format(self.__class__.__name__, item))
 
