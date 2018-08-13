@@ -5,7 +5,7 @@ from .object_list import ObjectList
 from .pairs import Pair
 
 
-class Order:
+class Order(object):
     _arg_types = {
         'pair': Pair,
         'market': Market,

@@ -2,7 +2,7 @@ from .instruments import Instrument
 from .object_list import ObjectList
 
 
-class Pair:
+class Pair(object):
     """
     A pair of instruments.
     """

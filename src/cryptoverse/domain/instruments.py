@@ -1,7 +1,7 @@
 from .object_list import ObjectList
 
 
-class Instrument:
+class Instrument(object):
     code = None  # Example: 'USD'
     name = None  # Example: 'US Dollar'
     symbol = None  # Example: '$'
