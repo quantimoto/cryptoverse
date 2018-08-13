@@ -30,6 +30,12 @@ class TestExchanges(TestCase):
         self.assertEqual(exchanges.bar, exchange3)
         self.assertNotEqual(exchanges.bar, exchange1)
         self.assertRaises(AttributeError, exchanges.__getattr__, 'nonexisting')
+        self.assertEqual(exchanges.Dummy, exchange1)
+        self.assertNotEqual(exchanges.Dummy, exchange2)
+        self.assertEqual(exchanges.FOO, exchange2)
+        self.assertNotEqual(exchanges.FOO, exchange1)
+        self.assertEqual(exchanges.bAr, exchange3)
+        self.assertNotEqual(exchanges.bAr, exchange1)
 
     def test___getitem__(self):
         self.assertEqual(exchanges['dummy'], exchange1)
@@ -39,6 +45,12 @@ class TestExchanges(TestCase):
         self.assertEqual(exchanges['bar'], exchange3)
         self.assertNotEqual(exchanges['bar'], exchange1)
         self.assertRaises(KeyError, exchanges.__getitem__, 'nonexisting')
+        self.assertEqual(exchanges['Dummy'], exchange1)
+        self.assertNotEqual(exchanges['Dummy'], exchange2)
+        self.assertEqual(exchanges['FOO'], exchange2)
+        self.assertNotEqual(exchanges['FOO'], exchange1)
+        self.assertEqual(exchanges['bAr'], exchange3)
+        self.assertNotEqual(exchanges['bAr'], exchange1)
 
     def test_get_slugs(self):
         self.assertEqual(exchanges.get_slugs(), ['dummy', 'foo', 'bar'])

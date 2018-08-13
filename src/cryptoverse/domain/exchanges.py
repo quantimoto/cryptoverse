@@ -49,13 +49,13 @@ class Exchanges(ObjectList):
 
     def __getattr__(self, item):
         for exchange in self:
-            if exchange.interface.slug == item:
+            if exchange.interface.slug.lower() == item.lower():
                 return exchange
         raise AttributeError("'{}' object has no attribute: '{}'".format(self.__class__.__name__, item))
 
     def __getitem__(self, item):
         for exchange in self:
-            if exchange.interface.slug == item:
+            if exchange.interface.slug.lower() == item.lower():
                 return exchange
         raise KeyError("'{}' object has no item: '{}'".format(self.__class__.__name__, item))
 
