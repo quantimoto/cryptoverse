@@ -219,16 +219,21 @@ class TestOrder(TestCase):
 
         order = Order('BTC/USD')
         self.assertEqual(repr(order),
-                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side=None, amount=None, price=None, fee_percentage=None)")
+                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side=None, "
+                         "amount=None, price=None, fee_percentage=None)")
         order = Order('BTC/USD', 'buy')
         self.assertEqual(repr(order),
-                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', amount=None, price=None, fee_percentage=None)")
+                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', "
+                         "amount=None, price=None, fee_percentage=None)")
         order = Order('BTC/USD', 'buy', fee_percentage=0.1)
         self.assertEqual(repr(order),
-                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', amount=None, price=None, fee_percentage=0.1)")
+                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', "
+                         "amount=None, price=None, fee_percentage=0.1)")
         order = Order('BTC/USD', 'buy', fee_percentage=0.1, input=2000)
         self.assertEqual(repr(order),
-                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', amount=None, price=None, fee_percentage=0.1)")
+                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', "
+                         "amount=None, price=None, fee_percentage=0.1)")
         order = Order('BTC/USD', 'buy', fee_percentage=0.1, input=2000, price=1000)
         self.assertEqual(repr(order),
-                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', amount=2.0, price=1000.0, fee_percentage=0.1)")
+                         "Order(pair=Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD')), side='buy', "
+                         "amount=2.0, price=1000.0, fee_percentage=0.1)")
