@@ -109,5 +109,23 @@ class TestPair(TestCase):
     def test___hash__(self):
         pair = Pair('BTC', 'USD')
         hash1 = hash(pair)
-        pair.set_base('LTC')
+
+        pair.set_base('BTC')
         hash2 = hash(pair)
+        self.assertEqual(hash1, hash2)
+
+        pair.set_base('LTC')
+        hash3 = hash(pair)
+        self.assertNotEqual(hash1, hash3)
+
+        pair.set_base('BTC')
+        hash4 = hash(pair)
+        self.assertEqual(hash1, hash4)
+
+        pair2 = Pair('LTC', 'EUR')
+        hash5 = hash(pair2)
+        self.assertNotEqual(hash1, hash5)
+        pair2.set_base('BTC')
+        pair2.set_quote('USD')
+        hash6 = hash(pair2)
+        self.assertEqual(hash1, hash6)
