@@ -498,8 +498,6 @@ class Order:
 
 
 class Orders(ObjectList):
-    pass
-
     def trades(self):
         raise NotImplemented
 
@@ -507,6 +505,9 @@ class Orders(ObjectList):
         raise NotImplemented
 
     def results(self):
+        raise NotImplemented
+
+    def avg_price(self):
         raise NotImplemented
 
 

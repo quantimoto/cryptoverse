@@ -60,7 +60,7 @@ class PoloniexREST(RESTClient):
         Returns the ticker for all markets.
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
             path='public',
             query_params={
@@ -127,7 +127,7 @@ class PoloniexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
             path='tradingApi',
             data={
@@ -149,7 +149,7 @@ class PoloniexREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
             path='tradingApi',
             data={

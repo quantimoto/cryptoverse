@@ -53,7 +53,7 @@ class RequestObj:
     def __repr__(self):
         s = list()
 
-        kwargs = self.to_dict()
+        kwargs = self.as_dict()
         for kw, arg in kwargs.items():
             if arg is not None:
                 s.append('{kw}={arg!r}'.format(kw=kw, arg=arg))

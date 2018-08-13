@@ -141,12 +141,6 @@ class Account(object):
             self.exchange.interface.update_multiple_offers(obj)
         return obj
 
-    def __eq__(self, other):
-        if type(other) is self.__class__:
-            if (self.exchange, self.credentials) == (other.exchange, other.credentials):
-                return True
-        return False
-
 
 class Accounts(ObjectList):
 
@@ -154,6 +148,7 @@ class Accounts(ObjectList):
     def from_keystore(keystore, exchanges):
         accounts = Accounts()
         for exchange_slug in keystore.groups():
+            exchange_slug = str(exchange_slug)
             if exchange_slug in exchanges.get_slugs():
                 for label in keystore[exchange_slug].keys():
                     credentials = Credentials(key=keystore[exchange_slug][label]['key'],

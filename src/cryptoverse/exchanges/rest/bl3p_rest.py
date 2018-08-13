@@ -71,9 +71,9 @@ class Bl3pREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='{market}/{callname}',
+            path='{market}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -92,9 +92,9 @@ class Bl3pREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='{market}/{callname}',
+            path='{market}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -113,9 +113,9 @@ class Bl3pREST(RESTClient):
         :return:
         """
 
-        response = self.query(
+        response = self.request(
             method='GET',
-            endpoint='{market}/{callname}',
+            path='{market}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -148,9 +148,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -184,9 +184,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -217,9 +217,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -249,9 +249,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -287,9 +287,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -324,9 +324,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}',
+            path='{market}/{namespace}/{callname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -355,9 +355,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{call_name}',
+            path='{market}/{namespace}/{call_name}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -393,9 +393,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -428,9 +428,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}',
+            path='{market}/{namespace}/{callname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -456,9 +456,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}',
+            path='{market}/{namespace}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -490,9 +490,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -527,9 +527,9 @@ class Bl3pREST(RESTClient):
         if credentials is None:
             raise MissingCredentialsError
 
-        response = self.query(
+        response = self.request(
             method='POST',
-            endpoint='{market}/{namespace}/{callname}/{subcallname}',
+            path='{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,

@@ -26,28 +26,42 @@ $ pytest
 
 ## Quickstart
 
-Using public methods:
+Load the module
 ```python
->>> from cryptoverse import exchanges
->>> exchanges.bitfinex.ticker('LTC/BTC')
-Ticker(exchange=Bitfinex, pair='LTC/BTC')
-
->>> exchanges.poloniex.ticker('LTC/BTC')
-Ticker(exchange=Poloniex, pair='LTC/BTC')
-
->>> exchanges.Poloniex.ticker('LTC/BTC')
-Ticker(exchange=Bitfinex, pair='LTC/BTC')
+>>> import cryptoverse
 ```
 
-Using authenticated methods:
+Using public methods:
 ```python
->>> from cryptoverse import exchanges
->>> from cryptoverse.domain import Account, Credentials
->>> my_credentials = Credentials(key='your_key_here', secret='your_key_here')
->>> my_account = Account(exchange=exchanges.bitfinex, credentials=my_credentials, label='your_label_here')
->>> my_account
-Account(exchange=Bitfinex, key='asd..', secret='qwe..', label='trading account')
+>>> cryptoverse.exchanges.bitfinex.ticker('LTC/BTC')
+Ticker(exchange=Bitfinex(), pair='LTC/BTC')
 
->>> my_account.orders()
-Orders()
+>>> cryptoverse.exchanges.poloniex.ticker('LTC/BTC')
+Ticker(exchange=Poloniex(), pair='LTC/BTC')
+
+>>> cryptoverse.exchanges.kraken.ticker('LTC/BTC')
+Ticker(exchange=Kraken(), pair='LTC/BTC')
+```
+
+When you store your keys in ~/.cryptoverse/default.kdbx, you can use authenticated methods:
+```python
+>>> cryptoverse.load_accounts()
+Password: ***
+>>> cryptoverse.accounts['bitfinex account1'].balances()
+>>> account = cryptoverse.accounts.bitfinex_account1
+>>> account
+Account(exchange=Bitfinex(), credentials=Credentials(key='abc..123', secret='qwe..890'), label='account1')
+>>> account.balances()
+>>> account.orders()
+
+>>> order = account.create_order('BTC/USD', 'buy', amount=0.1, price=1000)
+>>> order
+Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1)
+>>> order.place()
+Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='active')
+>>> account.orders()
+Orders():
+    Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='active')
+>>> order.cancel()
+Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='cancelled')
 ```
