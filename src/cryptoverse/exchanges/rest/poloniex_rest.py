@@ -3,7 +3,7 @@ import hmac
 from urllib.parse import urlencode
 
 from ...base.rest import RESTClient
-from ...exceptions import MissingCredentialsError
+from ...exceptions import MissingCredentialsException
 
 
 class PoloniexREST(RESTClient):
@@ -125,7 +125,7 @@ class PoloniexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -147,7 +147,7 @@ class PoloniexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',

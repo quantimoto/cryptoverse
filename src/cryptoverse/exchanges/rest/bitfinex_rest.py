@@ -281,7 +281,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -306,7 +306,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -331,7 +331,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -361,7 +361,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -391,7 +391,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -416,7 +416,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -442,7 +442,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -471,7 +471,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -527,7 +527,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -591,7 +591,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -636,7 +636,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -670,7 +670,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -699,7 +699,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -727,7 +727,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -765,7 +765,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -803,7 +803,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -831,7 +831,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -860,7 +860,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -890,7 +890,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -926,7 +926,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -964,7 +964,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1002,7 +1002,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1041,7 +1041,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1080,7 +1080,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1113,7 +1113,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1142,7 +1142,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1170,7 +1170,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1195,7 +1195,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1223,7 +1223,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1255,7 +1255,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1283,7 +1283,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1308,7 +1308,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1333,7 +1333,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1359,7 +1359,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1391,7 +1391,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1422,7 +1422,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1726,7 +1726,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1752,7 +1752,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1783,7 +1783,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1818,7 +1818,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1850,7 +1850,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1882,7 +1882,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1909,7 +1909,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1940,7 +1940,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -1973,7 +1973,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2004,7 +2004,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2037,7 +2037,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2068,7 +2068,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2104,7 +2104,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2137,7 +2137,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2165,7 +2165,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2193,7 +2193,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2220,7 +2220,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2246,7 +2246,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2278,7 +2278,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2309,7 +2309,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2341,7 +2341,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
@@ -2374,7 +2374,7 @@ class BitfinexREST(RESTClient):
 
         credentials = credentials or self.credentials
         if credentials is None:
-            raise MissingCredentialsError
+            raise MissingCredentialsException
 
         response = self.request(
             method='POST',
