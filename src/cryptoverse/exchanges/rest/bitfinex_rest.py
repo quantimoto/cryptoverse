@@ -2,9 +2,14 @@ import base64
 import hashlib
 import hmac
 import json
+from json.decoder import JSONDecodeError
+
+from requests.exceptions import ReadTimeout, ConnectionError
 
 from ...base.rest import RESTClient
-from ...exceptions import MissingCredentialsError
+from ...base.rest.decorators import RateLimit, Memoize, Backoff
+from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeRateLimitException, \
+    ExchangeException
 
 
 class BitfinexREST(RESTClient):
@@ -58,11 +63,32 @@ class BitfinexREST(RESTClient):
 
         return request_obj
 
+    @Backoff(ReadTimeout, wait=60)
+    @Backoff(ConnectionError, wait=60)
+    @Backoff(ExchangeDecodeException, wait=10)
+    @Backoff(ExchangeRateLimitException, wait=20)
+    def request(self, *args, **kwargs):
+        result = super(BitfinexREST, self).request(*args, **kwargs)
+
+        try:
+            result_from_json = json.loads(result.text)
+        except JSONDecodeError:
+            raise ExchangeDecodeException
+
+        if type(result_from_json) is dict and 'error' in result_from_json.keys():
+            if result_from_json['error'] == 'ERR_RATE_LIMIT':
+                raise ExchangeRateLimitException
+            else:
+                raise ExchangeException(result.text)
+
+        return result
+
     #
     # V1 Public Endpoints
     #
 
-    # @rate_limit(30, 60)
+    @Memoize(expires=60. / 15)
+    @RateLimit(calls=30, period=60)  # Documentation states: 30 req/min
     def pubticker(self, symbol):
         # https://docs.bitfinex.com/v1/reference#rest-public-ticker
         """
@@ -87,7 +113,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(10, 60)
+    @Memoize(expires=60. / 5)
+    @RateLimit(calls=5, period=60)  # Documentation states: 10 req/min
     def stats(self, symbol):
         # https://docs.bitfinex.com/v1/reference#rest-public-stats
         """
@@ -110,7 +137,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(45, 60)
+    @Memoize(expires=60. / 10)
+    @RateLimit(calls=5, period=60)  # Documentation states: 45 req/min
     def lendbook(self, currency, limit_bids=50, limit_asks=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-fundingbook
         """
@@ -140,7 +168,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(60, 60)
+    @Memoize(expires=60. / 30)
+    @RateLimit(calls=30, period=60)  # Documentation states: 60 req/min
     def book(self, symbol, limit_bids=50, limit_asks=50, group=1):
         # https://docs.bitfinex.com/v1/reference#rest-public-orderbook
         """
@@ -171,7 +200,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(45, 60)
+    @Memoize(expires=60. / 15)
+    @RateLimit(calls=15, period=60)  # Documentation states: 45 req/min
     def trades(self, symbol, timestamp=None, limit_trades=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-trades
         """
@@ -198,7 +228,8 @@ class BitfinexREST(RESTClient):
         )
         return response
 
-    # @rate_limit(60, 60)
+    @Memoize(expires=60. / 15)
+    @RateLimit(calls=15, period=60)  # Documentation states: 60 req/min
     def lends(self, currency, timestamp=None, limit_lends=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-lends
         """
@@ -227,7 +258,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(5, 60)
+    @Memoize(expires=60. / 2)
+    @RateLimit(calls=2, period=60)  # Documentation states: 5 req/min
     def symbols(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbols
         """
@@ -246,8 +278,9 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(5, 60)
-    def symbol_details(self):
+    @Memoize(expires=60. / 2)
+    @RateLimit(calls=2, period=60)  # Documentation states: 5 req/min
+    def symbols_details(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbol-details
         """
         Symbol Details
@@ -429,7 +462,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(20, 60)
+    @Memoize(expires=60. / 20)
+    @RateLimit(calls=20, period=60)  # Documentation states: 20 req/min
     def balances(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
         """
@@ -844,7 +878,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(1, 60)
+    @Memoize(expires=60. / 1)
+    @RateLimit(calls=1, period=60)  # Documentation states: 1 req/min
     def orders_hist(self, limit=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-orders-history
         """
@@ -945,7 +980,8 @@ class BitfinexREST(RESTClient):
 
     # Historical Data
 
-    # @rate_limit(20, 60)
+    @Memoize(expires=60. / 20)
+    @RateLimit(calls=20, period=60)  # Documentation states: 20 req/min
     def history(self, currency, since=None, until=None, limit=None, wallet=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-balance-history
         """
@@ -984,7 +1020,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(20, 60)
+    @Memoize(expires=60. / 20)
+    @RateLimit(calls=20, period=60)  # Documentation states: 20 req/min
     def history_movements(self, currency, method=None, since=None, until=None, limit=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-deposit-withdrawal-history
         """
@@ -1022,7 +1059,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(45, 60)
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)  # Documentation states: 45 req/min
     def mytrades(self, symbol, timestamp=None, until=None, limit_trades=None, reverse=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-past-trades
         """
@@ -1208,7 +1246,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(1, 60)
+    @Memoize(expires=60. / 1)
+    @RateLimit(calls=1, period=60)  # Documentation states: 1 req/min
     def offer_hist(self, limit=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offers-hist
         """
@@ -1239,14 +1278,15 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    # @rate_limit(45, 60)
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)  # Documentation states: 45 req/min
     def mytrades_funding(self, symbol, until=None, limit_trades=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-mytrades-funding
         """
         Past Funding Trades
 
         View your past trades.
-        
+
         :param str symbol: The pair traded (USD, ...).
         :param until: Trades made after this timestamp won't be returned.
         :param int limit_trades: Limit the number of trades returned.

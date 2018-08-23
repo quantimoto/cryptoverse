@@ -110,8 +110,6 @@ class RESTClient(object):
         response = self.send_request(request_obj)
         return response
 
-    # @retry(exceptions=requests.exceptions.ConnectionError, tries=3, delay=0, max_delay=None, backoff=1)
-    # @retry(exceptions=requests.exceptions.ReadTimeout, tries=3, delay=0, max_delay=None, backoff=1)
     def send_request(self, request_obj):
         if self._session is None:
             self._session = requests.Session()
@@ -122,7 +120,7 @@ class RESTClient(object):
             params=request_obj.get_params(),
             data=request_obj.get_data(),
             headers=request_obj.get_headers(),
-            # timeout=(60, 60)  # Connect, Read,
+            timeout=(60, 60),  # Connect, Read
             allow_redirects=False,
             verify=True,
         )
