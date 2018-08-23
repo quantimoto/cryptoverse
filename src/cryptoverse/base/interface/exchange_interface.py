@@ -39,6 +39,9 @@ class ExchangeInterface(object):
     def get_funding_markets(self, *args, **kwargs):
         raise NotImplemented
 
+    def get_all_markets(self, *args, **kwargs):
+        raise NotImplemented
+
     def get_fee_information(self, *args, **kwargs):
         raise NotImplemented
 
