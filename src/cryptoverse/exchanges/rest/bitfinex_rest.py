@@ -88,7 +88,7 @@ class BitfinexREST(RESTClient):
     #
 
     @Memoize(expires=60. / 15)
-    @RateLimit(calls=30, period=60)  # Documentation states: 30 req/min
+    @RateLimit(calls=15, period=60)  # Documentation states: 30 req/min
     def pubticker(self, symbol):
         # https://docs.bitfinex.com/v1/reference#rest-public-ticker
         """
