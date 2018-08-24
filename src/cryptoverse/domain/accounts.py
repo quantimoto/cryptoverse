@@ -53,19 +53,19 @@ class Account(object):
     def get_label(self):
         return self.label
 
-    def orders(self):
+    def orders(self, market=None):
         raise NotImplementedError
 
-    def trades(self):
+    def trades(self, market):
         raise NotImplementedError
 
-    def positions(self):
+    def positions(self, market=None):
         raise NotImplementedError
 
-    def offers(self):
+    def offers(self, market):
         raise NotImplementedError
 
-    def lends(self):
+    def lends(self, market):
         raise NotImplementedError
 
     def wallets(self):
