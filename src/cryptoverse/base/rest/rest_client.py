@@ -19,6 +19,7 @@ class RESTClient(object):
     executed in this obj.
     """
     _session = None
+    _timeout = (60, 60)  # Connect, Read
 
     scheme = 'https'
     host = None
@@ -107,10 +108,10 @@ class RESTClient(object):
             data=data,
         )
 
-        response = self.send_request(request_obj)
+        response = self._send_request(request_obj)
         return response
 
-    def send_request(self, request_obj):
+    def _send_request(self, request_obj):
         if self._session is None:
             self._session = requests.Session()
 
@@ -120,7 +121,7 @@ class RESTClient(object):
             params=request_obj.get_params(),
             data=request_obj.get_data(),
             headers=request_obj.get_headers(),
-            timeout=(60, 60),  # Connect, Read
+            timeout=self._timeout,
             allow_redirects=False,
             verify=True,
         )
