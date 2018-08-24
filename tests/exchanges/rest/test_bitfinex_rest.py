@@ -39,7 +39,7 @@ class TestBitfinexREST(TestCase):
         self.assertIsInstance(response, requests.models.Response)
 
     def test_symbol_details(self):
-        response = bitfinex.symbol_details()
+        response = bitfinex.symbols_details()
         self.assertIsInstance(response, requests.models.Response)
 
     def test_tickers(self):
