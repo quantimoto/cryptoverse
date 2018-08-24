@@ -1,3 +1,5 @@
+from memoized_property import memoized_property
+
 from .object_list import ObjectList
 
 
@@ -6,10 +8,6 @@ class Exchange(object):
     interface = None
     rest_client = None
     scrape_client = None
-
-    instruments = None
-    pairs = None
-    markets = None
 
     def __init__(self, interface=None):
         self.set_interface(interface)
@@ -47,13 +45,29 @@ class Exchange(object):
         if self.interface is not None:
             self.scrape_client = self.interface.scrape_client
 
-    def update_instruments(self):
-        instruments = self.interface.get_instruments()
-        self.instruments = instruments
+    @memoized_property
+    def instruments(self):
+        return self.interface.get_all_instruments()
 
-    def update_markets(self):
-        markets = self.interface.get_markets()
-        self.instruments = markets
+    @memoized_property
+    def pairs(self):
+        return self.interface.get_all_pairs()
+
+    @memoized_property
+    def markets(self):
+        return self.interface.get_all_markets()
+
+    @memoized_property
+    def spot_markets(self):
+        return self.interface.get_spot_markets()
+
+    @memoized_property
+    def margin_markets(self):
+        return self.interface.get_margin_markets()
+
+    @memoized_property
+    def funding_markets(self):
+        return self.interface.get_funding_markets()
 
 
 class Exchanges(ObjectList):

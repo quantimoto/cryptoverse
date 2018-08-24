@@ -38,6 +38,9 @@ class ObjectList(list):
                 response.append(entry)
         return response
 
+    def get(self, **kwargs):
+        return self.find(**kwargs).first()
+
     def get_values(self, key):
         response = ObjectList()
         for entry in self:

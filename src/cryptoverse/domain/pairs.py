@@ -30,17 +30,20 @@ class Pair(object):
         if self.base == self.quote:
             raise ValueError("'base' and 'quote' arguments cannot be the same.")
 
-    def set_base(self, base):
-        if type(base) is Instrument:
-            self.base = base
+    def set_base(self, value):
+        if type(value) is Instrument:
+            self.base = value
         else:
-            self.base = Instrument(base)
+            self.base = Instrument(code=value)
 
-    def set_quote(self, quote):
-        if type(quote) is Instrument:
-            self.quote = quote
+    def set_quote(self, value):
+        if type(value) is Instrument:
+            self.quote = value
         else:
-            self.quote = Instrument(quote)
+            self.quote = Instrument(code=value)
+
+    def as_str(self):
+        return '{}/{}'.format(self.base.code, self.quote.code)
 
     def as_dict(self):
         dict_obj = dict()
@@ -123,4 +126,7 @@ class Pair(object):
 
 
 class Pairs(ObjectList):
-    pass
+    def __getattr__(self, item):
+        for entry in self:
+            if entry == item:
+                return entry

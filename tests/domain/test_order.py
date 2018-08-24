@@ -11,7 +11,7 @@ class TestOrder(TestCase):
         self.assertEqual(Order._get_kw_for_arg(arg), 'pair')
 
         from cryptoverse.domain import Market
-        arg = Market('BTC', 'USD')
+        arg = Market(Pair('BTC', 'USD'))
         self.assertEqual(Order._get_kw_for_arg(arg), 'market')
 
         from cryptoverse.base.interface import ExchangeInterface

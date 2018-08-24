@@ -30,6 +30,15 @@ class ExchangeInterface(object):
     def get_funding_instruments(self):
         raise NotImplemented
 
+    def get_spot_pairs(self):
+        raise NotImplemented
+
+    def get_margin_pairs(self):
+        raise NotImplemented
+
+    def get_all_pairs(self):
+        raise NotImplemented
+
     def get_spot_markets(self, *args, **kwargs):
         raise NotImplemented
 
@@ -42,7 +51,7 @@ class ExchangeInterface(object):
     def get_all_markets(self, *args, **kwargs):
         raise NotImplemented
 
-    def get_fee_information(self, *args, **kwargs):
+    def get_fees(self, *args, **kwargs):
         raise NotImplemented
 
     def get_ticker(self, *args, **kwargs):
@@ -82,6 +91,9 @@ class ExchangeInterface(object):
         raise NotImplemented
 
     def get_account_withdraws(self, *args, **kwargs):
+        raise NotImplemented
+
+    def get_account_fees(self, *args, **kwargs):
         raise NotImplemented
 
     def place_single_order(self, *args, **kwargs):

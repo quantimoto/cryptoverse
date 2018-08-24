@@ -129,3 +129,13 @@ class TestPair(TestCase):
         pair2.set_quote('USD')
         hash6 = hash(pair2)
         self.assertEqual(hash1, hash6)
+
+    def test_as_str(self):
+        p = Pair('BTC', 'USD')
+        self.assertEqual(p.as_str(), 'BTC/USD')
+        self.assertIsInstance(p.as_str(), str)
+
+    def test_as_dict(self):
+        p = Pair('BTC', 'USD')
+        self.assertEqual(p.as_dict(), {'base': Instrument(code='BTC'), 'quote': Instrument(code='USD')})
+        self.assertIsInstance(p.as_dict(), dict)
