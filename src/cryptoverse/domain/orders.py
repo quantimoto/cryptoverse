@@ -496,6 +496,12 @@ class Order(object):
     def cancel(self):
         raise NotImplementedError
 
+    def wait_for_completion(self):
+        raise NotImplemented
+
+    def followup(self, *args, **kwargs):
+        raise NotImplemented
+
 
 class Orders(ObjectList):
     def trades(self):
