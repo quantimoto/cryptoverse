@@ -80,8 +80,7 @@ class Backoff(object):
                     result = func(*args, **kwargs)
                     successful = True
                 except self.exception:
-                    cprint(time.time(), 'red')
-                    cprint(self.exception, 'red')
+                    cprint('{}: {}'.format(time.time(), self.exception.__name__), 'red')
                     time.sleep(self.wait)
 
             return result
