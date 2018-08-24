@@ -6,6 +6,11 @@ class Balance(object):
     instrument = None
     exchange = None
 
+    def valued_in(self, instrument):
+        raise NotImplemented
+
 
 class Balances(ObjectList):
-    pass
+
+    def weights(self):
+        raise NotImplemented
