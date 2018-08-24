@@ -8,6 +8,7 @@ bitfinex = BitfinexREST()
 
 
 class TestBitfinexREST(TestCase):
+
     def test_pubticker(self):
         response = bitfinex.pubticker(symbol='btcusd')
         self.assertIsInstance(response, requests.models.Response)
