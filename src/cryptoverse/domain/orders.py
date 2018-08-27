@@ -562,6 +562,7 @@ class Order(object):
         # Derive missing argument values again with newly collected arguments
         derived_arguments = self._derive_missing_kwargs(derived_arguments)
 
+        # Remove supplied arguments from derived arguments
         derived_arguments = remove_keys(kwargs=derived_arguments, keys=supplied_arguments.keys())
 
         # Store supplied and derived arguments
