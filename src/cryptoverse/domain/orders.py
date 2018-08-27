@@ -267,6 +267,12 @@ class Order(object):
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
                 value = kwargs['fees'] / kwargs['gross'] / 0.01
 
+            # get fee_percentage for limit order from market fees
+            elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None and kwargs['type'] is 'limit':
+                value = kwargs['market'].fees['maker']
+            # get fee_percentage for market order from market fees
+            elif kwargs['market'] is not None and kwargs['market'].fees['taker'] is not None and kwargs['type'] is 'market':
+                value = kwargs['market'].fees['taker']
             else:
                 value = None
 
