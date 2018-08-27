@@ -25,6 +25,15 @@ class RequestObj:
         self.headers = headers
         self.scheme = scheme
 
+    def __repr__(self):
+        s = list()
+
+        kwargs = self.as_dict()
+        for kw, arg in kwargs.items():
+            if arg is not None:
+                s.append('{kw}={arg!r}'.format(kw=kw, arg=arg))
+        return '{}({})'.format(self.__class__.__name__, ', '.join(s))
+
     def as_dict(self):
         dict_obj = {
             'method': self.method,
@@ -55,15 +64,6 @@ class RequestObj:
             return dict((k, v) for k, v in dict_obj.items() if v is not None)
         else:
             return dict()
-
-    def __repr__(self):
-        s = list()
-
-        kwargs = self.as_dict()
-        for kw, arg in kwargs.items():
-            if arg is not None:
-                s.append('{kw}={arg!r}'.format(kw=kw, arg=arg))
-        return '{}({})'.format(self.__class__.__name__, ', '.join(s))
 
     @property
     def url(self):

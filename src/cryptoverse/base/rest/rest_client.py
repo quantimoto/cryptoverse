@@ -23,20 +23,21 @@ class RESTClient(object):
 
     scheme = 'https'
     host = None
-    url_template = '{scheme}://{host}/{path}'
 
-    def __init__(self, host=None):
+    def __init__(self, host=None, scheme=None):
         if host is not None:
             self.host = host
+        if scheme is not None:
+            self.scheme = scheme
 
     def __eq__(self, other):
         if type(self) is type(other):
-            if (self.scheme, self.host, self.url_template) == (other.scheme, other.host, other.url_template):
+            if (self.scheme, self.host) == (other.scheme, other.host):
                 return True
         return False
 
     def __hash__(self):
-        return hash((self.scheme, self.host, self.url_template))
+        return hash((self.scheme, self.host))
 
     def _create_request(self, path, method, credentials, path_params, query_params, data):
         # Insert path parameters into path

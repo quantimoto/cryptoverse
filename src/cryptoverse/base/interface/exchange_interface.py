@@ -34,6 +34,9 @@ class ExchangeInterface(object):
     def get_funding_instruments(self):
         raise NotImplemented
 
+    def get_all_instruments(self):
+        raise NotImplemented
+
     def get_spot_pairs(self):
         raise NotImplemented
 

@@ -114,17 +114,67 @@ class Market(object):
         else:
             return None
 
+    @property
+    def pair(self):
+        from cryptoverse.domain import Pair
+        if type(self.symbol) is Pair:
+            return self.symbol
+
+    @property
+    def instrument(self):
+        from cryptoverse.domain import Instrument
+        if type(self.symbol) is Instrument:
+            return self.symbol
+
+    @property
+    def ticker(self):
+        if self.exchange:
+            return self.exchange.ticker(market=self)
+
+    def get_side(self, input_instrument=None, output_instrument=None):
+        if input_instrument is not None:
+            if self.base == input_instrument:
+                return 'sell'
+            elif self.quote == input_instrument:
+                return 'buy'
+        elif output_instrument is not None:
+            if self.base == output_instrument:
+                return 'buy'
+            elif self.quote == output_instrument:
+                return 'sell'
+
+    def get_opposite(self, instrument):
+        if self.base == instrument:
+            return self.quote
+        elif self.quote == instrument:
+            return self.base
+
 
 class Markets(ObjectList):
 
     def __getattr__(self, item):
-        return self.get(symbol=item)
+        result = self.find(symbol=item)
+        if len(result) == 1:
+            return result[0]
+
+        return result
 
     def __getitem__(self, item):
         if type(item) is tuple:
+
             from cryptoverse.domain import Pair
-            return self.get(symbol=Pair(*item))
-        if type(item) is int:
-            return super(self.__class__, self).__getitem__(item)
+            response = self.find(symbol=Pair(*item))
+            if len(response) == 1:
+                result = response[0]
+            else:
+                result = response
+        elif type(item) is int:
+            result = super(self.__class__, self).__getitem__(item)
         else:
-            return self.get(symbol=item)
+            response = self.find(symbol=item)
+            if len(response) == 1:
+                result = response[0]
+            else:
+                result = response
+
+        return result

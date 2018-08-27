@@ -1,4 +1,4 @@
-from .instruments import Instrument
+from .instruments import Instrument, Instruments
 from .object_list import ObjectList
 
 
@@ -7,50 +7,70 @@ class Pair(object):
     A pair of instruments.
     """
 
-    base = None
-    quote = None
+    _base = None
+    _quote = None
 
     def __init__(self, *args, base=None, quote=None):
         if base is not None:
-            self.set_base(base)
+            self.base = base
         if quote is not None:
-            self.set_quote(quote)
+            self.quote = quote
         if base is None or quote is None and args:
+            from cryptoverse.domain import Market
             if len(args) == 2:
-                self.set_base(args[0])
-                self.set_quote(args[1])
+                self.base = args[0]
+                self.quote = args[1]
             elif len(args) == 1 and base is not None:
-                self.set_quote(args[0])
+                self.quote = args[0]
             elif len(args) == 1 and quote is not None:
-                self.set_base(args[0])
-            elif len(args) == 1 and base is None and quote is None:
+                self.base = args[0]
+            elif len(args) == 1 and base is None and quote is None and type(args[0]) is str:
                 base, quote = self._split_string(args[0])
-                self.set_base(base)
-                self.set_quote(quote)
+                self.base = base
+                self.quote = quote
+            elif len(args) == 1 and type(args[0]) is Market and args[0].pair is not None:
+                self.base = args[0].symbol.base
+                self.quote = args[0].symbol.quote
+            else:
+                raise ValueError("Invalid values supplied: {}".format((*args, base, quote)))
         if self.base == self.quote:
-            raise ValueError("'base' and 'quote' arguments cannot be the same.")
+            raise ValueError("'base' and 'quote' arguments cannot be the same: {}, {}".format(base, quote))
 
-    def set_base(self, value):
-        if type(value) is Instrument:
-            self.base = value
-        else:
-            self.base = Instrument(code=value)
+    @property
+    def base(self):
+        return self._base
 
-    def set_quote(self, value):
+    @base.setter
+    def base(self, value):
         if type(value) is Instrument:
-            self.quote = value
+            self._base = value
         else:
-            self.quote = Instrument(code=value)
+            self._base = Instrument(code=value)
+
+    @property
+    def quote(self):
+        return self._quote
+
+    @quote.setter
+    def quote(self, value):
+        if type(value) is Instrument:
+            self._quote = value
+        else:
+            self._quote = Instrument(code=value)
+
+    @property
+    def instruments(self):
+        return Instruments([self.base, self.quote])
 
     def as_str(self):
         return '{}/{}'.format(self.base.code, self.quote.code)
 
     def as_dict(self):
         dict_obj = dict()
-        for key, value in self.__dict__.items():
-            if key in ['base', 'quote']:
-                if value is not None:
-                    dict_obj.update({key: value})
+        for key in ['base', 'quote']:
+            value = getattr(self, key)
+            if value is not None:
+                dict_obj.update({key: value})
         return dict_obj
 
     def __repr__(self):
@@ -123,6 +143,24 @@ class Pair(object):
             return True
         except ValueError:
             return False
+
+    def get_side(self, input_instrument=None, output_instrument=None):
+        if input_instrument is not None:
+            if self.base == input_instrument:
+                return 'sell'
+            elif self.quote == input_instrument:
+                return 'buy'
+        elif output_instrument is not None:
+            if self.base == output_instrument:
+                return 'buy'
+            elif self.quote == output_instrument:
+                return 'sell'
+
+    def get_opposite(self, instrument):
+        if self.base == instrument:
+            return self.quote
+        elif self.quote == instrument:
+            return self.base
 
 
 class Pairs(ObjectList):

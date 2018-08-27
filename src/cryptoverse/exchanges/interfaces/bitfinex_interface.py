@@ -2,7 +2,7 @@ from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
 from ...domain import Instrument, Instruments, Market, Markets, Order, Orders, Trades, Offers, Lends, Pair, Pairs, \
-    Ticker
+    Ticker, Balances, Balance
 
 
 class BitfinexInterface(ExchangeInterface):
