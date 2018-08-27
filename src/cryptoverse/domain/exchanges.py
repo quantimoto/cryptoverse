@@ -33,6 +33,11 @@ class Exchange(object):
         if value is not None:
             self.interface = value
 
+    def copy(self):
+        interface = self.interface.copy()
+        obj = self.__class__(interface=interface)
+        return obj
+
     @property
     def rest_client(self):
         if self.interface:

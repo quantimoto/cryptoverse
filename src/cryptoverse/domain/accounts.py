@@ -5,7 +5,7 @@ from .orders import Order, Orders
 
 
 class Account(object):
-    exchange = None
+    _exchange = None
     label = None
 
     def __init__(self, exchange=None, credentials=None, label=None):
@@ -35,6 +35,15 @@ class Account(object):
         return hash((self.exchange, self.credentials))
 
     @property
+    def exchange(self):
+        return self._exchange
+
+    @exchange.setter
+    def exchange(self, value):
+        if value is not None:
+            self._exchange = value.copy()
+
+    @property
     def credentials(self):
         if self.exchange:
             return self.exchange.interface.rest_client.credentials
@@ -43,7 +52,7 @@ class Account(object):
 
     @credentials.setter
     def credentials(self, value):
-        if value is not None:
+        if self.exchange is not None and value is not None:
             self.exchange.interface.rest_client.credentials = value
 
     def fees(self):

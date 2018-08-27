@@ -21,6 +21,10 @@ class ExchangeInterface(object):
     def __hash__(self):
         return hash((self.rest_client, self.scrape_client, self.slug))
 
+    def copy(self):
+        obj = self.__class__()
+        return obj
+
     def get_spot_instruments(self):
         raise NotImplemented
 
