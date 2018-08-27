@@ -50,39 +50,41 @@ class Account(object):
         return self.exchange.interface.get_account_fees(credentials=self.credentials)
 
     def orders(self, market=None):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_orders(market=market)
 
     def trades(self, market):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_trades(market=market)
 
     def positions(self, market=None):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_positions(market=market)
 
     def offers(self, market):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_positions(market=market)
 
     def lends(self, market):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_lends(market=market)
 
     def wallets(self):
         raise NotImplementedError
 
     def balances(self):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_balances()
 
     def deposits(self):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_deposits()
 
-    def withdraws(self):
-        raise NotImplementedError
+    def withdrawals(self):
+        return self.exchange.interface.get_account_withdrawals()
 
     def create_order(self, *args, **kwargs):
         kwargs['account'] = self
         order = Order(*args, **kwargs)
         return order
 
-    def create_offer(self):
-        raise NotImplementedError
+    def create_offer(self, *args, **kwargs):
+        kwargs['account'] = self
+        offer = Offer(*args, **kwargs)
+        return offer
 
     def create_deposit_address(self):
         raise NotImplementedError

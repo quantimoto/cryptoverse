@@ -81,6 +81,9 @@ class ExchangeInterface(object):
     def get_account_trades(self, *args, **kwargs):
         raise NotImplemented
 
+    def get_account_positions(self, *args, **kwargs):
+        raise NotImplemented
+
     def get_account_offers(self, *args, **kwargs):
         raise NotImplemented
 
@@ -93,10 +96,7 @@ class ExchangeInterface(object):
     def get_account_deposits(self, *args, **kwargs):
         raise NotImplemented
 
-    def get_account_withdraws(self, *args, **kwargs):
-        raise NotImplemented
-
-    def get_account_fees(self, *args, **kwargs):
+    def get_account_withdrawals(self, *args, **kwargs):
         raise NotImplemented
 
     def place_single_order(self, *args, **kwargs):

@@ -12,5 +12,8 @@ class Balance(object):
 
 class Balances(ObjectList):
 
+    def get_by_instrument(self, *args):
+        raise NotImplemented
+
     def weights(self):
         raise NotImplemented
