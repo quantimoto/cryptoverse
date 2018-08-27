@@ -494,7 +494,6 @@ class Order(object):
 
         new_kwargs = derive_all(kwargs=new_kwargs)
         new_kwargs = strip_none(data=new_kwargs)
-        # new_kwargs = remove_keys(kwargs=new_kwargs, keys=supplied_kwargs.keys())
 
         return new_kwargs
 
