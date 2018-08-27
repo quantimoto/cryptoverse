@@ -66,3 +66,6 @@ class ObjectList(list):
             if entry not in response:
                 response.append(entry)
         return response
+
+    def __hash__(self):
+        return hash(tuple(self))
