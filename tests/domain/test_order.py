@@ -202,7 +202,8 @@ class TestOrder(TestCase):
                                                                 'net': 1.998,
                                                                 'output': 1.998,
                                                                 'output_instrument': Instrument(code='BTC'),
-                                                                'total': 2000})
+                                                                'total': 2000,
+                                                                'type': 'limit'})
 
     def test_update(self):
         order = Order()

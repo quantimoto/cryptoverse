@@ -29,7 +29,6 @@ class Order(object):
     }
 
     _supplied_arguments = None
-    _minimum_arguments = None
     _derived_arguments = None
 
     trades = None
@@ -247,10 +246,6 @@ class Order(object):
             elif kwargs['gross'] is not None and kwargs['net'] is not None:
                 value = kwargs['gross'] - kwargs['net']
 
-            # fees = 0 if fee_percentage is None
-            elif kwargs['fee_percentage'] is None:
-                value = 0.0
-
             else:
                 value = None
 
@@ -334,6 +329,18 @@ class Order(object):
 
             return value
 
+        def get_type(kwargs):
+            key = 'type'
+            default = 'limit'
+
+            if kwargs[key] is not None:
+                value = kwargs[key]
+
+            else:
+                value = default
+
+            return value
+
         def get_pair(kwargs):
             key = 'pair'
 
@@ -371,10 +378,7 @@ class Order(object):
 
             # market from pair and exchange
             elif kwargs['pair'] is not None and kwargs['exchange'] is not None:
-                value = Market(
-                    symbol=kwargs['pair'],
-                    exchange=kwargs['exchange'],
-                )
+                value = kwargs['exchange'].markets.get(symbol=kwargs['pair'], context='spot')
 
             else:
                 value = None
@@ -480,6 +484,7 @@ class Order(object):
                 kwargs['net'] = get_net(kwargs)
                 kwargs['output'] = get_output(kwargs)
                 kwargs['side'] = get_side(kwargs)
+                kwargs['type'] = get_type(kwargs)
                 kwargs['pair'] = get_pair(kwargs)
                 kwargs['market'] = get_market(kwargs)
                 kwargs['exchange'] = get_exchange(kwargs)
@@ -504,13 +509,82 @@ class Order(object):
         else:
             fees = None
 
-        if fees is not None:
-            if kwargs['type'] == 'market':
-                kwargs['fee_percentage'] = fees['order']['taker']
+        if fees is not None and kwargs['pair'] is not None:
+            pair = '{}/{}'.format(kwargs['pair'].base.code, kwargs['pair'].quote.code)
+            if 'type' in kwargs and kwargs['type'] == 'market':
+                kwargs['fee_percentage'] = fees['orders'][pair]['taker']
             else:
-                kwargs['fee_percentage'] = fees['order']['taker']
+                kwargs['fee_percentage'] = fees['orders'][pair]['maker']
 
         return results
+
+    def update(self, *args, **kwargs):
+
+        # Derive keywords for keyword-less args
+        kwargs_from_args = dict()
+        for arg in args:
+            kw = self._get_kw_for_arg(arg)
+            if kw not in kwargs.keys():
+                kwargs_from_args.update({kw: arg})
+            else:
+                raise ValueError(
+                    "'{kw}' recognized as keyword for '{arg1}' argument, but '{kw}={arg2}' was also supplied.".format(
+                        kw=kw, arg1=arg, arg2=kwargs[kw]))
+
+        # Merge newly keyworded args with kwargs
+        new_arguments = dict()
+        new_arguments.update(kwargs_from_args)
+        new_arguments.update(kwargs)
+
+        # Force type for all arguments
+        new_arguments = self._sanitize_kwargs(new_arguments)
+
+        # Retrieve previously supplied arguments
+        if self._supplied_arguments is None:
+            supplied_arguments = dict()
+        else:
+            supplied_arguments = self._supplied_arguments.copy()
+
+        # Update previously supplied arguments with new arguments
+        supplied_arguments.update(new_arguments)
+
+        # Remove any kwargs with None value
+        for kw, arg in supplied_arguments.copy().items():
+            if arg is None:
+                del supplied_arguments[kw]
+
+        # Derive missing argument values from supplied arguments
+        derived_arguments = self._derive_missing_kwargs(supplied_arguments)
+
+        combined_arguments = supplied_arguments.copy()
+        combined_arguments.update(derived_arguments)
+
+        # Collect external data to further fill in arguments
+        collected_arguments = self._collect_external_data(combined_arguments)
+        combined_arguments.update(collected_arguments)
+
+        # Derive missing argument values because collected arguments have been added
+        more_derived_arguments = self._derive_missing_kwargs(combined_arguments)
+        combined_arguments.update(more_derived_arguments)
+        derived_arguments = combined_arguments.copy()
+
+        for key in supplied_arguments:
+            derived_arguments.pop(key, None)
+
+        # Store supplied and derived arguments
+        self._supplied_arguments = supplied_arguments.copy()
+        self._derived_arguments = derived_arguments.copy()
+
+    @property
+    def _minimum_arguments(self):
+        combined_arguments = self._supplied_arguments.copy()
+        if self._derived_arguments is not None:
+            combined_arguments.update(self._derived_arguments)
+
+        result = dict()
+        for key in ['pair', 'side', 'amount', 'price', 'fee_percentage']:
+            result[key] = combined_arguments[key] if key in combined_arguments else None
+        return result
 
     @property
     def pair(self):
@@ -791,61 +865,6 @@ class Order(object):
     @output_instrument.setter
     def output_instrument(self, value):
         self.update(output_instrument=value)
-
-    def update(self, *args, **kwargs):
-
-        # Derive keywords for keyword-less args
-        kwargs_from_args = dict()
-        for arg in args:
-            kw = self._get_kw_for_arg(arg)
-            if kw not in kwargs.keys():
-                kwargs_from_args.update({kw: arg})
-            else:
-                raise ValueError(
-                    "'{kw}' recognized as keyword for '{arg1}' argument, but '{kw}={arg2}' was also supplied.".format(
-                        kw=kw, arg1=arg, arg2=kwargs[kw]))
-
-        # Merge newly keyworded args with kwargs
-        new_arguments = dict()
-        new_arguments.update(kwargs_from_args)
-        new_arguments.update(kwargs)
-
-        # Force type for all arguments
-        new_arguments = self._sanitize_kwargs(new_arguments)
-
-        # Retrieve previously supplied arguments
-        if self._supplied_arguments is None:
-            supplied_arguments = dict()
-        else:
-            supplied_arguments = self._supplied_arguments.copy()
-
-        # Update previously supplied arguments with new arguments
-        supplied_arguments.update(new_arguments)
-
-        # Remove any kwargs with None value
-        for kw, arg in supplied_arguments.copy().items():
-            if arg is None:
-                del supplied_arguments[kw]
-
-        # Store supplied arguments
-        self._supplied_arguments = supplied_arguments
-
-        # Derive missing argument values from supplied arguments
-        derived_arguments = self._derive_missing_kwargs(supplied_arguments)
-
-        # Store derived arguments
-        self._derived_arguments = derived_arguments
-
-        combined_arguments = supplied_arguments.copy()
-        combined_arguments.update(derived_arguments)
-
-        # Collect external data to further fill in arguments
-        # collected_arguments = self._collect_external_data(combined_arguments)
-
-        minimum_arguments = dict()
-        for key in ['pair', 'side', 'amount', 'price', 'fee_percentage']:
-            minimum_arguments[key] = combined_arguments[key] if key in combined_arguments else None
-        self._minimum_arguments = minimum_arguments
 
     def place(self):
         raise NotImplementedError

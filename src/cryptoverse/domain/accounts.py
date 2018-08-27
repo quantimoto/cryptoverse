@@ -56,7 +56,7 @@ class Account(object):
             self.exchange.interface.rest_client.credentials = value
 
     def fees(self):
-        return self.exchange.interface.get_account_fees(credentials=self.credentials)
+        return self.exchange.interface.get_account_fees()
 
     def orders(self, market=None):
         return self.exchange.interface.get_account_orders(market=market)
