@@ -161,6 +161,12 @@ class Order(object):
             else:
                 value = None
 
+            if kwargs['market'] is not None and kwargs['market'].limits is not None:
+                if key in kwargs['market'].limits:
+                    if 'significant digits' in kwargs['market'].limits[key]:
+                        significant_digits = kwargs['market'].limits[key]['significant digits']
+                        if significant_digits is not None:
+                            value = round_significant(value, significant_digits) if value is not None else value
             return value
 
         def get_total(kwargs):
@@ -494,22 +500,22 @@ class Order(object):
             return kwargs
 
         new_kwargs = derive_all(kwargs=new_kwargs)
-        new_kwargs = remove_empty(kwargs=new_kwargs)
-        new_kwargs = remove_keys(kwargs=new_kwargs, keys=supplied_kwargs.keys())
+        new_kwargs = strip_none(data=new_kwargs)
+        # new_kwargs = remove_keys(kwargs=new_kwargs, keys=supplied_kwargs.keys())
 
         return new_kwargs
 
     @classmethod
     def _collect_external_data(cls, kwargs):
         results = dict()
-        if 'account' in kwargs.keys():
+        if 'account' in kwargs and kwargs['account'] is not None:
             fees = kwargs['account'].fees()
-        elif 'exchange' in kwargs.keys():
+        elif 'exchange' in kwargs and kwargs['exchange'] is not None:
             fees = kwargs['exchange'].fees
         else:
             fees = None
 
-        if fees is not None and kwargs['pair'] is not None:
+        if fees is not None and 'pair' in kwargs and kwargs['pair'] is not None:
             pair = '{}/{}'.format(kwargs['pair'].base.code, kwargs['pair'].quote.code)
             if 'type' in kwargs and kwargs['type'] == 'market':
                 kwargs['fee_percentage'] = fees['orders'][pair]['taker']
@@ -556,24 +562,20 @@ class Order(object):
         # Derive missing argument values from supplied arguments
         derived_arguments = self._derive_missing_kwargs(supplied_arguments)
 
-        combined_arguments = supplied_arguments.copy()
-        combined_arguments.update(derived_arguments)
-
         # Collect external data to further fill in arguments
-        collected_arguments = self._collect_external_data(combined_arguments)
-        combined_arguments.update(collected_arguments)
+        collected_arguments = self._collect_external_data(derived_arguments)
+        derived_arguments.update(collected_arguments)
 
-        # Derive missing argument values because collected arguments have been added
-        more_derived_arguments = self._derive_missing_kwargs(combined_arguments)
-        combined_arguments.update(more_derived_arguments)
-        derived_arguments = combined_arguments.copy()
+        # Derive missing argument values again with newly collected arguments
+        derived_arguments = self._derive_missing_kwargs(derived_arguments)
 
-        for key in supplied_arguments:
-            derived_arguments.pop(key, None)
+        derived_arguments = remove_keys(kwargs=derived_arguments, keys=supplied_arguments.keys())
 
         # Store supplied and derived arguments
-        self._supplied_arguments = supplied_arguments.copy()
-        self._derived_arguments = derived_arguments.copy()
+        supplied_arguments = strip_empty(supplied_arguments)
+        self._supplied_arguments = supplied_arguments
+        derived_arguments = strip_none(derived_arguments)
+        self._derived_arguments = derived_arguments
 
     @property
     def _minimum_arguments(self):

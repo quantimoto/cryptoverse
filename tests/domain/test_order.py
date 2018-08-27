@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cryptoverse.domain import Order
+from cryptoverse.domain import Order, Market
 
 
 class TestOrder(TestCase):
@@ -116,6 +116,20 @@ class TestOrder(TestCase):
         kwargs = {'total': 2000, 'amount': 2}
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['price'], 1000.0)
 
+        market = Market('BTC/USD', limits={'price': {'significant digits': 5}})
+        kwargs = {'price': 1.0234, 'market': market}
+        self.assertEqual(Order._derive_missing_kwargs(kwargs)['price'], 1.0234)
+        kwargs = {'price': 10.234, 'market': market}
+        self.assertEqual(Order._derive_missing_kwargs(kwargs)['price'], 10.234)
+        kwargs = {'price': 120.34, 'market': market}
+        self.assertEqual(Order._derive_missing_kwargs(kwargs)['price'], 120.34)
+        kwargs = {'price': 1234.5, 'market': market}
+        self.assertEqual(Order._derive_missing_kwargs(kwargs)['price'], 1234.5)
+        kwargs = {'price': 0.012345, 'market': market}
+        self.assertEqual(Order._derive_missing_kwargs(kwargs)['price'], 0.012345)
+        kwargs = {'price': 0.00012340, 'market': market}
+        self.assertEqual(Order._derive_missing_kwargs(kwargs)['price'], 0.00012340)
+
         # total
         kwargs = {'amount': 2, 'price': 1000}
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['total'], 2000.0)
@@ -194,20 +208,26 @@ class TestOrder(TestCase):
 
         # General testing
         kwargs = {'pair': Pair('BTC', 'USD'), 'side': 'buy', 'amount': 2.0, 'price': 1000.0, 'fee_percentage': 0.1}
-        self.assertEqual(Order._derive_missing_kwargs(kwargs), {'fee_instrument': Instrument(code='BTC'),
-                                                                'fees': 0.002,
-                                                                'gross': 2,
-                                                                'input': 2000,
-                                                                'input_instrument': Instrument(code='USD'),
-                                                                'net': 1.998,
-                                                                'output': 1.998,
-                                                                'output_instrument': Instrument(code='BTC'),
-                                                                'total': 2000,
-                                                                'type': 'limit'})
+        self.assertEqual({'amount': 2.0,
+                          'fee_instrument': Instrument(code='BTC'),
+                          'fee_percentage': 0.1,
+                          'fees': 0.002,
+                          'gross': 2.,
+                          'input': 2000.,
+                          'input_instrument': Instrument(code='USD'),
+                          'net': 1.998,
+                          'output': 1.998,
+                          'output_instrument': Instrument(code='BTC'),
+                          'pair': Pair(base=Instrument(code='BTC'),
+                                       quote=Instrument(code='USD')),
+                          'price': 1000.0,
+                          'side': 'buy',
+                          'total': 2000,
+                          'type': 'limit'}, Order._derive_missing_kwargs(kwargs))
 
     def test_update(self):
         order = Order()
-        self.assertEqual(order._supplied_arguments, {})
+        self.assertEqual(order._supplied_arguments, None)
         from cryptoverse.domain import Pair
         order.update('buy', Pair('BTC/USD'), amount=1)
         self.assertEqual(list(order._supplied_arguments.keys()), ['side', 'pair', 'amount'])

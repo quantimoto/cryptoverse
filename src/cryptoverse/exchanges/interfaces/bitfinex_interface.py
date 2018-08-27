@@ -64,8 +64,10 @@ class BitfinexInterface(ExchangeInterface):
             quote = Instrument(code=entry['pair'][3:].upper())
             pair = Pair(base=base, quote=quote)
             exchange = Bitfinex()
-            order_limits = {'amount': {'min': entry['minimum_order_size'], 'max': entry['maximum_order_size']},
-                            'price': {'significant digits': entry['price_precision']}}
+            order_limits = {
+                'amount': {'min': float(entry['minimum_order_size']),
+                           'max': float(entry['maximum_order_size'])},
+                'price': {'significant digits': float(entry['price_precision'])}}
             order_fees = {
                 'maker': float(fees['Order Execution'][0]['Maker fees'].rstrip('%')),
                 'taker': float(fees['Order Execution'][0]['Taker fees'].rstrip('%')),
