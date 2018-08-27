@@ -175,13 +175,16 @@ class Accounts(ObjectList):
         raise AttributeError("'{}' object contains no item: '{}'".format(self.__class__.__name__, item))
 
     def __getitem__(self, item):
-        for account in self:
-            exchange_slug = account.exchange.interface.slug
-            credentials_label = account.label
-            key = '{}_{}'.format(exchange_slug, credentials_label)
-            if key == item:
-                return account
-        raise KeyError("'{}' object contains no item: '{}'".format(self.__class__.__name__, item))
+        if type(item) is str:
+            for account in self:
+                exchange_slug = account.exchange.interface.slug
+                credentials_label = account.label
+                key = '{}_{}'.format(exchange_slug, credentials_label)
+                if key == item:
+                    return account
+            raise KeyError("'{}' object contains no item: '{}'".format(self.__class__.__name__, item))
+        else:
+            return super(self.__class__, self).__getitem__(item)
 
     def as_dict(self):
         result = dict()

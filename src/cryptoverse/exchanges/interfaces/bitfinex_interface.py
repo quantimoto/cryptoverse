@@ -171,8 +171,42 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_market_orders(self, market):
-        results = Orders()
-        return results
+        if type(market) is str and Pair.is_valid_symbol(market):
+            pair = Pair.from_string(symbol=market)
+            market = self.get_spot_markets().get(symbol=pair)
+        elif type(market) is Pair:
+            pair = market
+            market = self.get_spot_markets().get(symbol=pair)
+        print(market)
+        symbol = '{}{}'.format(market.base.code, market.quote.code)
+        book = self.rest_client.book(
+            symbol=symbol,
+            limit_bids=50,
+            limit_asks=50,
+            group=0,
+        ).json()
+
+        bids, asks = Orders(), Orders()
+
+        for entry in book['bids']:
+            order = Order(
+                market=market,
+                amount=entry['amount'],
+                price=entry['price'],
+                side='buy',
+            )
+            bids.append(order)
+
+        for entry in book['asks']:
+            order = Order(
+                market=market,
+                amount=entry['amount'],
+                price=entry['price'],
+                side='ask',
+            )
+            asks.append(order)
+
+        return bids, asks
 
     def get_market_trades(self, market):
         results = Trades()
@@ -196,7 +230,7 @@ class BitfinexInterface(ExchangeInterface):
         results = response.json()
         return results
 
-    def get_account_fees(self, credentials=None):
+    def get_account_fees(self):
         result = {
             'orders': dict(),
             'deposits': dict(),
@@ -205,12 +239,8 @@ class BitfinexInterface(ExchangeInterface):
         }
         public_fee_information = self.get_fees()
 
-        account_infos = self.rest_client.account_infos(
-            credentials=credentials
-        ).json()
-        account_fees = self.rest_client.account_fees(
-            credentials=credentials
-        ).json()
+        account_infos = self.rest_client.account_infos().json()
+        account_fees = self.rest_client.account_fees().json()
 
         for pair in self.get_all_pairs():
             for entry in account_infos[0]['fees']:
@@ -229,4 +259,19 @@ class BitfinexInterface(ExchangeInterface):
 
         result['funding'] = public_fee_information['funding']
 
+        return result
+
+    def get_account_balances(self):
+        response = self.rest_client.balances().json()
+        result = Balances()
+        for entry in response:
+            amount = float(entry['amount'])
+            instrument_code = entry['currency'].upper()
+            instrument = self.get_all_instruments()[instrument_code]
+            if amount != 0.0:
+                balance = Balance(
+                    instrument=instrument,
+                    amount=amount,
+                )
+                result.append(balance)
         return result

@@ -76,7 +76,11 @@ class TestOrder(TestCase):
         self.assertRaises(ValueError, Order._sanitize_kwargs, kwargs)
 
         kwargs = {'pair': Instrument('USD')}
-        self.assertRaises(TypeError, Order._sanitize_kwargs, kwargs)
+        self.assertRaises(ValueError, Order._sanitize_kwargs, kwargs)
+
+        from cryptoverse.domain import Market
+        kwargs = {'pair': Market('BTC/USD')}
+        self.assertEqual(Order._sanitize_kwargs(kwargs), {'pair': 'BTC/USD'})
 
         kwargs = {'pair': None, 'amount': 1, 'side': 'buy'}
         self.assertEqual(Order._sanitize_kwargs(kwargs), {'pair': None, 'amount': 1, 'side': 'buy'})

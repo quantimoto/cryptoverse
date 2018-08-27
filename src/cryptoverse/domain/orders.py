@@ -1,4 +1,3 @@
-# from .accounts import Account
 from .instruments import Instrument
 from .markets import Market
 from .object_list import ObjectList
@@ -12,11 +11,12 @@ class Order(object):
         'side': str,
         'amount': float,
         'price': float,
+        'type': str,
         'total': float,
         'gross': float,
+        'net': float,
         'fees': float,
         'fee_percentage': float,
-        'net': float,
         'input': float,
         'output': float,
         'timestamp': float,
@@ -104,12 +104,19 @@ class Order(object):
                         arg = 'sell'
                     elif arg.lower() in ['buy', 'sell']:
                         arg = arg.lower()
-                    elif arg.lower() not in ['buy', 'sell', 'bid', 'ask']:
+                    else:
                         raise ValueError("Invalid value for '{}' supplied: '{}'".format(kw, arg))
+
+                if kw == 'type':
+                    if arg.lower() in ['limit', 'market']:
+                        arg = arg.lower()
+                    else:
+                        raise ValueError("Invalid value for '{}' supplied: {}".format(kw, arg))
 
                 result.update({kw: arg})
             else:
                 raise TypeError("Got an unexpected keyword argument '{}'".format(kw))
+
         return result
 
     @classmethod
@@ -317,6 +324,7 @@ class Order(object):
                     value = 'sell'
                 else:
                     value = None
+
             else:
                 value = None
 
@@ -331,16 +339,58 @@ class Order(object):
             # pair from input_instrument, output_instrument and side
             elif kwargs['input_instrument'] is not None \
                     and kwargs['output_instrument'] is not None and kwargs['side'] is not None:
-                if kwargs['side'] == 'sell':
+                if kwargs['side'] == 'buy':
                     base = kwargs['output_instrument']
                     quote = kwargs['input_instrument']
                     value = Pair(base=base, quote=quote)
-                elif kwargs['side'] == 'buy':
+                elif kwargs['side'] == 'sell':
                     base = kwargs['input_instrument']
                     quote = kwargs['output_instrument']
                     value = Pair(base=base, quote=quote)
                 else:
                     value = None
+
+            # pair from market
+            elif kwargs['market'] is not None:
+                value = kwargs['market'].symbol
+
+            else:
+                value = None
+
+            return value
+
+        def get_market(kwargs):
+            key = 'market'
+
+            if kwargs[key] is not None:
+                value = kwargs[key]
+
+            # market from pair and exchange
+            elif kwargs['pair'] is not None and kwargs['exchange'] is not None:
+                value = Market(
+                    symbol=kwargs['pair'],
+                    exchange=kwargs['exchange'],
+                )
+
+            else:
+                value = None
+
+            return value
+
+        def get_exchange(kwargs):
+            key = 'exchange'
+
+            if kwargs[key] is not None:
+                value = kwargs[key]
+
+            # exchange from market
+            elif kwargs['market'] is not None:
+                value = kwargs['market'].exchange
+
+            # exchange from account
+            elif kwargs['account'] is not None:
+                value = kwargs['account'].exchange
+
             else:
                 value = None
 
@@ -427,6 +477,8 @@ class Order(object):
                 kwargs['output'] = get_output(kwargs)
                 kwargs['side'] = get_side(kwargs)
                 kwargs['pair'] = get_pair(kwargs)
+                kwargs['market'] = get_market(kwargs)
+                kwargs['exchange'] = get_exchange(kwargs)
                 kwargs['fee_instrument'] = get_fee_instrument(kwargs)
                 kwargs['input_instrument'] = get_input_instrument(kwargs)
                 kwargs['output_instrument'] = get_output_instrument(kwargs)
@@ -437,6 +489,304 @@ class Order(object):
         new_kwargs = remove_keys(kwargs=new_kwargs, keys=supplied_kwargs.keys())
 
         return new_kwargs
+
+    @classmethod
+    def _collect_external_data(cls, kwargs):
+        results = dict()
+        if 'account' in kwargs.keys():
+            fees = kwargs['account'].fees()
+        elif 'exchange' in kwargs.keys():
+            fees = kwargs['exchange'].fees
+        else:
+            fees = None
+
+        if fees is not None:
+            if kwargs['type'] == 'market':
+                kwargs['fee_percentage'] = fees['order']['taker']
+            else:
+                kwargs['fee_percentage'] = fees['order']['taker']
+
+        return results
+
+    @property
+    def pair(self):
+        key = 'pair'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @pair.setter
+    def pair(self, value):
+        self.update(pair=value)
+
+    @property
+    def market(self):
+        key = 'market'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @market.setter
+    def market(self, value):
+        self.update(market=value)
+
+    @property
+    def side(self):
+        key = 'side'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @side.setter
+    def side(self, value):
+        self.update(side=value)
+
+    @property
+    def amount(self):
+        key = 'amount'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @amount.setter
+    def amount(self, value):
+        self.update(amount=value)
+
+    @property
+    def price(self):
+        key = 'price'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @price.setter
+    def price(self, value):
+        self.update(price=value)
+
+    @property
+    def type(self):
+        key = 'type'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @type.setter
+    def type(self, value):
+        self.update(type=value)
+
+    @property
+    def total(self):
+        key = 'total'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @total.setter
+    def total(self, value):
+        self.update(total=value)
+
+    @property
+    def gross(self):
+        key = 'gross'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @gross.setter
+    def gross(self, value):
+        self.update(gross=value)
+
+    @property
+    def net(self):
+        key = 'net'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @net.setter
+    def net(self, value):
+        self.update(net=value)
+
+    @property
+    def fees(self):
+        key = 'fees'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @fees.setter
+    def fees(self, value):
+        self.update(fees=value)
+
+    @property
+    def fee_percentage(self):
+        key = 'fee_percentage'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @fee_percentage.setter
+    def fee_percentage(self, value):
+        self.update(fee_percentage=value)
+
+    @property
+    def input(self):
+        key = 'input'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @input.setter
+    def input(self, value):
+        self.update(input=value)
+
+    @property
+    def output(self):
+        key = 'output'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @output.setter
+    def output(self, value):
+        self.update(output=value)
+
+    @property
+    def timestamp(self):
+        key = 'timestamp'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @timestamp.setter
+    def timestamp(self, value):
+        self.update(timestamp=value)
+
+    @property
+    def id(self):
+        key = 'id'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @id.setter
+    def id(self, value):
+        self.update(id=value)
+
+    @property
+    def exchange(self):
+        key = 'exchange'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @exchange.setter
+    def exchange(self, value):
+        self.update(exchange=value)
+
+    @property
+    def account(self):
+        key = 'account'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @account.setter
+    def account(self, value):
+        self.update(account=value)
+
+    @property
+    def fee_instrument(self):
+        key = 'fee_instrument'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @fee_instrument.setter
+    def fee_instrument(self, value):
+        self.update(fee_instrument=value)
+
+    @property
+    def input_instrument(self):
+        key = 'input_instrument'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @input_instrument.setter
+    def input_instrument(self, value):
+        self.update(input_instrument=value)
+
+    @property
+    def output_instrument(self):
+        key = 'output_instrument'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @output_instrument.setter
+    def output_instrument(self, value):
+        self.update(output_instrument=value)
 
     def update(self, *args, **kwargs):
 
@@ -485,6 +835,9 @@ class Order(object):
         combined_arguments = supplied_arguments.copy()
         combined_arguments.update(derived_arguments)
 
+        # Collect external data to further fill in arguments
+        # collected_arguments = self._collect_external_data(combined_arguments)
+
         minimum_arguments = dict()
         for key in ['pair', 'side', 'amount', 'price', 'fee_percentage']:
             minimum_arguments[key] = combined_arguments[key] if key in combined_arguments else None
@@ -504,6 +857,7 @@ class Order(object):
 
 
 class Orders(ObjectList):
+
     def trades(self):
         raise NotImplemented
 
@@ -515,6 +869,10 @@ class Orders(ObjectList):
 
     def avg_price(self):
         raise NotImplemented
+
+    def append_order(self, *args, **kwargs):
+        order = Order(*args, **kwargs)
+        self.append(order)
 
 
 class OrderChain(Orders):
