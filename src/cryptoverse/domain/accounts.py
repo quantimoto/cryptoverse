@@ -6,13 +6,12 @@ from .orders import Order, Orders
 
 class Account(object):
     exchange = None
-    credentials = None
     label = None
 
     def __init__(self, exchange=None, credentials=None, label=None):
-        self.set_exchange(exchange)
-        self.set_credentials(credentials)
-        self.set_label(label)
+        self.exchange = exchange
+        self.credentials = credentials
+        self.label = label
 
     def __str__(self):
         return repr(self)
@@ -21,7 +20,7 @@ class Account(object):
         class_name = self.__class__.__name__
         attributes = list()
         for key in ['exchange', 'credentials', 'label']:
-            value = self.__dict__[key]
+            value = getattr(self, key)
             if value is not None:
                 attributes.append('{}={!r}'.format(key, value))
         return '{class_name}({attributes})'.format(class_name=class_name, attributes=', '.join(attributes))
@@ -35,23 +34,20 @@ class Account(object):
     def __hash__(self):
         return hash((self.exchange, self.credentials))
 
-    def set_exchange(self, exchange):
-        self.exchange = exchange
+    @property
+    def credentials(self):
+        if self.exchange:
+            return self.exchange.interface.rest_client.credentials
+        else:
+            return None
 
-    def get_exchange(self):
-        return self.exchange
+    @credentials.setter
+    def credentials(self, value):
+        if value is not None:
+            self.exchange.interface.rest_client.credentials = value
 
-    def set_credentials(self, credentials):
-        self.credentials = credentials
-
-    def get_credentials(self):
-        return self.credentials
-
-    def set_label(self, label):
-        self.label = label
-
-    def get_label(self):
-        return self.label
+    def fees(self):
+        return self.exchange.interface.get_account_fees(credentials=self.credentials)
 
     def orders(self, market=None):
         raise NotImplementedError

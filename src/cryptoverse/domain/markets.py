@@ -34,6 +34,9 @@ class Market(object):
         else:
             return False
 
+    def __hash__(self):
+        return hash((self.symbol, self.context, self.exchange))
+
     def as_dict(self):
         dict_obj = dict()
         for key, value in self.__dict__.items():

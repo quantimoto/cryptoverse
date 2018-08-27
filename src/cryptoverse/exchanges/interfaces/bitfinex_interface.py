@@ -10,7 +10,6 @@ class BitfinexInterface(ExchangeInterface):
     def __init__(self):
         self.rest_client = BitfinexREST()
         self.scrape_client = BitfinexScrape()
-        # self._markets = dict()
 
     def get_spot_instruments(self):
         markets = self.get_spot_markets()
@@ -66,8 +65,14 @@ class BitfinexInterface(ExchangeInterface):
             exchange = Bitfinex()
             order_limits = {'amount': {'min': entry['minimum_order_size'], 'max': entry['maximum_order_size']},
                             'price': {'significant digits': entry['price_precision']}}
-            order_fees = fees['order']
-            margin_funding_fees = fees['funding']
+            order_fees = {
+                'maker': float(fees['Order Execution'][0]['Maker fees'].rstrip('%')),
+                'taker': float(fees['Order Execution'][0]['Taker fees'].rstrip('%')),
+            }
+            margin_funding_fees = {
+                'normal': float(fees['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')),
+                'hidden': float(fees['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
+            }
             spot_market = Market(
                 context='spot',
                 symbol=pair,
@@ -112,7 +117,42 @@ class BitfinexInterface(ExchangeInterface):
         return Markets(spot_markets + margin_markets + funding_markets)
 
     def get_fees(self):
-        return self.scrape_client.fees()
+        result = {
+            'orders': dict(),
+            'deposits': dict(),
+            'withdrawals': dict(),
+            'funding': dict(),
+        }
+        response = self.scrape_client.fees()
+
+        for pair in self.get_all_pairs():
+            result['orders'][pair.as_str()] = {
+                'maker': float(response['Order Execution'][0]['Maker fees'].rstrip('%')),
+                'taker': float(response['Order Execution'][0]['Taker fees'].rstrip('%')),
+            }
+
+        for instrument in self.get_all_instruments():
+            for entry in response['Deposit']:
+                if instrument.code in entry['Small Deposit*']:
+                    result['deposits'][instrument.code] = float(entry['Small Deposit*'].split(' ')[0].rstrip('%'))
+                    break
+            if instrument.code not in result['deposits'].keys():
+                result['deposits'][instrument.code] = 0.0
+
+            for entry in response['Withdrawal']:
+                if instrument.code in entry['Fee']:
+                    result['withdrawals'][instrument.code] = float(entry['Fee'].split(' ')[0].rstrip('%'))
+                    break
+            if instrument.code not in result['withdrawals'].keys():
+                result['withdrawals'][instrument.code] = 0.0
+
+        for instrument in self.get_funding_instruments():
+            result['funding'][instrument.code] = {
+                'normal': float(response['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')),
+                'hidden': float(response['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
+            }
+
+        return result
 
     def get_market_orders(self, market):
         results = Orders()
@@ -139,3 +179,38 @@ class BitfinexInterface(ExchangeInterface):
         )
         results = response.json()
         return results
+
+    def get_account_fees(self, credentials=None):
+        result = {
+            'orders': dict(),
+            'deposits': dict(),
+            'withdrawals': dict(),
+            'funding': dict(),
+        }
+        public_fee_information = self.get_fees()
+
+        account_infos = self.rest_client.account_infos(
+            credentials=credentials
+        ).json()
+        account_fees = self.rest_client.account_fees(
+            credentials=credentials
+        ).json()
+
+        for pair in self.get_all_pairs():
+            for entry in account_infos[0]['fees']:
+                if entry['pairs'] == pair.base:
+                    result['orders'][pair.as_str()] = {
+                        'maker': float(entry['maker_fees']),
+                        'taker': float(entry['taker_fees']),
+                    }
+
+        result['deposits'] = public_fee_information['deposits']
+
+        for instrument_code, fee_cost in account_fees['withdraw'].items():
+            result['withdrawals'].update({
+                instrument_code: float(fee_cost)
+            })
+
+        result['funding'] = public_fee_information['funding']
+
+        return result

@@ -38,28 +38,28 @@ class BitfinexREST(RESTClient):
         :param request_obj: Object containing all the attributes required to do the request.
         :param credentials: Credentials object that contains the key and secret, required to sign the request.
         """
-        payload = request_obj.get_params().copy()
+        payload = request_obj.params
         payload.update({
             'nonce': self.nonce(),
-            'request': request_obj.get_uri(),
+            'request': '/{}'.format(request_obj.path),
         })
 
         encoded_payload = base64.standard_b64encode(json.dumps(payload).encode('utf-8'))
         message = encoded_payload
 
         h = hmac.new(
-            key=credentials['secret'].encode('utf-8'),
+            key=credentials.secret.encode('utf-8'),
             msg=message,
             digestmod=hashlib.sha384,
         )
         signature = h.hexdigest()
 
         headers = {
-            'X-BFX-APIKEY': credentials['key'],
+            'X-BFX-APIKEY': credentials.key,
             'X-BFX-PAYLOAD': encoded_payload,
             'X-BFX-SIGNATURE': signature,
         }
-        request_obj.set_headers(headers)
+        request_obj.headers = headers
 
         return request_obj
 
@@ -302,6 +302,7 @@ class BitfinexREST(RESTClient):
     # V1 Authenticated Endpoints
     #
 
+    @RateLimit(calls=60, period=60)
     def account_infos(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-account-info
         """
@@ -327,6 +328,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=60, period=60)
     def account_fees(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-fees
         """

@@ -1,47 +1,74 @@
-from ...base.rest.decorators import Memoize
+from ...base.rest.decorators import Memoize, Backoff
 from ...base.scrape import ScrapeClient
 
 
 class BitfinexScrape(ScrapeClient):
 
     @Memoize(expires=60 * 60 * 24)
+    @Backoff(IndexError, wait=10)
     def fees(self):
         soup = self.get_soup('https://www.bitfinex.com/fees')
 
         fees_page_html = soup.find_all('table', class_='striped compact')
 
+        #
         # select table rows with order execution fees
-        order_html = fees_page_html[0].find_all('tr')
-        order_fees = dict()
+        order_execution_html = fees_page_html[0].find('tbody').find_all('tr')
+        order_execution_fees = list()
 
         # extract maker and taker fees from lowest tier
-        order_fees['maker'] = order_html[1].find_all('td')[1].text
-        order_fees['taker'] = order_html[1].find_all('td')[2].text
+        for entry in order_execution_html:
+            column_values = entry.find_all('td')
+            order_execution_fees.append({
+                'Executed in the last 30 days (USD Equivalent)': column_values[0].text.strip(),
+                'Maker fees': column_values[1].text.strip(),
+                'Taker fees': column_values[2].text.strip(),
+            })
 
-        # remove '%' sign at the end of the string
-        order_fees['maker'] = order_fees['maker'][:-1]
-        order_fees['taker'] = order_fees['taker'][:-1]
+        #
+        # select table rows with deposit fees
+        deposit_html = fees_page_html[1].find('tbody').find_all('tr')
+        deposit_fees = list()
 
-        # convert str into float
-        order_fees['maker'] = float(order_fees['maker'])
-        order_fees['taker'] = float(order_fees['taker'])
+        # extract currency, deposit and small deposit fees
+        for entry in deposit_html:
+            column_values = entry.find_all('td')
+            deposit_fees.append({
+                'Currency': column_values[0].text.strip(),
+                'Deposit': column_values[1].text.strip(),
+                'Small Deposit*': column_values[2].text.strip()
+            })
 
+        #
+        # select table rows with withdrawal fees
+        withdrawal_html = fees_page_html[2].find('tbody').find_all('tr')
+        withdrawal_fees = list()
+
+        # extract currency and fees
+        for entry in withdrawal_html:
+            column_values = entry.find_all('td')
+            withdrawal_fees.append({
+                'Currency': column_values[0].text.strip(),
+                'Fee': column_values[1].text.strip(),
+            })
+
+        #
         # select table rows with margin funding fees
-        funding_html = fees_page_html[3].find_all('tr')
-        funding_fees = dict()
+        margin_funding_html = fees_page_html[3].find('tbody').find_all('tr')
+        margin_funding_fees = list()
 
         # extract normal and hidden funding fees
-        funding_fees['normal'] = funding_html[1].find('td', class_='bfx-green-text').text.split(' ', 1)[0]
-        funding_fees['hidden'] = funding_html[2].find('td', class_='bfx-green-text').text.split(' ', 1)[0]
-
-        # remove '%' sign at the end of the string
-        funding_fees['normal'] = funding_fees['normal'][:-1]
-        funding_fees['hidden'] = funding_fees['hidden'][:-1]
+        for entry in margin_funding_html:
+            column_values = entry.find_all('td')
+            margin_funding_fees.append({
+                'Description': column_values[0].text.strip(),
+                'Fee': column_values[1].text.strip(),
+            })
 
         results = {
-            'order': order_fees,
-            'deposit': None,
-            'withdrawal': None,
-            'funding': funding_fees,
+            'Order Execution': order_execution_fees,
+            'Deposit': deposit_fees,
+            'Withdrawal': withdrawal_fees,
+            'Margin Funding': margin_funding_fees,
         }
         return results

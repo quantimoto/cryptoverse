@@ -6,13 +6,9 @@ from .object_list import ObjectList
 class Exchange(object):
     # High level exchange access. Simple friendly methods with smart responses
     interface = None
-    rest_client = None
-    scrape_client = None
 
     def __init__(self, interface=None):
         self.set_interface(interface)
-        self.set_rest_client()
-        self.set_scrape_client()
 
     def __str__(self):
         return repr(self)
@@ -33,17 +29,23 @@ class Exchange(object):
     def __hash__(self):
         return hash(self.interface)
 
-    def set_interface(self, interface=None):
-        if interface is not None:
-            self.interface = interface
+    def set_interface(self, value=None):
+        if value is not None:
+            self.interface = value
 
-    def set_rest_client(self):
-        if self.interface is not None:
-            self.rest_client = self.interface.rest_client
+    @property
+    def rest_client(self):
+        if self.interface:
+            return self.interface.rest_client
 
-    def set_scrape_client(self):
-        if self.interface is not None:
-            self.scrape_client = self.interface.scrape_client
+    @property
+    def scrape_client(self):
+        if self.interface:
+            return self.interface.scrape_client
+
+    @memoized_property
+    def fees(self):
+        return self.interface.get_fees()
 
     @memoized_property
     def instruments(self):
