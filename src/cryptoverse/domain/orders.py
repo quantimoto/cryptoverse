@@ -247,6 +247,10 @@ class Order(object):
             elif kwargs['gross'] is not None and kwargs['net'] is not None:
                 value = kwargs['gross'] - kwargs['net']
 
+            # fees = 0 if fee_percentage is None
+            elif kwargs['fee_percentage'] is None:
+                value = 0.0
+
             else:
                 value = None
 
