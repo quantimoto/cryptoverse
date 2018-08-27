@@ -83,7 +83,7 @@ class RequestObj:
         if not value and type(value) is not dict:
             self._params = dict()
         else:
-            self.params = value
+            self._params = value
 
     @property
     def data(self):
