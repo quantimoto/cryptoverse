@@ -76,6 +76,9 @@ class Exchange(object):
     def funding_markets(self):
         return self.interface.get_funding_markets()
 
+    def ticker(self, market):
+        return self.interface.get_ticker(market=market)
+
 
 class Exchanges(ObjectList):
 

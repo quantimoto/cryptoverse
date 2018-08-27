@@ -1,7 +1,8 @@
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
-from ...domain import Instrument, Instruments, Market, Markets, Orders, Trades, Offers, Lends, Pair, Pairs
+from ...domain import Instrument, Instruments, Market, Markets, Order, Orders, Trades, Offers, Lends, Pair, Pairs, \
+    Ticker
 
 
 class BitfinexInterface(ExchangeInterface):
@@ -152,6 +153,21 @@ class BitfinexInterface(ExchangeInterface):
                 'hidden': float(response['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
             }
 
+        return result
+
+    def get_ticker(self, market):
+
+        symbol = '{}{}'.format(market.symbol.base.code.lower(), market.symbol.quote.code.lower())
+        response = self.rest_client.pubticker(symbol=symbol).json()
+        result = Ticker(
+            ask=float(response['ask']),
+            bid=float(response['bid']),
+            high=float(response['high']),
+            low=float(response['low']),
+            last=float(response['last_price']),
+            timestamp=float(response['timestamp']),
+            volume=float(response['volume']),
+        )
         return result
 
     def get_market_orders(self, market):
