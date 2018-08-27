@@ -79,6 +79,9 @@ class Exchange(object):
     def ticker(self, market):
         return self.interface.get_ticker(market=market)
 
+    def tickers(self, markets=None):
+        return self.interface.get_tickers(markets=markets)
+
 
 class Exchanges(ObjectList):
 

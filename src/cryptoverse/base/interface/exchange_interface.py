@@ -64,6 +64,9 @@ class ExchangeInterface(object):
     def get_ticker(self, *args, **kwargs):
         raise NotImplemented
 
+    def get_all_tickers(self, *args, **kwargs):
+        raise NotImplemented
+
     def get_market_orders(self, *args, **kwargs):
         raise NotImplemented
 

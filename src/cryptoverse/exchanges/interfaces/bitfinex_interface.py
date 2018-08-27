@@ -1,3 +1,4 @@
+from cryptoverse.domain import Tickers
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
@@ -171,6 +172,53 @@ class BitfinexInterface(ExchangeInterface):
             volume=float(response['volume']),
         )
         return result
+
+    def get_tickers(self, markets):
+        if type(markets) is Markets:
+            markets_symbols = list()
+            for market in markets:
+                if market.pair is not None:
+                    market_str = 't{}{}'.format(market.pair.base.code, market.pair.quote.code)
+                elif market.instrument is not None:
+                    market_str = 'f{}'.format(market.instrument.code)
+                else:
+                    market_str = None
+
+                if market_str is not None and market_str not in markets_symbols:
+                    markets_symbols.append(market_str)
+            markets_text = ','.join(markets_symbols)
+        elif type(markets) is str:
+            markets_text = markets
+        else:
+            markets_text = 'ALL'
+
+        response = self.rest_client.tickers(symbols=markets_text).json()
+
+        result = Tickers()
+        for entry in response:
+            if entry[0][0] == 't':
+                market = self.get_spot_markets()[entry[0][1:4], entry[0][4:7]]
+            elif entry[0][0] == 'f':
+                market = self.get_funding_markets()[entry[0][1:]]
+            else:
+                market = None
+
+            if market is not None:
+                ticker = Ticker(
+                    market=market,
+                    bid=float(entry[1]),
+                    ask=float(entry[3]),
+                    high=float(entry[9]),
+                    low=float(entry[10]),
+                    last=float(entry[7]),
+                    volume=float(entry[8]),
+                )
+                result.append(ticker)
+
+        return result
+
+    def get_all_tickers(self):
+        return self.get_tickers(markets='ALL')
 
     def get_market_orders(self, market):
         if type(market) is str and Pair.is_valid_symbol(market):
