@@ -1,3 +1,4 @@
+from cryptoverse.utilities import round_significant, strip_none, remove_keys, strip_empty
 from .instruments import Instrument
 from .markets import Market
 from .object_list import ObjectList
@@ -467,20 +468,6 @@ class Order(object):
 
             return value
 
-        def remove_empty(kwargs):
-            kwargs = kwargs.copy()
-            for k, v in kwargs.copy().items():
-                if v is None:
-                    del kwargs[k]
-            return kwargs
-
-        def remove_keys(kwargs, keys):
-            kwargs = kwargs.copy()
-            for k in kwargs.copy().keys():
-                if k in keys:
-                    del kwargs[k]
-            return kwargs
-
         def derive_all(kwargs):
             last_hash = 0
             while last_hash != hash(frozenset(kwargs.items())):
@@ -904,6 +891,9 @@ class Orders(ObjectList):
     def append_order(self, *args, **kwargs):
         order = Order(*args, **kwargs)
         self.append(order)
+
+    def sum(self, key):
+        return sum(self.get_values(key))
 
 
 class OrderChain(Orders):

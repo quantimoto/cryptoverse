@@ -49,11 +49,12 @@ class Market(object):
 
     def set_symbol(self, symbol):
         from cryptoverse.domain import Pair, Instrument
-        if type(symbol) in [Pair, Instrument]:
-            self.symbol = symbol
-        elif Pair.is_valid_symbol(symbol):
-            pair = Pair.from_string(symbol)
-            self.symbol = pair
+        if symbol is not None:
+            if type(symbol) in [Pair, Instrument]:
+                self.symbol = symbol
+            elif Pair.is_valid_symbol(symbol):
+                pair = Pair.from_string(symbol)
+                self.symbol = pair
 
     def set_context(self, context):
         if context in ['spot', 'margin', 'funding']:
@@ -178,3 +179,12 @@ class Markets(ObjectList):
                 result = response
 
         return result
+
+    def with_instrument(self, *instruments):
+        result = self.__class__()
+        for instrument in instruments:
+            result = result + self.find(base=instrument)
+            result = result + self.find(quote=instrument)
+            result = result + self.find(instrument=instrument)
+
+        return result.get_unique()
