@@ -156,7 +156,7 @@ class Accounts(ObjectList):
         accounts = Accounts()
         for exchange_slug in keystore.groups():
             exchange_slug = str(exchange_slug)
-            if exchange_slug in exchanges.get_slugs():
+            if exchange_slug in exchanges.slugs:
                 for label in keystore[exchange_slug].keys():
                     credentials = Credentials(key=keystore[exchange_slug][label]['key'],
                                               secret=keystore[exchange_slug][label]['secret'])
