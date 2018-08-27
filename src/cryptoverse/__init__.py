@@ -1,5 +1,4 @@
-from .domain import Accounts
-from .domain import Exchanges, Keepassx
+from .domain import Accounts, Exchanges, Keepassx
 from .exchanges import Bitfinex, Bl3p, Kraken, Poloniex
 
 exchanges = Exchanges()
