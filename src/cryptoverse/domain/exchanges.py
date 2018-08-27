@@ -91,7 +91,8 @@ class Exchanges(ObjectList):
                 return exchange
         raise KeyError("'{}' object has no item: '{}'".format(self.__class__.__name__, item))
 
-    def get_slugs(self):
+    @property
+    def slugs(self):
         result = list()
         for exchange in self:
             result.append(exchange.interface.slug)

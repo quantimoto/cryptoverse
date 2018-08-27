@@ -191,3 +191,13 @@ class Accounts(ObjectList):
             account_key = '{}_{}'.format(exchange_slug, credentials_label)
             result.update({account_key: account})
         return result
+
+    @property
+    def slugs(self):
+        result = list()
+        for account in self:
+            exchange_slug = account.exchange.interface.slug
+            credentials_label = account.label
+            key = '{}_{}'.format(exchange_slug, credentials_label)
+            result.append(key)
+        return result

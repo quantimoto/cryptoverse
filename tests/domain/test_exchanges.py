@@ -53,7 +53,7 @@ class TestExchanges(TestCase):
         self.assertNotEqual(exchanges['bAr'], exchange1)
 
     def test_get_slugs(self):
-        self.assertEqual(exchanges.get_slugs(), ['dummy', 'foo', 'bar'])
+        self.assertEqual(exchanges.slugs, ['dummy', 'foo', 'bar'])
 
     def test_as_dict(self):
         self.assertEqual(list(exchanges.as_dict().keys()), ['dummy', 'foo', 'bar'])
