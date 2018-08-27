@@ -20,18 +20,18 @@ class Memoize(object):
             h.update(key)
             key_hash = h.hexdigest()
 
-            result = None
+            response = None
             if key_hash in self.store.keys():
-                (timestamp, result), = self.store[key_hash].items()
+                (timestamp, response), = self.store[key_hash].items()
                 if timestamp < time.time() - self.expires:
-                    result = None
+                    response = None
 
-            if result is None:
-                result = func(*args, **kwargs)
+            if response is None:
+                response = func(*args, **kwargs)
                 self.store[key_hash] = dict()
-                self.store[key_hash][time.time()] = result
+                self.store[key_hash][time.time()] = response
 
-            return result
+            return response
 
         return wrapper
 
@@ -57,10 +57,10 @@ class RateLimit(object):
             if remaining > 0:
                 time.sleep(remaining)
 
-            result = func(*args, **kwargs)
+            response = func(*args, **kwargs)
 
             self.last_call = time.time()
-            return result
+            return response
 
         return wrapper
 
@@ -73,16 +73,16 @@ class Backoff(object):
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            result = None
+            response = None
             successful = False
             while not successful:
                 try:
-                    result = func(*args, **kwargs)
+                    response = func(*args, **kwargs)
                     successful = True
                 except self.exception:
                     cprint('{}: {}'.format(time.time(), self.exception.__name__), 'red')
                     time.sleep(self.wait)
 
-            return result
+            return response
 
         return wrapper

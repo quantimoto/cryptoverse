@@ -9,38 +9,44 @@ class RequestObj:
     """
 
     method = None
-    url = None
-    params = None
-    data = None
-    headers = None
+    scheme = None
+    host = None
+    path = None
+    _params = None
+    _data = None
+    _headers = None
 
-    def __init__(self, method=None, url=None, params=None, data=None, headers=None):
-        self.set_method(method)
-        self.set_url(url)
-        self.set_params(params)
-        self.set_data(data)
-        self.set_headers(headers)
+    def __init__(self, method=None, host=None, path=None, params=None, data=None, headers=None, scheme='https'):
+        self.method = method
+        self.host = host
+        self.path = path
+        self.params = params
+        self.data = data
+        self.headers = headers
+        self.scheme = scheme
 
     def as_dict(self):
         dict_obj = {
-            'method': self.get_method(),
-            'url': self.get_url(),
-            'params': self.get_params(),
-            'data': self.get_data(),
-            'header': self.get_headers(),
+            'method': self.method,
+            'host': self.host,
+            'path': self.path,
+            'params': self.params,
+            'data': self.data,
+            'header': self.headers,
         }
         return dict_obj
 
     @classmethod
     def from_dict(cls, dict_obj):
-        obj = cls(
+        return cls(
             method=dict_obj['method'],
-            url=dict_obj['url'],
+            host=dict_obj['host'],
+            path=dict_obj['path'],
             params=dict_obj['params'],
             data=dict_obj['data'],
             headers=dict_obj['headers'],
+            scheme=dict_obj['scheme'],
         )
-        return obj
 
     @staticmethod
     def sanitize_dict(dict_obj):
@@ -59,35 +65,38 @@ class RequestObj:
                 s.append('{kw}={arg!r}'.format(kw=kw, arg=arg))
         return '{}({})'.format(self.__class__.__name__, ', '.join(s))
 
-    def set_method(self, method):
-        self.method = method
+    @property
+    def url(self):
+        url_params = {
+            'scheme': self.scheme,
+            'host': self.host,
+            'path': self.path,
+        }
+        return '{scheme}://{host}/{path}'.format(**url_params)
 
-    def get_method(self):
-        return self.method
+    @property
+    def params(self):
+        return self.sanitize_dict(self._params).copy()
 
-    def set_url(self, url):
-        self.url = url
-
-    def get_url(self):
-        return self.url
-
-    def set_params(self, params):
-        if not params:
-            self.params = dict()
+    @params.setter
+    def params(self, value):
+        if not value and type(value) is not dict:
+            self._params = dict()
         else:
-            self.params = params
+            self.params = value
 
-    def get_params(self):
-        return self.sanitize_dict(self.params)
+    @property
+    def data(self):
+        return self.sanitize_dict(self._data).copy()
 
-    def set_data(self, data):
-        self.data = data
+    @data.setter
+    def data(self, value):
+        self._data = value
 
-    def get_data(self):
-        return self.sanitize_dict(self.data)
+    @property
+    def headers(self):
+        return self._headers
 
-    def set_headers(self, headers):
-        self.headers = headers
-
-    def get_headers(self):
-        return self.headers
+    @headers.setter
+    def headers(self, value):
+        self._headers = value

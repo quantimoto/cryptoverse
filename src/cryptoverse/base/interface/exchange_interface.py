@@ -72,6 +72,9 @@ class ExchangeInterface(object):
     def get_market_candles(self, *args, **kwargs):
         raise NotImplemented
 
+    def get_account_fees(self, *args, **kwargs):
+        raise NotImplemented
+
     def get_account_orders(self, *args, **kwargs):
         raise NotImplemented
 

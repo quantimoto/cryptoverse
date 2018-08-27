@@ -38,31 +38,22 @@ class RESTClient(object):
     def __hash__(self):
         return hash((self.scheme, self.host, self.url_template))
 
-    def _create_url(self, path, path_params=None):
-        url_params = {
-            'scheme': self.scheme,
-            'host': self.host,
-            'path': path,
-        }
-
+    def _create_request(self, path, method, credentials, path_params, query_params, data):
         # Insert path parameters into path
         if path_params is not None:
-            url_params['path'] = path.format(**path_params)
+            path = path.format(**path_params)
 
-        # Create url by filling in url_template template with values from path_params
-        url = '{scheme}://{host}/{path}'.format(**url_params)
-
-        return url
-
-    def _create_request(self, path, method, credentials, path_params, query_params, data):
-        url = self._create_url(path, path_params)
+        # Create object containing request arguments
         request_obj = RequestObj(
             method=method,
-            url=url,
+            host=self.host,
+            path=path,
             params=query_params,
             data=data,
+            scheme=self.scheme,
         )
 
+        # Add a signature to the request object if required
         if credentials is not None:
             self.sign(request_obj, credentials)
 
@@ -116,11 +107,11 @@ class RESTClient(object):
             self._session = requests.Session()
 
         response = self._session.request(
-            method=request_obj.get_method(),
-            url=request_obj.get_url(),
-            params=request_obj.get_params(),
-            data=request_obj.get_data(),
-            headers=request_obj.get_headers(),
+            method=request_obj.method,
+            url=request_obj.url,
+            params=request_obj.params,
+            data=request_obj.data,
+            headers=request_obj.headers,
             timeout=self._timeout,
             allow_redirects=False,
             verify=True,
