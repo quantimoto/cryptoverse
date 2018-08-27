@@ -42,7 +42,7 @@ class Balance(object):
                     side=side,
                     input=self.amount,
                     price=price,
-                )
+                ).output
                 return order
 
 
@@ -54,5 +54,26 @@ class Balances(ObjectList):
             result = result + self.find(instrument=instrument)
         return result
 
+    def values(self, value_instrument='USD'):
+        quote_instrument = value_instrument
+        values = dict()
+        for balance in self:
+            if balance.instrument == quote_instrument:
+                values.update({
+                    balance.instrument.code: balance.amount
+                })
+            else:
+                values.update({
+                    balance.instrument.code: balance.valued_in(quote_instrument=quote_instrument)
+                })
+        return values
+
     def weights(self):
-        raise NotImplemented
+        values = self.values()
+        total_value = sum(values.values())
+        weights = dict()
+        for instrument_code, value in values.items():
+            weights.update({
+                instrument_code: value / total_value
+            })
+        return weights
