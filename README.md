@@ -47,21 +47,20 @@ When you store your keys in ~/.cryptoverse/default.kdbx, you can use authenticat
 ```python
 >>> cryptoverse.load_accounts()
 Password: ***
->>> cryptoverse.accounts['bitfinex account1'].balances()
->>> account = cryptoverse.accounts.bitfinex_account1
->>> account
+>>> myaccount = cryptoverse.accounts['bitfinex account1'].balances()
+>>> myaccount
 Account(exchange=Bitfinex(), credentials=Credentials(key='abc..123', secret='qwe..890'), label='account1')
->>> account.balances()
->>> account.orders()
+>>> myaccount.balances()
+>>> myaccount.orders()
 
->>> order = account.create_order('BTC/USD', 'buy', amount=0.1, price=1000)
->>> order
+>>> myorder = myaccount.create_order('BTC/USD', 'buy', amount=0.1, price=1000)
+>>> myorder
 Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1)
->>> order.place()
+>>> myorder.place()
 Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='active')
->>> account.orders()
+>>> myaccount.orders()
 Orders():
     Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='active')
->>> order.cancel()
+>>> myorder.cancel()
 Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='cancelled')
 ```
