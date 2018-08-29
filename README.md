@@ -19,7 +19,7 @@ $ pip install -r requirements.txt
 $ pip install -e .
 ```
 
-To run tests development installation:
+To run tests:
 ```bash
 $ pytest
 ```
