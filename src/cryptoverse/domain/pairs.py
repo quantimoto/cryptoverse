@@ -75,10 +75,7 @@ class Pair(object):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        arguments = list()
-        for entry in self.as_dict().items():
-            arguments.append('{}={!r}'.format(*entry))
-        return '{}({})'.format(class_name, ', '.join(arguments))
+        return '{}({!r})'.format(class_name, self.as_str())
 
     def __eq__(self, other):
         if type(other) is self.__class__:
