@@ -911,8 +911,26 @@ class Order(object):
     def wait_for_completion(self):
         raise NotImplemented
 
-    def followup(self, *args, **kwargs):
-        raise NotImplemented
+    def followup(self, output=None, price=None):
+        if type(output) is str and output[-1:] == '%':
+            if output[:1] in ['+', '-']:
+                multiplier = 1 + (float(output[:-1]) * 0.01)
+                output = self.input * multiplier
+            else:
+                multiplier = float(output[:-1]) * 0.01
+                output = self.input * multiplier
+
+        order = self.__class__(
+            account=self.account,
+            exchange=self.exchange,
+            market=self.market,
+            pair=self.pair,
+            side='sell' if self.side == 'buy' else 'buy',
+            input=self.output,
+            price=price,
+            output=output,
+        )
+        return order
 
 
 class Orders(ObjectList):
