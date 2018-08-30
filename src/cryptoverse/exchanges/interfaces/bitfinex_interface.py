@@ -176,8 +176,8 @@ class BitfinexInterface(ExchangeInterface):
             high=float(response['high']),
             low=float(response['low']),
             last=float(response['last_price']),
-            timestamp=float(response['timestamp']),
             volume=float(response['volume']),
+            timestamp=float(response['timestamp']),
         )
         return result
 
