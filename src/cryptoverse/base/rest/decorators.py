@@ -6,6 +6,8 @@ from math import floor
 
 from termcolor import cprint
 
+from cryptoverse.base.rest.response import ResponseObj
+
 
 class Memoize(object):
     def __init__(self, expires):
@@ -86,3 +88,13 @@ class Backoff(object):
             return response
 
         return wrapper
+
+
+def formatter(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        response = func(*args, **kwargs)
+        response_obj = ResponseObj(response)
+        return response_obj
+
+    return wrapped

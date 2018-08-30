@@ -7,7 +7,7 @@ from json.decoder import JSONDecodeError
 from requests.exceptions import ReadTimeout, ConnectionError
 
 from ...base.rest import RESTClient
-from ...base.rest.decorators import RateLimit, Memoize, Backoff
+from ...base.rest.decorators import RateLimit, Memoize, Backoff, formatter
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeRateLimitException, \
     ExchangeException
 
@@ -67,6 +67,7 @@ class BitfinexREST(RESTClient):
     @Backoff(ConnectionError, wait=60)
     @Backoff(ExchangeDecodeException, wait=10)
     @Backoff(ExchangeRateLimitException, wait=20)
+    @formatter
     def request(self, *args, **kwargs):
         result = super(BitfinexREST, self).request(*args, **kwargs)
 
