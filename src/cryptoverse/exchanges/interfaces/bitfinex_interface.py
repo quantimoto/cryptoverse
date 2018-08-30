@@ -52,7 +52,7 @@ class BitfinexInterface(ExchangeInterface):
 
     def get_all_markets(self):
         from cryptoverse.exchanges import Bitfinex
-        symbols_details = self.rest_client.symbols_details().json()
+        symbols_details = self.rest_client.symbols_details()
         fees = self.scrape_client.fees()
 
         markets = Markets()
@@ -159,9 +159,17 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_ticker(self, market):
+        if type(market) is Market:
+            symbol = '{}{}'.format(market.symbol.base.code.lower(), market.symbol.quote.code.lower())
+        elif type(market) is Pair:
+            symbol = '{}{}'.format(market.base.code.lower(), market.quote.code.lower())
+        elif type(market) is str and Pair.is_valid_symbol(market):
+            pair = Pair.from_string(market)
+            symbol = '{}{}'.format(pair.base.code.lower(), pair.quote.code.lower())
+        else:
+            raise ValueError("No valid market supplied: {}".format(market))
 
-        symbol = '{}{}'.format(market.symbol.base.code.lower(), market.symbol.quote.code.lower())
-        response = self.rest_client.pubticker(symbol=symbol).json()
+        response = self.rest_client.pubticker(symbol=symbol)
         result = Ticker(
             ask=float(response['ask']),
             bid=float(response['bid']),
@@ -192,7 +200,7 @@ class BitfinexInterface(ExchangeInterface):
         else:
             markets_text = 'ALL'
 
-        response = self.rest_client.tickers(symbols=markets_text).json()
+        response = self.rest_client.tickers(symbols=markets_text)
 
         result = Tickers()
         for entry in response:
@@ -234,7 +242,7 @@ class BitfinexInterface(ExchangeInterface):
             limit_bids=50,
             limit_asks=50,
             group=0,
-        ).json()
+        )
 
         bids, asks = Orders(), Orders()
 
@@ -277,8 +285,7 @@ class BitfinexInterface(ExchangeInterface):
             section='hist',
             limit=limit,
         )
-        results = response.json()
-        return results
+        return response
 
     def get_account_fees(self):
         result = {
@@ -289,8 +296,8 @@ class BitfinexInterface(ExchangeInterface):
         }
         public_fee_information = self.get_fees()
 
-        account_infos = self.rest_client.account_infos().json()
-        account_fees = self.rest_client.account_fees().json()
+        account_infos = self.rest_client.account_infos()
+        account_fees = self.rest_client.account_fees()
 
         for pair in self.get_all_pairs():
             for entry in account_infos[0]['fees']:
@@ -312,7 +319,7 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_account_balances(self):
-        response = self.rest_client.balances().json()
+        response = self.rest_client.balances()
         result = Balances()
         for entry in response:
             amount = float(entry['amount'])
