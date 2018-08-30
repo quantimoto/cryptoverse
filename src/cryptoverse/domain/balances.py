@@ -5,13 +5,17 @@ from .orders import Order
 
 class Balance(object):
     amount = None
+    available = None
     instrument = None
     account = None
+    wallet = None
 
-    def __init__(self, instrument=None, amount=None, account=None):
+    def __init__(self, instrument=None, amount=None, available=None, account=None, wallet=None):
         self.instrument = instrument
         self.amount = amount
+        self.available = available
         self.account = account
+        self.wallet = wallet
 
     def __repr__(self):
         class_name = self.__class__.__name__

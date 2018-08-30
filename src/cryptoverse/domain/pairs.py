@@ -159,6 +159,18 @@ class Pair(object):
         elif self.quote == instrument:
             return self.base
 
+    def get_input_instrument(self, side):
+        if side == 'buy':
+            return self.quote
+        elif side == 'sell':
+            return self.base
+
+    def get_output_instrument(self, side):
+        if side == 'buy':
+            return self.base
+        elif side == 'sell':
+            return self.quote
+
 
 class Pairs(ObjectList):
     def __getattr__(self, item):

@@ -74,7 +74,7 @@ class Account(object):
         return self.exchange.interface.get_account_lends(market=market)
 
     def wallets(self):
-        raise NotImplementedError
+        return self.exchange.interface.get_account_wallets()
 
     def balances(self):
         return self.exchange.interface.get_account_balances()

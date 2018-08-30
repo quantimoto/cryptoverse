@@ -120,6 +120,41 @@ class Order(object):
         return result
 
     @classmethod
+    def _replace_shortcuts(cls, kwargs):
+        kwargs = kwargs.copy()
+
+        prepare_kwargs = dict()
+        for key in ['account', 'exchange', 'market', 'pair', 'side']:
+            if key in kwargs:
+                prepare_kwargs.update({key: kwargs[key]})
+        prepare_kwargs.update(cls._sanitize_kwargs(prepare_kwargs))
+        kwargs.update(cls._derive_missing_kwargs(prepare_kwargs))
+
+        result = dict()
+        if 'price' in kwargs and 'market' in kwargs and type(kwargs['price']) is str:
+            market = kwargs['market']
+            ticker_key = kwargs['price'].lower()
+            if ticker_key in ['bid', 'ask', 'last', 'mid']:
+                result['price'] = market.ticker[ticker_key]
+            else:
+                result['price'] = None
+
+        if 'input' in kwargs and 'account' in kwargs and 'pair' in kwargs and 'side' in kwargs:
+            arg = kwargs['input']
+            if type(kwargs['input']) is str and arg[-1:] == '%':
+                account = kwargs['account']
+                pair = kwargs['pair']
+                side = kwargs['side']
+                multiplier = float(arg[:-1]) * 0.01
+                input_instrument = pair.get_input_instrument(side)
+                instrument_balance = account.wallets()['exchange'].get_by_instrument(input_instrument).first().amount
+                result['input'] = instrument_balance * multiplier
+            else:
+                result['input'] = None
+
+        return result
+
+    @classmethod
     def _derive_missing_kwargs(cls, supplied_kwargs):
         new_kwargs = supplied_kwargs.copy()
         for kw in cls._arg_types:
@@ -269,10 +304,12 @@ class Order(object):
                 value = kwargs['fees'] / kwargs['gross'] / 0.01
 
             # get fee_percentage for limit order from market fees
-            elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None and kwargs['type'] is 'limit':
+            elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None \
+                    and kwargs['type'] is 'limit':
                 value = kwargs['market'].fees['maker']
             # get fee_percentage for market order from market fees
-            elif kwargs['market'] is not None and kwargs['market'].fees['taker'] is not None and kwargs['type'] is 'market':
+            elif kwargs['market'] is not None and kwargs['market'].fees['taker'] is not None \
+                    and kwargs['type'] is 'market':
                 value = kwargs['market'].fees['taker']
             else:
                 value = None
@@ -533,6 +570,10 @@ class Order(object):
         new_arguments = dict()
         new_arguments.update(kwargs_from_args)
         new_arguments.update(kwargs)
+
+        # Replace shortcut strings with external values
+        replace_arguments = self._replace_shortcuts(new_arguments)
+        new_arguments.update(replace_arguments)
 
         # Force type for all arguments
         new_arguments = self._sanitize_kwargs(new_arguments)

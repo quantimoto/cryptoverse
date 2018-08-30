@@ -318,6 +318,40 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
+    def get_account_exchange_wallet(self):
+        return self.get_account_wallets()['exchange']
+
+    def get_account_margin_wallet(self):
+        return self.get_account_wallets()['trading']
+
+    def get_account_funding_wallet(self):
+        return self.get_account_wallets()['funding']
+
+    def get_account_wallets(self):
+        response = self.rest_client.balances()
+
+        result = {
+            'exchange': Balances(),
+            'trading': Balances(),
+            'funding': Balances(),
+        }
+        for entry in response:
+            if entry['type'] == 'exchange':
+                wallet = 'exchange'
+            instrument_code = entry['currency'].upper()
+            instrument = self.get_all_instruments()[instrument_code]
+            amount = float(entry['amount'])
+            available = float(entry['available'])
+            if amount != 0.0:
+                balance = Balance(
+                    instrument=instrument,
+                    amount=amount,
+                    available=available,
+                    wallet=wallet,
+                )
+                result[wallet].append(balance)
+        return result
+
     def get_account_balances(self):
         response = self.rest_client.balances()
         result = Balances()

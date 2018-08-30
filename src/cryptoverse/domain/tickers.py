@@ -11,7 +11,8 @@ class Ticker(object):
     timestamp = None
     market = None
 
-    def __init__(self, market=market, bid=None, ask=None, high=None, low=None, last=None, volume=None, timestamp=None):
+    def __init__(self, market=market, bid=None, ask=None, high=None, low=None, last=None, volume=None,
+                 timestamp=None):
         self.bid = bid
         self.ask = ask
         self.high = high
@@ -34,6 +35,17 @@ class Ticker(object):
             return self.market.pair
         else:
             return None
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+    @property
+    def mid(self):
+        return (self.bid + self.ask) / 2
+
+    @property
+    def spread(self):
+        return self.ask - self.bid
 
 
 class Tickers(ObjectList):

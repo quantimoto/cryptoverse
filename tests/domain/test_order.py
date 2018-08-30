@@ -103,6 +103,10 @@ class TestOrder(TestCase):
         self.assertIsInstance(Order._sanitize_kwargs(kwargs)['price'], Order._arg_types['price'])
         self.assertIsInstance(Order._sanitize_kwargs(kwargs)['timestamp'], Order._arg_types['timestamp'])
 
+    def test__replace_shortcuts(self):
+        kwargs = {'account': None, 'exchange': None, 'pair': 'BTC/USD', 'side': 'buy', 'price': 'bid'}
+        self.assertEqual({}, Order._replace_shortcuts(kwargs))
+
     def test__derive_missing_kwargs(self):
         # amount
         kwargs = {'total': 2000, 'price': 1000}
