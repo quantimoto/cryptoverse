@@ -336,6 +336,7 @@ class BitfinexInterface(ExchangeInterface):
             'funding': Balances(),
         }
         for entry in response:
+            wallet = None
             if entry['type'] == 'exchange':
                 wallet = 'exchange'
             instrument_code = entry['currency'].upper()

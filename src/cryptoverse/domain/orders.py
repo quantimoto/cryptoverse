@@ -136,8 +136,6 @@ class Order(object):
             ticker_key = kwargs['price'].lower()
             if ticker_key in ['bid', 'ask', 'last', 'mid']:
                 result['price'] = market.ticker[ticker_key]
-            else:
-                result['price'] = None
 
         if 'input' in kwargs and 'account' in kwargs and 'pair' in kwargs and 'side' in kwargs:
             arg = kwargs['input']
@@ -149,8 +147,6 @@ class Order(object):
                 input_instrument = pair.get_input_instrument(side)
                 instrument_balance = account.wallets()['exchange'].get_by_instrument(input_instrument).first().amount
                 result['input'] = instrument_balance * multiplier
-            else:
-                result['input'] = None
 
         return result
 

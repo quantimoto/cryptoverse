@@ -37,7 +37,7 @@ class Ticker(object):
             return None
 
     def __getitem__(self, item):
-        return self.__dict__[item]
+        return getattr(self, item)
 
     @property
     def mid(self):

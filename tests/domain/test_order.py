@@ -231,7 +231,7 @@ class TestOrder(TestCase):
 
     def test_update(self):
         order = Order()
-        self.assertEqual(order._supplied_arguments, None)
+        self.assertEqual(order._supplied_arguments, {})
         from cryptoverse.domain import Pair
         order.update('buy', Pair('BTC/USD'), amount=1)
         self.assertEqual(list(order._supplied_arguments.keys()), ['side', 'pair', 'amount'])
@@ -266,3 +266,4 @@ class TestOrder(TestCase):
         self.assertEqual(repr(order),
                          "Order(pair=Pair('BTC/USD'), side='buy', "
                          "amount=2.0, price=1000.0, fee_percentage=0.1)")
+#
