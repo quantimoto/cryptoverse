@@ -332,3 +332,15 @@ class BitfinexInterface(ExchangeInterface):
                 )
                 result.append(balance)
         return result
+
+    def get_account_orders(self):
+        raise NotImplemented
+
+    def get_account_trades(self):
+        raise NotImplemented
+
+    def get_account_offers(self):
+        raise NotImplemented
+
+    def get_account_lends(self):
+        raise NotImplemented

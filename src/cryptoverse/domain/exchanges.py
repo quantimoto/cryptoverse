@@ -82,6 +82,18 @@ class Exchange(object):
     def tickers(self, markets=None):
         return self.interface.get_tickers(markets=markets)
 
+    def orderbook(self, market):
+        return self.interface.get_orderbook(market=market)
+
+    def trades(self, market):
+        return self.interface.get_trades(market=market)
+
+    def offerbook(self, market):
+        return self.interface.get_lendingbook(market=market)
+
+    def lends(self, market):
+        return self.interface.get_lends(market=market)
+
 
 class Exchanges(ObjectList):
 
