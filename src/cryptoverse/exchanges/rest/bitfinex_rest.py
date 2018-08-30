@@ -88,8 +88,8 @@ class BitfinexREST(RESTClient):
     # V1 Public Endpoints
     #
 
-    @Memoize(expires=60. / 15)
-    @RateLimit(calls=15, period=60)  # Documentation states: 30 req/min
+    @Memoize(expires=60. / 20)
+    @RateLimit(calls=20, period=60)  # Documentation states: 20 req/min
     def pubticker(self, symbol):
         # https://docs.bitfinex.com/v1/reference#rest-public-ticker
         """
@@ -114,8 +114,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 5)
-    @RateLimit(calls=5, period=60)  # Documentation states: 10 req/min
+    @Memoize(expires=60. / 10)
+    @RateLimit(calls=10, period=60)  # Documentation states: 10 req/min
     def stats(self, symbol):
         # https://docs.bitfinex.com/v1/reference#rest-public-stats
         """
@@ -139,7 +139,7 @@ class BitfinexREST(RESTClient):
         return response
 
     @Memoize(expires=60. / 10)
-    @RateLimit(calls=5, period=60)  # Documentation states: 45 req/min
+    @RateLimit(calls=10, period=60)  # Documentation states: 10 req/min
     def lendbook(self, currency, limit_bids=50, limit_asks=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-fundingbook
         """
@@ -201,8 +201,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 15)
-    @RateLimit(calls=15, period=60)  # Documentation states: 45 req/min
+    @Memoize(expires=60. / 20)
+    @RateLimit(calls=20, period=60)  # Documentation states: 20 req/min
     def trades(self, symbol, timestamp=None, limit_trades=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-trades
         """
@@ -229,8 +229,8 @@ class BitfinexREST(RESTClient):
         )
         return response
 
-    @Memoize(expires=60. / 15)
-    @RateLimit(calls=15, period=60)  # Documentation states: 60 req/min
+    @Memoize(expires=60. / 30)
+    @RateLimit(calls=30, period=60)  # Documentation states: 30 req/min
     def lends(self, currency, timestamp=None, limit_lends=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-lends
         """
@@ -259,8 +259,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 2)
-    @RateLimit(calls=2, period=60)  # Documentation states: 5 req/min
+    @Memoize(expires=60. / 5)
+    @RateLimit(calls=5, period=60)  # Documentation states: 5 req/min
     def symbols(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbols
         """
@@ -279,8 +279,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 2)
-    @RateLimit(calls=2, period=60)  # Documentation states: 5 req/min
+    @Memoize(expires=60. / 5)
+    @RateLimit(calls=5, period=60)  # Documentation states: 5 req/min
     def symbols_details(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbol-details
         """
@@ -355,6 +355,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def summary(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-summary
         """
@@ -380,6 +382,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def deposit_new(self, method, wallet_name, renew=0, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-deposit
         """
@@ -415,6 +418,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def key_info(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#auth-key-permissions
         """
@@ -440,6 +445,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def margin_infos(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-margin-information
         """
@@ -492,6 +499,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def transfer(self, amount, currency, walletfrom, walletto, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-transfer-between-wallets
         """
@@ -527,6 +535,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def withdraw(self, withdraw_type, walletselected, amount, address, payment_id=None, account_name=None,
                  account_number=None, swift=None, bank_name=None, bank_address=None, bank_city=None, bank_country=None,
                  detail_payment=None, express_wire=None, intermediary_bank_name=None, intermediary_bank_address=None,
@@ -601,6 +610,7 @@ class BitfinexREST(RESTClient):
 
     # Orders
 
+    @RateLimit(calls=45, period=60)
     def order_new(self, symbol, amount, price, side, type_, exchange=None, is_hidden=None, is_postonly=None,
                   use_all_available=None, ocoorder=None, buy_price_oco=None, sell_price_oco=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-new-order
@@ -655,6 +665,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def order_new_multi(self, symbol, amount, price, side, type_, exchange=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-multiple-new-orders
         """
@@ -694,6 +705,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def order_cancel(self, order_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-order
         """
@@ -723,6 +735,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def order_cancel_multi(self, order_ids, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-multiple-orders
         """
@@ -752,6 +765,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def order_cancel_all(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-all-orders
         """
@@ -777,6 +791,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def order_cancel_replace(self, order_id, symbol=None, amount=None, price=None, exchange=None, side=None, type_=None,
                              is_hidden=None, is_postonly=None, use_remaining=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-replace-order
@@ -827,6 +842,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def order_status(self, order_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-order-status
         """
@@ -856,6 +873,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def orders(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-orders
         """
@@ -916,6 +935,8 @@ class BitfinexREST(RESTClient):
 
     # Positions
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def positions(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-positions
         """
@@ -941,6 +962,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def positions_claim(self, position_id, amount, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-claim-position
         """
@@ -1104,6 +1126,7 @@ class BitfinexREST(RESTClient):
 
     # Margin Funding
 
+    @RateLimit(calls=45, period=60)
     def offer_new(self, currency, amount, rate, period, direction, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-new-offer
         """
@@ -1141,6 +1164,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def offer_cancel(self, offer_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-cancel-offer
         """
@@ -1170,6 +1194,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def offer_status(self, offer_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offer-status
         """
@@ -1199,6 +1225,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def credits(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-credits
         """
@@ -1224,6 +1252,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def offers(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-offers
         """
@@ -1316,6 +1346,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def taken_funds(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-used-in-a-margin-position
         """
@@ -1339,6 +1371,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def unused_taken_funds(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-active-funding-not-used-in-a-margin-position
         """
@@ -1364,6 +1398,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def total_taken_funds(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-total-taken-funds
         """
@@ -1389,6 +1425,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def funding_close(self, swap_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-close-margin-funding
         """
@@ -1418,6 +1455,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def basket_manage(self, amount=None, dir_=None, name=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#basket-manage
         """
@@ -1452,6 +1490,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def positions_close(self, position_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#close-position
         """
@@ -1485,6 +1524,8 @@ class BitfinexREST(RESTClient):
     # V2 Public Endpoints
     #
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def platform_status(self):
         # https://docs.bitfinex.com/v2/reference#rest-public-platform-status
         """
@@ -1511,6 +1552,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def tickers(self, symbols):
         # https://docs.bitfinex.com/v2/reference#rest-public-tickers
         """
@@ -1537,6 +1580,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def ticker(self, symbol):
         # https://docs.bitfinex.com/v2/reference#rest-public-ticker
         """
@@ -1562,6 +1607,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def trades_hist(self, symbol, limit=120, start=None, end=None, sort=-1):
         # https://docs.bitfinex.com/v2/reference#rest-public-trades
         """
@@ -1594,6 +1641,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def book_v2(self, symbol, precision='P0', len_=25):
         # https://docs.bitfinex.com/v2/reference#rest-public-books
         """
@@ -1624,6 +1673,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def stats1(self, key='', size='', symbol='', side='', section='', sort=None):
         # https://docs.bitfinex.com/v2/reference#rest-public-stats
         """
@@ -1658,6 +1709,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def candles(self, timeframe, symbol, section, limit=None, start=None, end=None, sort='-1'):
         # https://docs.bitfinex.com/v2/reference#rest-public-candles
         """
@@ -1699,6 +1752,8 @@ class BitfinexREST(RESTClient):
     # V2 Calculation Endpoints
     #
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def calc_market_average_price(self, symbol, amount=None, period=None, rate_limit=None):
         # https://docs.bitfinex.com/v2/reference#rest-calc-market-average-price
         """
@@ -1729,6 +1784,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def foreign_exchange_rate(self, ccy1, ccy2):
         # https://docs.bitfinex.com/v2/reference#foreign-exchange-rate
         """
@@ -1757,6 +1814,8 @@ class BitfinexREST(RESTClient):
     # V2 Authenticated Endpoints
     #
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_wallets(self, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-wallets
         """
@@ -1782,6 +1841,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_orders(self, symbol=None, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-orders
         """
@@ -1809,6 +1870,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_orders_history(self, symbol, start=None, end=None, limit=25, sort=-1, credentials=None):
         # https://docs.bitfinex.com/v2/reference#orders-history
         """
@@ -1846,6 +1909,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_order_trades(self, symbol, order_id, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-order-trades
         """
@@ -1876,6 +1941,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_trades(self, symbol, start=None, end=None, limit=25, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-trades-hist
         """
@@ -1912,6 +1979,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_positions(self, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-positions
         """
@@ -1938,6 +2007,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_funding_offers(self, symbol, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-funding-offers
         """
@@ -1966,6 +2037,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_funding_offers_hist(self, symbol, start=None, end=None, limit=25, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-funding-offers-hist
         """
@@ -2002,6 +2075,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_funding_loans(self, symbol, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-funding-loans
         """
@@ -2030,6 +2105,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_funding_loans_hist(self, symbol, start=None, end=None, limit=25, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-funding-loans-hist
         """
@@ -2066,6 +2143,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_funding_credits(self, symbol, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-funding-credits
         """
@@ -2094,6 +2173,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_funding_credits_hist(self, symbol, start=None, end=None, limit=25, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-funding-credits-hist
         """
@@ -2130,6 +2211,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_funding_trades_hist(self, symbol, start=None, end=None, limit=None, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-funding-trades-hist
         """
@@ -2166,6 +2249,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_info_margin(self, key, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-info-margin
         """
@@ -2194,6 +2279,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_info_funding(self, key, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-info-funding
         """
@@ -2222,6 +2309,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_movements_hist(self, currency, credentials=None):
         # https://docs.bitfinex.com/v2/reference#movements
         """
@@ -2250,6 +2339,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_stats_perf_hist(self, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-performance
         """
@@ -2276,6 +2367,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_alerts(self, type_='price', credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-alert-list
         """
@@ -2305,6 +2398,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def auth_alert_set(self, type_, symbol, price, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-alert-set
         """
@@ -2339,6 +2433,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def auth_alert_del(self, symbol, price, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-alert-delete
         """
@@ -2367,6 +2462,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=45, period=60)
     def auth_calc_order_avail(self, symbol, dir_, rate, type_, credentials=None):
         # https://docs.bitfinex.com/v2/reference#rest-auth-calc-bal-avail
         """
@@ -2403,6 +2499,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_ledgers_hist(self, currency, credentials=None):
         # https://docs.bitfinex.com/v2/reference#ledgers
         """
@@ -2431,14 +2529,18 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60. / 45)
+    @RateLimit(calls=45, period=60)
     def auth_settings_read(self, *args, **kwargs):
         # https://docs.bitfinex.com/v2/reference#user-settings-read
         raise NotImplementedError
 
+    @RateLimit(calls=45, period=60)
     def auth_settings_set(self, *args, **kwargs):
         # https://docs.bitfinex.com/v2/reference#user-settings-write
         raise NotImplementedError
 
+    @RateLimit(calls=45, period=60)
     def auth_settings_del(self, *args, **kwargs):
         # https://docs.bitfinex.com/v2/reference#user-settings-delete
         raise NotImplementedError
