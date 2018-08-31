@@ -105,7 +105,7 @@ class TestOrder(TestCase):
 
     def test__replace_shortcuts(self):
         kwargs = {'account': None, 'exchange': None, 'pair': 'BTC/USD', 'side': 'buy', 'price': 'bid'}
-        self.assertEqual({}, Order._replace_shortcuts(kwargs))
+        self.assertEqual({'price': None}, Order._replace_shortcuts(kwargs))
 
     def test__derive_missing_kwargs(self):
         # amount

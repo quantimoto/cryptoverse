@@ -131,11 +131,14 @@ class Order(object):
         kwargs.update(cls._derive_missing_kwargs(prepare_kwargs))
 
         result = dict()
-        if 'price' in kwargs and 'market' in kwargs and type(kwargs['price']) is str:
-            market = kwargs['market']
+        if 'price' in kwargs and type(kwargs['price']) is str:
             ticker_key = kwargs['price'].lower()
             if ticker_key in ['bid', 'ask', 'last', 'mid']:
-                result['price'] = market.ticker[ticker_key]
+                if 'market' in kwargs:
+                    market = kwargs['market']
+                    result['price'] = market.ticker[ticker_key]
+                else:
+                    result['price'] = None
 
         if 'input' in kwargs and 'account' in kwargs and 'pair' in kwargs and 'side' in kwargs:
             arg = kwargs['input']
@@ -603,9 +606,9 @@ class Order(object):
 
         # Store supplied and derived arguments
         supplied_arguments = strip_empty(supplied_arguments)
-        self._supplied_arguments = supplied_arguments
+        self._supplied_arguments = supplied_arguments if supplied_arguments is not None else dict()
         derived_arguments = strip_none(derived_arguments)
-        self._derived_arguments = derived_arguments
+        self._derived_arguments = derived_arguments if derived_arguments is not None else dict()
 
     @property
     def _minimum_arguments(self):
@@ -615,7 +618,7 @@ class Order(object):
 
         result = dict()
         for key in ['pair', 'side', 'amount', 'price', 'fee_percentage']:
-            result[key] = combined_arguments[key] if key in combined_arguments else None
+            result[key] = combined_arguments.get(key)
         return result
 
     @property
@@ -907,7 +910,7 @@ class Order(object):
     def wait_for_completion(self):
         raise NotImplemented
 
-    def followup(self, output=None, price=None):
+    def followup(self, output='100%'):
         if type(output) is str and output[-1:] == '%':
             if output[:1] in ['+', '-']:
                 multiplier = 1 + (float(output[:-1]) * 0.01)
@@ -923,7 +926,6 @@ class Order(object):
             pair=self.pair,
             side='sell' if self.side == 'buy' else 'buy',
             input=self.output,
-            price=price,
             output=output,
         )
         return order
