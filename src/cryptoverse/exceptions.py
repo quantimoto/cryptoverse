@@ -15,3 +15,7 @@ class ExchangeRateLimitException(BaseException):
 
 class ExchangeException(BaseException):
     pass
+
+
+class ExchangeUnavailableException(BaseException):
+    pass

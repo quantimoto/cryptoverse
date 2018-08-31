@@ -9,7 +9,7 @@ from requests.exceptions import ReadTimeout, ConnectionError
 from ...base.rest import RESTClient
 from ...base.rest.decorators import RateLimit, Memoize, Backoff, formatter
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeRateLimitException, \
-    ExchangeException
+    ExchangeException, ExchangeUnavailableException
 
 
 class BitfinexREST(RESTClient):
@@ -79,8 +79,10 @@ class BitfinexREST(RESTClient):
         if type(result_from_json) is dict and 'error' in result_from_json.keys():
             if result_from_json['error'] == 'ERR_RATE_LIMIT':
                 raise ExchangeRateLimitException
+            elif result_from_json['code'] == 503 and result_from_json['error'] == 'temporarily_unavailable':
+                raise ExchangeUnavailableException(result_from_json['error_description'])
             else:
-                raise ExchangeException(result.text)
+                raise ExchangeException(result.json())
 
         return result
 
