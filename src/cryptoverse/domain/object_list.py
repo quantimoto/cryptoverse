@@ -18,9 +18,11 @@ class ObjectList(list):
     def copy(self):
         return self.__class__(self.as_list())
 
+    @property
     def first(self):
         return self[0]
 
+    @property
     def last(self):
         return self[-1]
 
@@ -39,7 +41,7 @@ class ObjectList(list):
         return response
 
     def get(self, **kwargs):
-        return self.find(**kwargs).first()
+        return self.find(**kwargs).first
 
     def get_values(self, key):
         response = ObjectList()
