@@ -94,6 +94,18 @@ class Exchange(object):
     def lends(self, market):
         return self.interface.get_lends(market=market)
 
+    def create_order(self, *args, **kwargs):
+        kwargs['exchange'] = self
+        from ..domain import Order
+        order = Order(*args, **kwargs)
+        return order
+
+    def create_offer(self, *args, **kwargs):
+        kwargs['exchange'] = self
+        from ..domain import Offer
+        offer = Offer(*args, **kwargs)
+        return offer
+
 
 class Exchanges(ObjectList):
 
