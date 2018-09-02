@@ -52,6 +52,10 @@ class ObjectList(list):
                 raise AttributeError(key)
         return response
 
+    def get_sum(self, key):
+        response = self.get_values(key)
+        return sum(response)
+
     def get_unique_values(self, key):
         response = ObjectList()
         for entry in self.get_values(key):
