@@ -570,18 +570,20 @@ class Order(object):
         new_arguments.update(kwargs_from_args)
         new_arguments.update(kwargs)
 
-        # Replace shortcut strings with external values
-        replace_arguments = self._replace_shortcuts(new_arguments)
-        new_arguments.update(replace_arguments)
-
-        # Force type for all arguments
-        new_arguments = self._sanitize_kwargs(new_arguments)
-
         # Retrieve previously supplied arguments
         if self._supplied_arguments is None:
             supplied_arguments = dict()
         else:
             supplied_arguments = self._supplied_arguments.copy()
+
+        # Replace shortcut strings with external values
+        combined_arguments = supplied_arguments.copy()
+        combined_arguments.update(new_arguments)
+        replace_arguments = self._replace_shortcuts(combined_arguments)
+        new_arguments.update(replace_arguments)
+
+        # Force type for new arguments
+        new_arguments = self._sanitize_kwargs(new_arguments)
 
         # Update previously supplied arguments with new arguments
         supplied_arguments.update(new_arguments)
