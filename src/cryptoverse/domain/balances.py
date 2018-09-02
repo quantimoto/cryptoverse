@@ -49,6 +49,9 @@ class Balance(object):
                 ).output
                 return order
 
+    def value_at(self, price):
+        return self.amount * price
+
 
 class Balances(ObjectList):
 
