@@ -26,139 +26,142 @@ class ExchangeInterface(object):
         return obj
 
     def get_spot_instruments(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_margin_instruments(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_funding_instruments(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_all_instruments(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_spot_pairs(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_margin_pairs(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_all_pairs(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_spot_markets(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_margin_markets(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_funding_markets(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_all_markets(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_fees(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_ticker(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
+
+    def get_tickers(self, *args, **kwargs):
+        raise NotImplementedError
 
     def get_all_tickers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_market_orders(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_market_trades(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_market_offers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_market_lends(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_market_candles(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_fees(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_orders(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_trades(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_positions(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_offers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_lends(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_balances(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_deposits(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_account_withdrawals(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def place_single_order(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def place_multiple_orders(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def replace_single_order(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def replace_multiple_orders(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def update_single_order(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def update_multiple_orders(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def cancel_single_order(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def cancel_multiple_orders(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def cancel_all_orders(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def place_single_offer(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def place_multiple_offers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def replace_single_offer(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def replace_multiple_offers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def update_single_offer(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def update_multiple_offers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def cancel_single_offer(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def cancel_multiple_offers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def cancel_all_offers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
