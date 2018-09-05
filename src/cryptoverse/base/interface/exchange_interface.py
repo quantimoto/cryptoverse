@@ -70,19 +70,19 @@ class ExchangeInterface(object):
     def get_all_tickers(self):
         raise NotImplementedError
 
-    def get_market_orders(self, symbol, limit=100):
+    def get_market_orders(self, pair, limit=100):
         raise NotImplementedError
 
-    def get_market_trades(self, symbol, limit=100):
+    def get_market_trades(self, pair, limit=100):
         raise NotImplementedError
 
-    def get_market_offers(self, symbol, limit=100):
+    def get_market_offers(self, instrument, limit=100):
         raise NotImplementedError
 
-    def get_market_lends(self, symbol, limit=100):
+    def get_market_lends(self, instrument, limit=100):
         raise NotImplementedError
 
-    def get_market_candles(self, period, symbol, limit=100):
+    def get_market_candles(self, period, pair, limit=100):
         raise NotImplementedError
 
     def get_account_fees(self):

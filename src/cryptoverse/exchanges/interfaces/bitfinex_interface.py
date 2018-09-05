@@ -264,8 +264,8 @@ class BitfinexInterface(ExchangeInterface):
     def get_all_tickers(self):
         return self.get_tickers('all')
 
-    def get_market_orders(self, symbol, limit=100):
-        symbol = '{}{}'.format(*symbol.split('/'))
+    def get_market_orders(self, pair, limit=100):
+        symbol = '{}{}'.format(*pair.split('/'))
         response = self.rest_client.book(
             symbol=symbol,
             limit_bids=limit,
@@ -296,8 +296,8 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_market_trades(self, symbol, limit=100):
-        symbol = '{}{}'.format(*symbol.split('/'))
+    def get_market_trades(self, pair, limit=100):
+        symbol = '{}{}'.format(*pair.split('/'))
         response = self.rest_client.trades(
             symbol=symbol,
             limit_trades=limit,
@@ -315,9 +315,9 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_market_offers(self, symbol, limit=100):
+    def get_market_offers(self, instrument, limit=100):
         response = self.rest_client.lendbook(
-            currency=symbol,
+            currency=instrument,
             limit_bids=limit,
             limit_asks=limit,
         )
@@ -348,8 +348,8 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_market_lends(self, symbol, limit=100):
-        symbol = 'f{}'.format(symbol)
+    def get_market_lends(self, instrument, limit=100):
+        symbol = 'f{}'.format(instrument)
         response = self.rest_client.trades_hist(
             symbol=symbol,
             limit=limit,
@@ -367,29 +367,32 @@ class BitfinexInterface(ExchangeInterface):
             result.append(lend)
         return result
 
-    def get_market_candles(self, period, symbol, limit=100):
-        if '/' in symbol:
-            symbol = 't{}{}'.format(*symbol.split('/'))
+    def get_market_candles(self, period, pair, limit=100):
+        if '/' in pair:
+            symbol = 't{}{}'.format(*pair.split('/'))
+        else:
+            symbol = None
 
-        response = self.rest_client.candles(
-            timeframe=period,
-            symbol=symbol,
-            section='hist',
-            limit=limit,
-        )
-        result = list()
-        for entry in response:
-            candle = {
-                'timestamp': float(entry[0]) * 0.001,
-                'open': float(entry[1]),
-                'close': float(entry[2]),
-                'high': float(entry[3]),
-                'low': float(entry[4]),
-                'volume': float(entry[5]),
-            }
-            result.append(candle)
+        if symbol is not None:
+            response = self.rest_client.candles(
+                timeframe=period,
+                symbol=symbol,
+                section='hist',
+                limit=limit,
+            )
+            result = list()
+            for entry in response:
+                candle = {
+                    'timestamp': float(entry[0]) * 0.001,
+                    'open': float(entry[1]),
+                    'close': float(entry[2]),
+                    'high': float(entry[3]),
+                    'low': float(entry[4]),
+                    'volume': float(entry[5]),
+                }
+                result.append(candle)
 
-        return result
+            return result
 
     def get_account_fees(self):
         result = {
