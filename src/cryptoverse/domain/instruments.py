@@ -15,10 +15,7 @@ class Instrument(object):
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        attributes = list()
-        for entry in self.as_dict().items():
-            attributes.append('{}={!r}'.format(*entry))
-        return '{}({})'.format(class_name, ', '.join(attributes))
+        return '{}({!r})'.format(class_name, self.code)
 
     def __eq__(self, other):
         if type(other) is self.__class__ and self.code == other.code:
@@ -31,6 +28,9 @@ class Instrument(object):
     def __hash__(self):
         return hash((self.code, self.name))
 
+    def as_str(self):
+        return self.code
+
     def as_dict(self):
         dict_obj = dict()
         for key, value in self.__dict__.items():
@@ -39,15 +39,25 @@ class Instrument(object):
                     dict_obj.update({key: value})
         return dict_obj
 
+    @staticmethod
+    def is_valid_dict(kwargs):
+        if 'code' in kwargs:
+            return True
+        return False
+
+    @staticmethod
+    def is_valid_str(arg):
+        if type(arg) is str:
+            return True
+        return False
+
     @classmethod
-    def from_dict(cls, data):
-        obj = cls(
-            code=data['code'] if 'code' in data.keys() else None,
-            name=data['name'] if 'name' in data.keys() else None,
-            symbol=data['symbol'] if 'symbol' in data.keys() else None,
-            precision=data['precision'] if 'precision' in data.keys() else None,
-        )
-        return obj
+    def from_dict(cls, kwargs):
+        return cls(**kwargs)
+
+    @classmethod
+    def from_str(cls, arg):
+        return cls(code=arg)
 
 
 class Instruments(ObjectList):

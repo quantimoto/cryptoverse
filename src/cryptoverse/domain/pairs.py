@@ -16,25 +16,32 @@ class Pair(object):
         if quote is not None:
             self.quote = quote
         if base is None or quote is None and args:
-            from cryptoverse.domain import Market
-            if len(args) == 2:
+            from .markets import Market
+            if len(args) == 2 and base is None and quote is None:
                 self.base = args[0]
                 self.quote = args[1]
-            elif len(args) == 1 and base is not None:
+            elif len(args) == 1 and base is not None and quote is None:
                 self.quote = args[0]
-            elif len(args) == 1 and quote is not None:
+            elif len(args) == 1 and base is None and quote is not None:
                 self.base = args[0]
             elif len(args) == 1 and base is None and quote is None and type(args[0]) is str:
                 base, quote = self._split_string(args[0])
                 self.base = base
                 self.quote = quote
-            elif len(args) == 1 and type(args[0]) is Market and args[0].pair is not None:
+            elif len(args) == 1 and base is None and quote is None and type(args[0]) is dict:
+                self.base = args[0]['base']
+                self.quote = args[0]['quote']
+            elif len(args) == 1 and base is None and quote is None and type(args[0]) is Market and \
+                    args[0].pair is not None:
                 self.base = args[0].symbol.base
                 self.quote = args[0].symbol.quote
+            elif len(args) == 1 and base is None and quote is None and type(args[0]) is Pair:
+                self.base = args[0].base
+                self.quote = args[0].quote
             else:
                 raise ValueError("Invalid values supplied: {}".format((*args, base, quote)))
         if self.base == self.quote:
-            raise ValueError("'base' and 'quote' arguments cannot be the same: {}, {}".format(base, quote))
+            raise ValueError("'base' and 'quote' arguments cannot be the same: {}, {}".format(self.base, self.quote))
 
     @property
     def base(self):
@@ -44,8 +51,10 @@ class Pair(object):
     def base(self, value):
         if type(value) is Instrument:
             self._base = value
-        else:
-            self._base = Instrument(code=value)
+        elif type(value) is dict and 'code' in value:
+            self._base = Instrument.from_dict(value)
+        elif type(value) is str:
+            self._base = Instrument.from_str(value)
 
     @property
     def quote(self):
@@ -55,8 +64,10 @@ class Pair(object):
     def quote(self, value):
         if type(value) is Instrument:
             self._quote = value
-        else:
-            self._quote = Instrument(code=value)
+        elif type(value) is dict and 'code' in value:
+            self._quote = Instrument.from_dict(value)
+        elif type(value) is str:
+            self._quote = Instrument.from_str(value)
 
     @property
     def instruments(self):
@@ -86,7 +97,7 @@ class Pair(object):
             else:
                 return False
 
-        if type(other) is str and self.is_valid_symbol(other):
+        if type(other) is str and self.is_valid_str(other):
             instrument1, instrument2 = self._split_string(other)
             if (self.base, self.quote) == (instrument1, instrument2):
                 return True
@@ -103,7 +114,7 @@ class Pair(object):
     @staticmethod
     def _split_string(symbol, separator=None):
         if type(symbol) is not str:
-            raise TypeError("'symbol' must be of type 'str'")
+            raise TypeError("'symbol' must be of type 'str', not {}. Supplied: {}".format(type(symbol), symbol))
 
         if separator is None:
             separators = ['/', '_', '-']
@@ -129,17 +140,30 @@ class Pair(object):
         return instrument1, instrument2
 
     @classmethod
-    def from_string(cls, symbol, separator=None):
+    def from_str(cls, symbol, separator=None):
         base, quote = cls._split_string(symbol, separator=separator)
         return cls(base=base, quote=quote)
 
     @classmethod
-    def is_valid_symbol(cls, symbol, separator=None):
-        try:
-            cls._split_string(symbol=symbol, separator=separator)
-            return True
-        except ValueError:
-            return False
+    def is_valid_str(cls, symbol, separator=None):
+        if type(symbol) is str:
+            try:
+                cls._split_string(symbol=symbol, separator=separator)
+                return True
+            except ValueError:
+                return False
+        return False
+
+    @classmethod
+    def is_valid_dict(cls, kwargs):
+        if type(kwargs) is dict:
+            if 'base' in kwargs and 'quote' in kwargs:
+                return True
+        return False
+
+    @classmethod
+    def from_dict(cls, kwargs):
+        return cls(**kwargs)
 
     def get_side(self, input_instrument=None, output_instrument=None):
         if input_instrument is not None:

@@ -29,6 +29,10 @@ class Ticker(object):
             kwarg_strings.append('{0}={1!r}'.format(kw, self.__dict__[kw]))
         return '{}({})'.format(class_name, ', '.join(kwarg_strings))
 
+    @classmethod
+    def from_dict(cls, kwargs):
+        return cls(**kwargs)
+
     @property
     def pair(self):
         if hasattr(self.market, 'pair'):

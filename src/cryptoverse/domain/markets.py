@@ -22,6 +22,8 @@ class Market(object):
         class_name = self.__class__.__name__
         arguments = list()
         for entry in self.as_dict().items():
+            if entry[0] == 'symbol':
+                entry = (entry[0], entry[1].as_str())
             arguments.append('{}={!r}'.format(*entry))
         return '{}({})'.format(class_name, ', '.join(arguments))
 
@@ -37,6 +39,10 @@ class Market(object):
     def __hash__(self):
         return hash((self.symbol, self.context, self.exchange))
 
+    @classmethod
+    def from_dict(cls, kwargs):
+        return cls(**kwargs)
+
     def as_dict(self):
         dict_obj = dict()
         for key, value in self.__dict__.items():
@@ -48,13 +54,23 @@ class Market(object):
         return dict_obj
 
     def set_symbol(self, symbol):
-        from cryptoverse.domain import Pair, Instrument
+        from .pairs import Pair
+        from .instruments import Instrument
         if symbol is not None:
             if type(symbol) in [Pair, Instrument]:
                 self.symbol = symbol
-            elif Pair.is_valid_symbol(symbol):
-                pair = Pair.from_string(symbol)
+            elif Pair.is_valid_str(symbol):
+                pair = Pair.from_str(symbol)
                 self.symbol = pair
+            elif Pair.is_valid_dict(symbol):
+                pair = Pair.from_dict(symbol)
+                self.symbol = pair
+            elif Instrument.is_valid_str(symbol):
+                instrument = Instrument.from_str(symbol)
+                self.symbol = instrument
+            elif Instrument.is_valid_dict(symbol):
+                instrument = Instrument.from_dict(symbol)
+                self.symbol = instrument
 
     def set_context(self, context):
         if context in ['spot', 'margin', 'funding']:
@@ -117,7 +133,7 @@ class Market(object):
 
     @property
     def pair(self):
-        from cryptoverse.domain import Pair
+        from .pairs import Pair
         if type(self.symbol) is Pair:
             return self.symbol
 
@@ -162,8 +178,8 @@ class Markets(ObjectList):
 
     def __getitem__(self, item):
         if type(item) is tuple:
+            from .pairs import Pair
 
-            from cryptoverse.domain import Pair
             response = self.find(symbol=Pair(*item))
             if len(response) == 1:
                 result = response[0]

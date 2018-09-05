@@ -70,7 +70,7 @@ class Order(object):
         from cryptoverse.domain import Exchange
         if type(arg) is str and arg.lower() in ['buy', 'sell', 'bid', 'ask']:
             return 'side'
-        elif type(arg) is str and Pair.is_valid_symbol(arg):
+        elif type(arg) is str and Pair.is_valid_str(arg):
             return 'pair'
         elif type(arg) is Pair:
             return 'pair'
@@ -306,10 +306,12 @@ class Order(object):
             elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None \
                     and kwargs['type'] is 'limit':
                 value = kwargs['market'].fees['maker']
+
             # get fee_percentage for market order from market fees
             elif kwargs['market'] is not None and kwargs['market'].fees['taker'] is not None \
                     and kwargs['type'] is 'market':
                 value = kwargs['market'].fees['taker']
+
             else:
                 value = None
 
@@ -412,7 +414,7 @@ class Order(object):
 
             # pair from market
             elif kwargs['market'] is not None:
-                value = kwargs['market'].symbol
+                value = kwargs['market'].pair
 
             else:
                 value = None
@@ -539,7 +541,7 @@ class Order(object):
         if 'account' in kwargs and kwargs['account'] is not None:
             fees = kwargs['account'].fees()
         elif 'exchange' in kwargs and kwargs['exchange'] is not None:
-            fees = kwargs['exchange'].fees
+            fees = kwargs['exchange'].fees()
         else:
             fees = None
 
@@ -957,3 +959,12 @@ class Orders(ObjectList):
 
 class OrderChain(Orders):
     pass
+
+
+class OrderBook(object):
+    bids = None
+    asks = None
+
+    def __init__(self, bids, asks):
+        self.bids = bids
+        self.asks = asks

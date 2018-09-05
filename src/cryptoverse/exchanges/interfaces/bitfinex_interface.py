@@ -1,9 +1,6 @@
-from cryptoverse.domain import Tickers
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
-from ...domain import Instrument, Instruments, Market, Markets, Order, Orders, Trades, Offers, Lends, Pair, Pairs, \
-    Ticker, Balances, Balance
 
 
 class BitfinexInterface(ExchangeInterface):
@@ -14,57 +11,102 @@ class BitfinexInterface(ExchangeInterface):
         self.scrape_client = BitfinexScrape()
 
     def get_spot_instruments(self):
-        markets = self.get_spot_markets()
-        results = Instruments(markets.get_values('base') + markets.get_values('quote')).get_unique()
-        return results
+        response = self.get_all_markets()
+        result = list()
+        for entry in response['spot']:
+            if entry['symbol']['base'] not in result:
+                result.append(entry['symbol']['base'])
+            if entry['symbol']['quote'] not in result:
+                result.append(entry['symbol']['quote'])
+
+        return result
 
     def get_margin_instruments(self):
-        markets = self.get_margin_markets()
-        results = Instruments(markets.get_values('base') + markets.get_values('quote')).get_unique()
-        return results
+        response = self.get_all_markets()
+        result = list()
+        for entry in response['margin']:
+            if entry['symbol']['base'] not in result:
+                result.append(entry['symbol']['base'])
+            if entry['symbol']['quote'] not in result:
+                result.append(entry['symbol']['quote'])
+
+        return result
 
     def get_funding_instruments(self):
-        instruments = self.get_funding_markets()
-        results = Instruments(instruments.get_values('symbol'))
-        return results
+        response = self.get_all_markets()
+        result = list()
+        for entry in response['funding']:
+            if entry['symbol'] not in result:
+                result.append(entry['symbol'])
+
+        return result
 
     def get_all_instruments(self):
-        instruments = self.get_spot_instruments() + self.get_margin_instruments() + self.get_funding_instruments()
-        return instruments.get_unique()
+        response = self.get_all_markets()
+        result = list()
+        for entry in response['spot']:
+            if entry['symbol']['base'] not in result:
+                result.append(entry['symbol']['base'])
+            if entry['symbol']['quote'] not in result:
+                result.append(entry['symbol']['quote'])
+        for entry in response['margin']:
+            if entry['symbol']['base'] not in result:
+                result.append(entry['symbol']['base'])
+            if entry['symbol']['quote'] not in result:
+                result.append(entry['symbol']['quote'])
+        for entry in response['funding']:
+            if entry['symbol'] not in result:
+                result.append(entry['symbol'])
+
+        return result
 
     def get_spot_pairs(self):
-        return Pairs(self.get_spot_markets().get_values('symbol'))
+        response = self.get_all_markets()
+        result = list()
+        for entry in response['spot']:
+            result.append(entry['symbol'])
+        return result
 
     def get_margin_pairs(self):
-        return Pairs(self.get_margin_markets().get_values('symbol'))
+        response = self.get_all_markets()
+        result = list()
+        for entry in response['margin']:
+            result.append(entry['symbol'])
+        return result
 
     def get_all_pairs(self):
-        return Pairs(self.get_spot_pairs() + self.get_margin_pairs()).get_unique()
+        response = self.get_all_markets()
+        result = list()
+        for entry in response['spot']:
+            result.append(entry['symbol'])
+        for entry in response['margin']:
+            if entry['symbol'] not in result:
+                result.append(entry['symbol'])
+        return result
 
     def get_spot_markets(self):
-        return self.get_all_markets().find(context='spot')
+        return self.get_all_markets()['spot']
 
     def get_margin_markets(self):
-        return self.get_all_markets().find(context='margin')
+        return self.get_all_markets()['margin']
 
     def get_funding_markets(self):
-        return self.get_all_markets().find(context='funding')
+        return self.get_all_markets()['funding']
 
     def get_all_markets(self):
-        from cryptoverse.exchanges import Bitfinex
         symbols_details = self.rest_client.symbols_details()
         fees = self.scrape_client.fees()
 
-        markets = Markets()
-        spot_markets = Markets()
-        margin_markets = Markets()
-        funding_markets = Markets()
+        markets = {
+            'spot': list(),
+            'margin': list(),
+            'funding': list(),
+        }
 
         for entry in symbols_details:
-            base = Instrument(code=entry['pair'][:3].upper())
-            quote = Instrument(code=entry['pair'][3:].upper())
-            pair = Pair(base=base, quote=quote)
-            exchange = Bitfinex()
+            base = {'code': entry['pair'][:3].upper()}
+            quote = {'code': entry['pair'][3:].upper()}
+            pair = {'base': base, 'quote': quote}
             order_limits = {
                 'amount': {'min': float(entry['minimum_order_size']),
                            'max': float(entry['maximum_order_size'])},
@@ -77,222 +119,285 @@ class BitfinexInterface(ExchangeInterface):
                 'normal': float(fees['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')),
                 'hidden': float(fees['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
             }
-            spot_market = Market(
-                context='spot',
-                symbol=pair,
-                exchange=exchange,
-                limits=order_limits,
-                fees=order_fees,
-            )
-            spot_markets.append(spot_market)
-            markets.append(spot_market)
+            spot_market = {
+                'context': 'spot',
+                'symbol': pair,
+                'limits': order_limits,
+                'fees': order_fees,
+            }
+            markets['spot'].append(spot_market)
             if entry['margin']:
-                margin_market = Market(
-                    context='margin',
-                    symbol=pair,
-                    exchange=exchange,
-                    limits=order_limits,
-                    fees=order_fees,
-                )
-                margin_markets.append(margin_market)
-                markets.append(margin_market)
+                margin_market = {
+                    'context': 'margin',
+                    'symbol': pair,
+                    'limits': order_limits,
+                    'fees': order_fees,
+                }
+                markets['margin'].append(margin_market)
 
-                funding_market1 = Market(
-                    context='funding',
-                    symbol=base,
-                    exchange=exchange,
-                    fees=margin_funding_fees,
-                )
-                funding_market2 = Market(
-                    context='funding',
-                    symbol=quote,
-                    exchange=exchange,
-                    fees=margin_funding_fees
-                )
-                if funding_market1 not in funding_markets:
-                    funding_markets.append(funding_market1)
-                if funding_market2 not in funding_markets:
-                    funding_markets.append(funding_market2)
-                if funding_market1 not in markets:
-                    markets.append(funding_market1)
-                if funding_market2 not in markets:
-                    markets.append(funding_market2)
+                funding_market1 = {
+                    'context': 'funding',
+                    'symbol': base,
+                    'fees': margin_funding_fees,
+                }
+                funding_market2 = {
+                    'context': 'funding',
+                    'symbol': quote,
+                    'fees': margin_funding_fees
+                }
+                if funding_market1 not in markets['funding']:
+                    markets['funding'].append(funding_market1)
+                if funding_market2 not in markets['funding']:
+                    markets['funding'].append(funding_market2)
 
-        return Markets(spot_markets + margin_markets + funding_markets)
+        return markets
 
     def get_fees(self):
         result = {
             'orders': dict(),
             'deposits': dict(),
             'withdrawals': dict(),
-            'funding': dict(),
+            'offers': dict(),
         }
         response = self.scrape_client.fees()
 
         for pair in self.get_all_pairs():
-            result['orders'][pair.as_str()] = {
+            pair_str = '{}/{}'.format(pair['base']['code'], pair['quote']['code'])
+            result['orders'][pair_str] = {
                 'maker': float(response['Order Execution'][0]['Maker fees'].rstrip('%')),
                 'taker': float(response['Order Execution'][0]['Taker fees'].rstrip('%')),
             }
 
-        for instrument in self.get_all_instruments():
+        for instrument_code in [i['code'] for i in self.get_all_instruments()]:
             for entry in response['Deposit']:
-                if instrument.code in entry['Small Deposit*']:
-                    result['deposits'][instrument.code] = float(entry['Small Deposit*'].split(' ')[0].rstrip('%'))
+                if instrument_code in entry['Small Deposit*']:
+                    result['deposits'][instrument_code] = float(entry['Small Deposit*'].split(' ')[0].rstrip('%'))
                     break
-            if instrument.code not in result['deposits'].keys():
-                result['deposits'][instrument.code] = 0.0
+            if instrument_code not in result['deposits'].keys():
+                result['deposits'][instrument_code] = 0.0
 
             for entry in response['Withdrawal']:
-                if instrument.code in entry['Fee']:
-                    result['withdrawals'][instrument.code] = float(entry['Fee'].split(' ')[0].rstrip('%'))
+                if instrument_code in entry['Fee']:
+                    result['withdrawals'][instrument_code] = float(entry['Fee'].split(' ')[0].rstrip('%'))
                     break
-            if instrument.code not in result['withdrawals'].keys():
-                result['withdrawals'][instrument.code] = 0.0
+            if instrument_code not in result['withdrawals'].keys():
+                result['withdrawals'][instrument_code] = 0.0
 
-        for instrument in self.get_funding_instruments():
-            result['funding'][instrument.code] = {
+        for instrument_code in [i['code'] for i in self.get_funding_instruments()]:
+            result['offers'][instrument_code] = {
                 'normal': float(response['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')),
                 'hidden': float(response['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
             }
 
         return result
 
-    def get_ticker(self, market):
-        if type(market) is Market:
-            symbol = '{}{}'.format(market.symbol.base.code.lower(), market.symbol.quote.code.lower())
-        elif type(market) is Pair:
-            symbol = '{}{}'.format(market.base.code.lower(), market.quote.code.lower())
-        elif type(market) is str and Pair.is_valid_symbol(market):
-            pair = Pair.from_string(market)
-            symbol = '{}{}'.format(pair.base.code.lower(), pair.quote.code.lower())
+    def get_ticker(self, symbol):
+        if type(symbol) is str and '/' in symbol:
+            symbol = '{}{}'.format(*symbol.split('/'))
         else:
-            raise ValueError("No valid market supplied: {}".format(market))
+            symbol = None
+        if symbol is not None:
+            response = self.rest_client.pubticker(symbol=symbol)
+            result = {
+                'ask': float(response['ask']),
+                'bid': float(response['bid']),
+                'high': float(response['high']),
+                'low': float(response['low']),
+                'last': float(response['last_price']),
+                'volume': float(response['volume']),
+                'timestamp': float(response['timestamp']),
+            }
+            return result
 
-        response = self.rest_client.pubticker(symbol=symbol)
-        result = Ticker(
-            ask=float(response['ask']),
-            bid=float(response['bid']),
-            high=float(response['high']),
-            low=float(response['low']),
-            last=float(response['last_price']),
-            volume=float(response['volume']),
-            timestamp=float(response['timestamp']),
-        )
-        return result
-
-    def get_tickers(self, markets):
-        if type(markets) is Markets:
-            markets_symbols = list()
-            for market in markets:
-                if market.pair is not None:
-                    market_str = 't{}{}'.format(market.pair.base.code, market.pair.quote.code)
-                elif market.instrument is not None:
-                    market_str = 'f{}'.format(market.instrument.code)
+    def get_tickers(self, *symbols):
+        if len(symbols) == 1 and type(symbols[0]) is list:
+            symbols_list = list()
+            for symbol in symbols[0]:
+                if '/' in symbol:
+                    new_symbol = 't{}{}'.format(*symbol.split('/'))
                 else:
-                    market_str = None
-
-                if market_str is not None and market_str not in markets_symbols:
-                    markets_symbols.append(market_str)
-            markets_text = ','.join(markets_symbols)
-        elif type(markets) is str:
-            markets_text = markets
+                    new_symbol = 'f{}'.format(symbol)
+                symbols_list.append(new_symbol)
+            symbols_text = ','.join(symbols_list)
+        elif len(symbols) == 1 and type(symbols[0]) is str and symbols[0].lower() == 'all':
+            symbols_text = 'ALL'
+        elif symbols:
+            symbols_list = list()
+            for symbol in symbols:
+                if '/' in symbol:
+                    new_symbol = 't{}{}'.format(*symbol.split('/'))
+                else:
+                    new_symbol = 'f{}'.format(symbol)
+                symbols_list.append(new_symbol)
+            symbols_text = ','.join(symbols_list)
         else:
-            markets_text = 'ALL'
+            symbols_text = ''
 
-        response = self.rest_client.tickers(symbols=markets_text)
+        response = self.rest_client.tickers(symbols=symbols_text)
 
-        result = Tickers()
+        result = list()
         for entry in response:
             if entry[0][0] == 't':
-                market = self.get_spot_markets()[entry[0][1:4], entry[0][4:7]]
+                market = {
+                    'base': {'code': entry[0][1:4]},
+                    'quote': {'code': entry[0][4:7]}
+                }
             elif entry[0][0] == 'f':
-                market = self.get_funding_markets()[entry[0][1:]]
+                market = {'code': entry[0][1:]}
             else:
                 market = None
 
             if market is not None:
-                ticker = Ticker(
-                    market=market,
-                    bid=float(entry[1]),
-                    ask=float(entry[3]),
-                    high=float(entry[9]),
-                    low=float(entry[10]),
-                    last=float(entry[7]),
-                    volume=float(entry[8]),
-                )
+                ticker = {
+                    'market': market,
+                    'bid': float(entry[1]),
+                    'ask': float(entry[3]),
+                    'high': float(entry[9]),
+                    'low': float(entry[10]),
+                    'last': float(entry[7]),
+                    'volume': float(entry[8]),
+                }
                 result.append(ticker)
 
         return result
 
     def get_all_tickers(self):
-        return self.get_tickers(markets='ALL')
+        return self.get_tickers('all')
 
-    def get_market_orders(self, market):
-        if type(market) is str and Pair.is_valid_symbol(market):
-            pair = Pair.from_string(symbol=market)
-            market = self.get_spot_markets().get(symbol=pair)
-        elif type(market) is Pair:
-            pair = market
-            market = self.get_spot_markets().get(symbol=pair)
-        print(market)
-        symbol = '{}{}'.format(market.base.code, market.quote.code)
-        book = self.rest_client.book(
+    def get_market_orders(self, symbol, limit=100):
+        symbol = '{}{}'.format(*symbol.split('/'))
+        response = self.rest_client.book(
             symbol=symbol,
-            limit_bids=50,
-            limit_asks=50,
+            limit_bids=limit,
+            limit_asks=limit,
             group=0,
         )
 
-        bids, asks = Orders(), Orders()
+        result = {
+            'bids': list(),
+            'asks': list(),
+        }
 
-        for entry in book['bids']:
-            order = Order(
-                market=market,
-                amount=entry['amount'],
-                price=entry['price'],
-                side='buy',
-            )
-            bids.append(order)
+        for entry in response['bids']:
+            order = {
+                'amount': float(entry['amount']),
+                'price': float(entry['price']),
+                'side': 'bid',
+            }
+            result['bids'].append(order)
 
-        for entry in book['asks']:
-            order = Order(
-                market=market,
-                amount=entry['amount'],
-                price=entry['price'],
-                side='ask',
-            )
-            asks.append(order)
+        for entry in response['asks']:
+            order = {
+                'amount': float(entry['amount']),
+                'price': float(entry['price']),
+                'side': 'ask',
+            }
+            result['asks'].append(order)
 
-        return bids, asks
+        return result
 
-    def get_market_trades(self, market):
-        results = Trades()
-        return results
+    def get_market_trades(self, symbol, limit=100):
+        symbol = '{}{}'.format(*symbol.split('/'))
+        response = self.rest_client.trades(
+            symbol=symbol,
+            limit_trades=limit,
+        )
+        result = list()
+        for entry in response:
+            trade = {
+                'amount': float(entry['amount']),
+                'price': float(entry['price']),
+                'type': str(entry['type']),
+                'id': str(entry['tid']),
+                'timestamp': float(entry['timestamp']) * 0.001,
+            }
+            result.append(trade)
 
-    def get_market_offers(self, instrument):
-        results = Offers()
-        return results
+        return result
 
-    def get_market_lends(self, instrument):
-        results = Lends()
-        return results
+    def get_market_offers(self, symbol, limit=100):
+        response = self.rest_client.lendbook(
+            currency=symbol,
+            limit_bids=limit,
+            limit_asks=limit,
+        )
 
-    def get_market_candles(self, period, market, limit=100):
+        result = {
+            'bids': list(),
+            'asks': list(),
+        }
+        for entry in response['bids']:
+            offer = {
+                'amount': float(entry['amount']),
+                'annual_rate': float(entry['rate']),
+                'period': int(entry['period']),
+                'side': 'bid',
+                'timestamp': float(entry['timestamp']),
+            }
+            result['bids'].append(offer)
+
+        for entry in response['asks']:
+            offer = {
+                'amount': float(entry['amount']),
+                'annual_rate': float(entry['rate']),
+                'period': int(entry['period']),
+                'side': 'ask',
+                'timestamp': float(entry['timestamp']),
+            }
+            result['asks'].append(offer)
+
+        return result
+
+    def get_market_lends(self, symbol, limit=100):
+        symbol = 'f{}'.format(symbol)
+        response = self.rest_client.trades_hist(
+            symbol=symbol,
+            limit=limit,
+        )
+        result = list()
+        for entry in response:
+            lend = {
+                'amount': max(float(entry[2]), -float(entry[2])),
+                'rate': float(entry[3]),
+                'period': float(entry[4]),
+                'id': str(entry[0]),
+                'timestamp': float(entry[1]) * 0.001,
+                'side': 'sell' if float(entry[2]) > 0.0 else 'buy',
+
+            }
+            result.append(lend)
+        return result
+
+    def get_market_candles(self, period, symbol, limit=100):
+        if '/' in symbol:
+            symbol = 't{}{}'.format(*symbol.split('/'))
+
         response = self.rest_client.candles(
             timeframe=period,
-            symbol=market,
+            symbol=symbol,
             section='hist',
             limit=limit,
         )
-        return response
+        result = list()
+        for entry in response:
+            candle = {
+                'timestamp': float(entry[0]) * 0.001,
+                'open': float(entry[1]),
+                'close': float(entry[2]),
+                'high': float(entry[3]),
+                'low': float(entry[4]),
+                'volume': float(entry[5]),
+            }
+            result.append(candle)
+
+        return result
 
     def get_account_fees(self):
         result = {
             'orders': dict(),
             'deposits': dict(),
             'withdrawals': dict(),
-            'funding': dict(),
+            'offers': dict(),
         }
         public_fee_information = self.get_fees()
 
@@ -300,9 +405,10 @@ class BitfinexInterface(ExchangeInterface):
         account_fees = self.rest_client.account_fees()
 
         for pair in self.get_all_pairs():
+            pair_str = '{}/{}'.format(pair['base']['code'], pair['quote']['code'])
             for entry in account_infos[0]['fees']:
-                if entry['pairs'] == pair.base:
-                    result['orders'][pair.as_str()] = {
+                if entry['pairs'] == pair['base']['code']:
+                    result['orders'][pair_str] = {
                         'maker': float(entry['maker_fees']),
                         'taker': float(entry['taker_fees']),
                     }
@@ -314,68 +420,111 @@ class BitfinexInterface(ExchangeInterface):
                 instrument_code: float(fee_cost)
             })
 
-        result['funding'] = public_fee_information['funding']
+        result['offers'] = public_fee_information['offers']
 
         return result
 
-    def get_account_exchange_wallet(self):
-        return self.get_account_wallets()['exchange']
-
-    def get_account_margin_wallet(self):
-        return self.get_account_wallets()['trading']
-
-    def get_account_funding_wallet(self):
-        return self.get_account_wallets()['funding']
-
-    def get_account_wallets(self):
+    def get_account_balances(self):
         response = self.rest_client.balances()
 
         result = {
-            'exchange': Balances(),
-            'trading': Balances(),
-            'funding': Balances(),
+            'exchange': list(),
+            'margin': list(),
+            'funding': list(),
         }
         for entry in response:
             wallet = None
             if entry['type'] == 'exchange':
                 wallet = 'exchange'
-            instrument_code = entry['currency'].upper()
-            instrument = self.get_all_instruments()[instrument_code]
+            elif entry['type'] == 'trading':
+                wallet = 'margin'
+            elif entry['type'] == 'deposit':
+                wallet = 'funding'
+            instrument = {'code': entry['currency'].upper()}
             amount = float(entry['amount'])
             available = float(entry['available'])
             if amount != 0.0:
-                balance = Balance(
-                    instrument=instrument,
-                    amount=amount,
-                    available=available,
-                    wallet=wallet,
-                )
+                balance = {
+                    'instrument': instrument,
+                    'amount': amount,
+                    'available': available,
+                    'wallet': wallet,
+                }
                 result[wallet].append(balance)
+
         return result
 
-    def get_account_balances(self):
-        response = self.rest_client.balances()
-        result = Balances()
-        for entry in response:
-            amount = float(entry['amount'])
-            instrument_code = entry['currency'].upper()
-            instrument = self.get_all_instruments()[instrument_code]
-            if amount != 0.0:
-                balance = Balance(
-                    instrument=instrument,
-                    amount=amount,
-                )
-                result.append(balance)
-        return result
+    def get_account_orders(self, *args, **kwargs):
+        raise NotImplementedError
 
-    def get_account_orders(self):
-        raise NotImplemented
+    def get_account_trades(self, *args, **kwargs):
+        raise NotImplementedError
 
-    def get_account_trades(self):
-        raise NotImplemented
+    def get_account_positions(self, *args, **kwargs):
+        raise NotImplementedError
 
-    def get_account_offers(self):
-        raise NotImplemented
+    def get_account_offers(self, *args, **kwargs):
+        raise NotImplementedError
 
-    def get_account_lends(self):
-        raise NotImplemented
+    def get_account_lends(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def get_account_deposits(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def get_account_withdrawals(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def place_single_order(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def place_multiple_orders(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def replace_single_order(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def replace_multiple_orders(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def update_single_order(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def update_multiple_orders(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def cancel_single_order(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def cancel_multiple_orders(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def cancel_all_orders(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def place_single_offer(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def place_multiple_offers(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def replace_single_offer(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def replace_multiple_offers(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def update_single_offer(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def update_multiple_offers(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def cancel_single_offer(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def cancel_multiple_offers(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def cancel_all_offers(self, *args, **kwargs):
+        raise NotImplementedError

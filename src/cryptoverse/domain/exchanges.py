@@ -1,6 +1,12 @@
 from memoized_property import memoized_property
 
+from .instruments import Instrument, Instruments
+from .markets import Market, Markets
 from .object_list import ObjectList
+from .offers import Offer, Offers, OfferBook
+from .orders import Order, Orders, OrderBook
+from .pairs import Pair, Pairs
+from .tickers import Ticker, Tickers
 
 
 class Exchange(object):
@@ -49,50 +55,220 @@ class Exchange(object):
             return self.interface.scrape_client
 
     @memoized_property
-    def fees(self):
-        return self.interface.get_fees()
-
-    @memoized_property
     def instruments(self):
-        return self.interface.get_all_instruments()
+        response = self.interface.get_all_instruments()
+        result = Instruments()
+        for entry in response:
+            obj = Instrument.from_dict(entry)
+            result.append(obj)
+        return result
 
     @memoized_property
     def pairs(self):
-        return self.interface.get_all_pairs()
+        response = self.interface.get_all_pairs()
+        result = Pairs()
+        for entry in response:
+            obj = Pair.from_dict(entry)
+            result.append(obj)
+        return result
 
     @memoized_property
     def markets(self):
-        return self.interface.get_all_markets()
+        response = self.interface.get_all_markets()
+        result = Markets()
+        for k, v in response.items():
+            for entry in v:
+                entry.update({'exchange': self})
+                obj = Market.from_dict(entry)
+                result.append(obj)
+        return result
 
     @memoized_property
     def spot_markets(self):
-        return self.interface.get_spot_markets()
+        response = self.interface.get_spot_markets()
+        result = Markets()
+        for entry in response:
+            entry.update({'exchange': self})
+            obj = Market.from_dict(entry)
+            result.append(obj)
+        return result
 
     @memoized_property
     def margin_markets(self):
-        return self.interface.get_margin_markets()
+        response = self.interface.get_margin_markets()
+        result = Markets()
+        for entry in response:
+            entry.update({'exchange': self})
+            obj = Market.from_dict(entry)
+            result.append(obj)
+        return result
 
     @memoized_property
     def funding_markets(self):
-        return self.interface.get_funding_markets()
+        response = self.interface.get_funding_markets()
+        result = Markets()
+        for entry in response:
+            entry.update({'exchange': self})
+            obj = Market.from_dict(entry)
+            result.append(obj)
+        return result
+
+    def fees(self):
+        return self.interface.get_fees()
 
     def ticker(self, market):
-        return self.interface.get_ticker(market=market)
+        if type(market) is Market:
+            symbol = Market.symbol.as_str()
+        elif type(market) is Pair:
+            symbol = market.as_str()
+        elif type(market) is str and Pair.is_valid_str(market):
+            symbol = Pair.from_str(market).as_str()
+        else:
+            symbol = None
 
-    def tickers(self, markets=None):
-        return self.interface.get_tickers(markets=markets)
+        if symbol is not None:
+            response = self.interface.get_ticker(symbol=symbol)
+            result = Ticker.from_dict(response)
+            return result
 
-    def orderbook(self, market):
-        return self.interface.get_orderbook(market=market)
+    def tickers(self, *markets):
+        symbols = list()
+        if len(markets) == 1 and type(markets[0]) is list:
+            markets = markets[0]
+        elif len(markets) == 1 and type(markets[0]) in [Markets, Pairs]:
+            markets = markets[0]
+
+        for entry in markets:
+            if type(entry) is str and '/' in entry:
+                symbol = entry
+            elif type(entry) is Pair:
+                symbol = entry.as_str()
+            elif type(entry) is Market:
+                symbol = entry.symbol.as_str()
+            else:
+                symbol = None
+
+            if symbol is not None:
+                symbols.append(symbol)
+
+        response = self.interface.get_tickers(*symbols)
+        result = Tickers()
+        for entry in response:
+            if 'base' in entry['market'] and 'quote' in entry['market']:
+                market = self.markets[entry['market']['base']['code'], entry['market']['quote']['code']]
+                if type(market) is Markets:
+                    market = market.first
+            elif 'code' in entry['market']:
+                market = self.markets[entry['market']['code']]
+            else:
+                market = None
+
+            if market is not None:
+                entry.update({'market': market})
+                obj = Ticker.from_dict(entry)
+                result.append(obj)
+
+        return result
+
+    def order_book(self, market, limit=100):
+        if type(market) is Market:
+            symbol = market.pair.as_str()
+            pair = market.pair
+        elif type(market) is Pair:
+            symbol = market.as_str()
+            pair = market
+        elif type(market) is str:
+            symbol = market
+            pair = market
+        else:
+            symbol = None
+            pair = None
+
+        if symbol is not None:
+            response = self.interface.get_market_orders(symbol=symbol, limit=limit)
+
+            bids = Orders()
+            if 'bids' in response:
+                for entry in response['bids']:
+                    order = Order(
+                        amount=entry['amount'],
+                        price=entry['price'],
+                        side=entry['side'],
+                        pair=pair,
+                        exchange=self,
+                    )
+                    bids.append(order)
+
+            asks = Orders()
+            if 'asks' in response:
+                for entry in response['asks']:
+                    order = Order(
+                        amount=entry['amount'],
+                        price=entry['price'],
+                        side=entry['side'],
+                        pair=pair,
+                        exchange=self,
+                    )
+                    asks.append(order)
+
+            result = OrderBook(bids, asks)
+
+            return result
 
     def trades(self, market):
-        return self.interface.get_trades(market=market)
+        return self.interface.get_market_trades(market=market)
 
-    def offerbook(self, market):
-        return self.interface.get_lendingbook(market=market)
+    def offer_book(self, market, limit=100):
+        if type(market) is Market:
+            symbol = market.instrument.as_str()
+            instrument = market.instrument
+        elif type(market) is Instrument:
+            symbol = market.as_str()
+            instrument = market
+        elif type(market) is str:
+            symbol = market
+            instrument = market
+        else:
+            symbol = None
+            instrument = None
+
+        if symbol is not None:
+            response = self.interface.get_market_offers(symbol=symbol, limit=limit)
+
+            bids = Offers()
+            if 'bids' in response:
+                for entry in response['bids']:
+                    order = Offer(
+                        amount=entry['amount'],
+                        annual_rate=entry['annual_rate'],
+                        side=entry['side'],
+                        period=entry['period'],
+                        timestamp=entry['timestamp'],
+                        instrument=instrument,
+                        exchange=self,
+                    )
+                    bids.append(order)
+
+            asks = Offers()
+            if 'asks' in response:
+                for entry in response['asks']:
+                    order = Offer(
+                        amount=entry['amount'],
+                        annual_rate=entry['annual_rate'],
+                        side=entry['side'],
+                        period=entry['period'],
+                        timestamp=entry['timestamp'],
+                        instrument=instrument,
+                        exchange=self,
+                    )
+                    asks.append(order)
+
+            result = OfferBook(bids, asks)
+
+            return result
 
     def lends(self, market):
-        return self.interface.get_lends(market=market)
+        return self.interface.get_market_lends(market=market)
 
     def create_order(self, *args, **kwargs):
         kwargs['exchange'] = self

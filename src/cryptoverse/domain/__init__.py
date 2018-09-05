@@ -7,8 +7,8 @@ from .instruments import Instrument, Instruments
 from .keystores import Keepassx
 from .lends import Lend, Lends
 from .markets import Market, Markets
-from .offers import Offer, Offers
-from .orders import Order, Orders, OrderChain
+from .offers import Offer, Offers, OfferBook
+from .orders import Order, Orders, OrderChain, OrderBook
 from .pairs import Pair, Pairs
 from .positions import Position, Positions
 from .tickers import Ticker, Tickers

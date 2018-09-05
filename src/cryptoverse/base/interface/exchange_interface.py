@@ -46,46 +46,49 @@ class ExchangeInterface(object):
     def get_all_pairs(self):
         raise NotImplementedError
 
-    def get_spot_markets(self, *args, **kwargs):
+    def get_spot_markets(self):
         raise NotImplementedError
 
-    def get_margin_markets(self, *args, **kwargs):
+    def get_margin_markets(self):
         raise NotImplementedError
 
-    def get_funding_markets(self, *args, **kwargs):
+    def get_funding_markets(self):
         raise NotImplementedError
 
-    def get_all_markets(self, *args, **kwargs):
+    def get_all_markets(self):
         raise NotImplementedError
 
-    def get_fees(self, *args, **kwargs):
+    def get_fees(self):
         raise NotImplementedError
 
-    def get_ticker(self, *args, **kwargs):
+    def get_ticker(self, symbol):
         raise NotImplementedError
 
-    def get_tickers(self, *args, **kwargs):
+    def get_tickers(self, symbols):
         raise NotImplementedError
 
-    def get_all_tickers(self, *args, **kwargs):
+    def get_all_tickers(self):
         raise NotImplementedError
 
-    def get_market_orders(self, *args, **kwargs):
+    def get_market_orders(self, symbol, limit=100):
         raise NotImplementedError
 
-    def get_market_trades(self, *args, **kwargs):
+    def get_market_trades(self, symbol, limit=100):
         raise NotImplementedError
 
-    def get_market_offers(self, *args, **kwargs):
+    def get_market_offers(self, symbol, limit=100):
         raise NotImplementedError
 
-    def get_market_lends(self, *args, **kwargs):
+    def get_market_lends(self, symbol, limit=100):
         raise NotImplementedError
 
-    def get_market_candles(self, *args, **kwargs):
+    def get_market_candles(self, period, symbol, limit=100):
         raise NotImplementedError
 
-    def get_account_fees(self, *args, **kwargs):
+    def get_account_fees(self):
+        raise NotImplementedError
+
+    def get_account_balances(self):
         raise NotImplementedError
 
     def get_account_orders(self, *args, **kwargs):
@@ -101,9 +104,6 @@ class ExchangeInterface(object):
         raise NotImplementedError
 
     def get_account_lends(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def get_account_balances(self, *args, **kwargs):
         raise NotImplementedError
 
     def get_account_deposits(self, *args, **kwargs):
