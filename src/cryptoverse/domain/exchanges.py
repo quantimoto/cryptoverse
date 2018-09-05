@@ -1,12 +1,14 @@
 from memoized_property import memoized_property
 
 from .instruments import Instrument, Instruments
+from .lends import Lend, Lends
 from .markets import Market, Markets
 from .object_list import ObjectList
 from .offers import Offer, Offers, OfferBook
 from .orders import Order, Orders, OrderBook
 from .pairs import Pair, Pairs
 from .tickers import Ticker, Tickers
+from .trades import Trades, Trade
 
 
 class Exchange(object):
@@ -215,9 +217,6 @@ class Exchange(object):
 
             return result
 
-    def trades(self, market):
-        return self.interface.get_market_trades(market=market)
-
     def offer_book(self, market, limit=100):
         if type(market) is Market:
             symbol = market.instrument.as_str()
@@ -267,8 +266,66 @@ class Exchange(object):
 
             return result
 
-    def lends(self, market):
-        return self.interface.get_market_lends(market=market)
+    def trades(self, market, limit=100):
+        if type(market) is Market:
+            symbol = market.pair.as_str()
+            pair = market.pair
+        elif type(market) is Pair:
+            symbol = market.as_str()
+            pair = market
+        elif type(market) is str and '/' in market:
+            symbol = market
+            pair = market
+        else:
+            symbol = None
+            pair = None
+
+        if symbol is not None:
+            response = self.interface.get_market_trades(symbol=symbol, limit=limit)
+            result = Trades()
+            for entry in response:
+                trade = Trade(
+                    amount=entry['amount'],
+                    price=entry['price'],
+                    side=entry['side'],
+                    exchange_id=entry['id'],
+                    timestamp=entry['timestamp'],
+                    exchange=self,
+                    pair=pair,
+                )
+                result.append(trade)
+            return result
+
+    def lends(self, market, limit=100):
+        if type(market) is Market:
+            symbol = market.instrument.as_str()
+            instrument = market.instrument
+        elif type(market) is Instrument:
+            symbol = market.as_str()
+            instrument = market
+        elif type(market) is str:
+            symbol = market
+            instrument = market
+        else:
+            symbol = None
+            instrument = None
+
+        if symbol is not None:
+            response = self.interface.get_market_lends(symbol=symbol, limit=limit)
+            result = Lends()
+            for entry in response:
+                lend = Lend(
+                    amount=entry['amount'],
+                    daily_rate=entry['daily_rate'],
+                    period=entry['period'],
+                    exchange_id=entry['id'],
+                    timestamp=entry['timestamp'],
+                    side=entry['side'],
+                    exchange=self,
+                    instrument=instrument,
+                )
+                result.append(lend)
+            return result
 
     def create_order(self, *args, **kwargs):
         kwargs['exchange'] = self

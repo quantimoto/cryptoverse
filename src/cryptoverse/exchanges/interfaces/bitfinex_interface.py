@@ -307,7 +307,7 @@ class BitfinexInterface(ExchangeInterface):
             trade = {
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
-                'type': str(entry['type']),
+                'side': str(entry['type']),
                 'id': str(entry['tid']),
                 'timestamp': float(entry['timestamp']) * 0.001,
             }
@@ -358,8 +358,8 @@ class BitfinexInterface(ExchangeInterface):
         for entry in response:
             lend = {
                 'amount': max(float(entry[2]), -float(entry[2])),
-                'rate': float(entry[3]),
-                'period': float(entry[4]),
+                'daily_rate': float(entry[3]) * 100,
+                'period': int(entry[4]),
                 'id': str(entry[0]),
                 'timestamp': float(entry[1]) * 0.001,
                 'side': 'sell' if float(entry[2]) > 0.0 else 'buy',

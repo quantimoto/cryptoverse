@@ -6,6 +6,7 @@ from .exchanges import Exchange, Exchanges
 from .instruments import Instrument, Instruments
 from .keystores import Keepassx
 from .lends import Lend, Lends
+from .lends import Lend, Lends
 from .markets import Market, Markets
 from .offers import Offer, Offers, OfferBook
 from .orders import Order, Orders, OrderChain, OrderBook
