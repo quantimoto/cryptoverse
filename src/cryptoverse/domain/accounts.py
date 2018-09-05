@@ -87,13 +87,13 @@ class Account(object):
 
     def create_order(self, *args, **kwargs):
         kwargs['account'] = self
-        order = Order(*args, **kwargs)
-        return order
+        kwargs['exchange'] = self.exchange
+        return Order(*args, **kwargs)
 
     def create_offer(self, *args, **kwargs):
         kwargs['account'] = self
-        offer = Offer(*args, **kwargs)
-        return offer
+        kwargs['exchange'] = self.exchange
+        return Offer(*args, **kwargs)
 
     def create_deposit_address(self):
         raise NotImplementedError
@@ -113,6 +113,17 @@ class Account(object):
             self.exchange.interface.place_single_offer(obj)
         elif type(obj) is Offers:
             self.exchange.interface.place_multiple_offers(obj)
+        return obj
+
+    def update(self, obj):
+        if type(obj) is Order:
+            self.exchange.interface.update_single_order(obj)
+        elif type(obj) is Orders:
+            self.exchange.interface.update_multiple_orders(obj)
+        elif type(obj) is Offer:
+            self.exchange.interface.update_single_offer(obj)
+        elif type(obj) is Offers:
+            self.exchange.interface.update_multiple_offers(obj)
         return obj
 
     def cancel(self, obj):
@@ -135,17 +146,6 @@ class Account(object):
             self.exchange.interface.replace_single_offer(obj)
         elif type(obj) is Offers:
             self.exchange.interface.replace_multiple_offers(obj)
-        return obj
-
-    def update(self, obj):
-        if type(obj) is Order:
-            self.exchange.interface.update_single_order(obj)
-        elif type(obj) is Orders:
-            self.exchange.interface.update_multiple_orders(obj)
-        elif type(obj) is Offer:
-            self.exchange.interface.update_single_offer(obj)
-        elif type(obj) is Offers:
-            self.exchange.interface.update_multiple_offers(obj)
         return obj
 
 

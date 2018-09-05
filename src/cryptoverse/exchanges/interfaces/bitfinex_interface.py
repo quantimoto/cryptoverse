@@ -363,7 +363,6 @@ class BitfinexInterface(ExchangeInterface):
                 'id': str(entry[0]),
                 'timestamp': float(entry[1]) * 0.001,
                 'side': 'sell' if float(entry[2]) > 0.0 else 'buy',
-
             }
             result.append(lend)
         return result
