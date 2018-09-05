@@ -9,7 +9,7 @@ from requests.exceptions import ReadTimeout, ConnectionError
 from ...base.rest import RESTClient
 from ...base.rest.decorators import RateLimit, Memoize, Backoff, formatter
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeRateLimitException, \
-    ExchangeException, ExchangeUnavailableException
+    ExchangeException, ExchangeUnavailableException, ExchangeInvalidResponseException
 
 
 class BitfinexREST(RESTClient):
@@ -65,7 +65,7 @@ class BitfinexREST(RESTClient):
 
     @Backoff(ReadTimeout, wait=60)
     @Backoff(ConnectionError, wait=60)
-    @Backoff(ExchangeDecodeException, wait=10)
+    @Backoff(ExchangeDecodeException, wait=10, max_tries=3)
     @Backoff(ExchangeRateLimitException, wait=20)
     @formatter
     def request(self, *args, **kwargs):
@@ -74,15 +74,21 @@ class BitfinexREST(RESTClient):
         try:
             result_from_json = json.loads(result.text)
         except JSONDecodeError:
-            raise ExchangeDecodeException
+            if result.text == '':
+                raise ExchangeInvalidResponseException
+            else:
+                print(result.text)
+                raise ExchangeDecodeException
 
-        if type(result_from_json) is dict and 'error' in result_from_json.keys():
+        if type(result_from_json) is dict and 'error' in result_from_json:
             if result_from_json['error'] == 'ERR_RATE_LIMIT':
                 raise ExchangeRateLimitException
             elif result_from_json['code'] == 503 and result_from_json['error'] == 'temporarily_unavailable':
                 raise ExchangeUnavailableException(result_from_json['error_description'])
             else:
                 raise ExchangeException(result.json())
+        elif type(result_from_json) is list and 'error' in result_from_json:
+            raise ExchangeException(result.json())
 
         return result
 

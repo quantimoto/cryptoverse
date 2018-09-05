@@ -19,3 +19,11 @@ class ExchangeException(BaseException):
 
 class ExchangeUnavailableException(BaseException):
     pass
+
+
+class ExchangeMaxRetryException(BaseException):
+    pass
+
+
+class ExchangeInvalidResponseException(BaseException):
+    pass

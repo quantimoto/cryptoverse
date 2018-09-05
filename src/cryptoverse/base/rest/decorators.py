@@ -6,7 +6,8 @@ from math import floor
 
 from termcolor import cprint
 
-from cryptoverse.base.rest.response import ResponseObj
+from cryptoverse.exceptions import ExchangeMaxRetryException
+from .response import ResponseObj
 
 
 class Memoize(object):
@@ -68,21 +69,26 @@ class RateLimit(object):
 
 
 class Backoff(object):
-    def __init__(self, exception, wait=10):
-        self.wait = wait
+    def __init__(self, exception, wait=10, max_tries=None):
         self.exception = exception
+        self.wait = wait
+        self.max_tries = max_tries
 
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             response = None
             successful = False
+            counter = 0
             while not successful:
                 try:
                     response = func(*args, **kwargs)
                     successful = True
                 except self.exception:
+                    counter += 1
                     cprint('{}: {}'.format(time.time(), self.exception.__name__), 'red')
+                    if self.max_tries is not None and self.max_tries == counter:
+                        raise ExchangeMaxRetryException
                     time.sleep(self.wait)
 
             return response
