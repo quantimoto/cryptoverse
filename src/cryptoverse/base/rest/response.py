@@ -5,44 +5,44 @@ class ResponseObj(object):
     """
 
     raw_response = None
-    formatted_response = None
+    decoded_response = None
 
     def __init__(self, raw_response):
         self.raw_response = raw_response
-        self.formatted_response = self._format_raw_response(raw_response)
+        self.decoded_response = self._decode_raw_response(raw_response)
 
     @staticmethod
-    def _format_raw_response(raw_response):
+    def _decode_raw_response(raw_response):
         json_response = raw_response.json()
-        formatted_response = json_response
-        return formatted_response
+        decoded_response = json_response
+        return decoded_response
 
     def copy(self):
-        return self.formatted_response.copy()
+        return self.decoded_response.copy()
 
     def get(self, k, d=None):
-        return self.formatted_response.get(k, d)
+        return self.decoded_response.get(k, d)
 
     def items(self):
-        return self.formatted_response.items()
+        return self.decoded_response.items()
 
     def keys(self):
-        return self.formatted_response.keys()
+        return self.decoded_response.keys()
 
     def values(self):
-        return self.formatted_response.values()
+        return self.decoded_response.values()
 
     def __contains__(self, *args, **kwargs):
-        return self.formatted_response(*args, **kwargs)
+        return self.decoded_response(*args, **kwargs)
 
     def __eq__(self, *args, **kwargs):
-        return self.formatted_response(*args, **kwargs)
+        return self.decoded_response(*args, **kwargs)
 
     def __getitem__(self, item):
-        return self.formatted_response.__getitem__(item)
+        return self.decoded_response.__getitem__(item)
 
     def __iter__(self, *args, **kwargs):
-        return self.formatted_response.__iter__(*args, **kwargs)
+        return self.decoded_response.__iter__(*args, **kwargs)
 
     def __repr__(self):
-        return repr(self.formatted_response)
+        return repr(self.decoded_response)
