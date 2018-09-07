@@ -120,7 +120,7 @@ class Exchange(object):
 
     def ticker(self, market):
         if type(market) is Market:
-            symbol = Market.symbol.as_str()
+            symbol = market.pair.as_str()
         elif type(market) is Pair:
             symbol = market.as_str()
         elif type(market) is str and Pair.is_valid_str(market):
