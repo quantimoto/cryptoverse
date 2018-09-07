@@ -144,6 +144,15 @@ class Market(object):
             return self.symbol
 
     @property
+    def instruments(self):
+        from .instruments import Instrument, Instruments
+        from .pairs import Pair
+        if type(self.symbol) is Pair:
+            return self.symbol.instruments
+        elif type(self.symbol) is Instrument:
+            return Instruments([self.symbol])
+
+    @property
     def ticker(self):
         if self.exchange:
             return self.exchange.ticker(market=self)
@@ -196,11 +205,14 @@ class Markets(ObjectList):
 
         return result
 
-    def with_instrument(self, *instruments):
+    def with_instruments(self, *instruments):
         result = self.__class__()
-        for instrument in instruments:
-            result = result + self.find(base=instrument)
-            result = result + self.find(quote=instrument)
-            result = result + self.find(instrument=instrument)
-
-        return result.get_unique()
+        for entry in self:
+            candidate = entry
+            for instrument in instruments:
+                if instrument not in entry.instruments:
+                    candidate = None
+                    break
+            if candidate:
+                result.append(candidate)
+        return result
