@@ -68,6 +68,9 @@ class Instruments(ObjectList):
                 return entry
 
     def __getitem__(self, item):
-        for entry in self:
-            if entry.code == item:
-                return entry
+        if type(item) is int:
+            return super(self.__class__, self).__getitem__(item)
+        else:
+            for entry in self:
+                if entry.code == item:
+                    return entry
