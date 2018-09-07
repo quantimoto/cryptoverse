@@ -30,7 +30,7 @@ class ObjectList(list):
         response = self.__class__()
         for entry in self:
             matched_kwargs = list()
-            for kw in kwargs.keys():
+            for kw in kwargs:
                 if hasattr(entry, kw):
                     if getattr(entry, kw) == kwargs[kw]:
                         matched_kwargs.append(kw)

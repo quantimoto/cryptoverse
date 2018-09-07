@@ -139,7 +139,7 @@ class Market(object):
 
     @property
     def instrument(self):
-        from cryptoverse.domain import Instrument
+        from .instruments import Instrument
         if type(self.symbol) is Instrument:
             return self.symbol
 
