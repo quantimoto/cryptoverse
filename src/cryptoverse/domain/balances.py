@@ -45,25 +45,43 @@ class Balance(object):
             elif type(value) is str:
                 self._instrument = Instrument.from_str(value)
 
-    def valued_in(self, quote_instrument):
+    def value_in(self, quote_instrument):
         if self.wallet is not None and self.wallet.account is not None:
+            exchange = self.wallet.account.exchange
+            account = self.wallet.account
+            base_instrument = self.instrument
+            amount = self.amount
 
-            market = self.wallet.account.exchange.spot_markets[self.instrument.code, quote_instrument]
+            market = self.wallet.account.exchange.spot_markets[base_instrument, quote_instrument]
             if type(market) is Markets and len(market) > 0:
-                market = market.first()
+                market = market.first
+
+            if not market:
+                markets_with_instrument = exchange.spot_markets.with_instruments(base_instrument)
+                intermediate_instrument_candidates = (markets_with_instrument.get_values('base') +
+                                                      markets_with_instrument.get_values('quote')).get_unique()
+                for intermediate_instrument in intermediate_instrument_candidates:
+                    if intermediate_instrument != base_instrument and intermediate_instrument != quote_instrument and \
+                            exchange.spot_markets[base_instrument, intermediate_instrument] and \
+                            exchange.spot_markets[intermediate_instrument, quote_instrument]:
+                        amount = self.value_in(intermediate_instrument)
+                        market = exchange.spot_markets[intermediate_instrument, quote_instrument]
+                        break
+
             if market:
-                side = market.get_side(input_instrument=self.instrument)
-                price = market.ticker.bid if side == 'ask' else market.ticker.ask
+                side = market.get_side(output_instrument=quote_instrument)
+                price = 'bid' if side == 'buy' else 'ask'
                 result = Order(
-                    pair=market.symbol,
+                    account=account,
+                    market=market,
                     side=side,
-                    input=self.amount,
+                    input=amount,
                     price=price,
                 ).output
                 return result
-
-    def value_at(self, price):
-        return self.amount * price
+            else:
+                raise ValueError(
+                    "No market found for supplied instrument: {}/{}".format(base_instrument.code, quote_instrument))
 
 
 class Balances(ObjectList):
@@ -74,25 +92,28 @@ class Balances(ObjectList):
             result = result + self.find(instrument=instrument)
         return result
 
-    def values(self, value_instrument='USD'):
-        quote_instrument = value_instrument
+    def values_in(self, quote_instrument):
         values = dict()
-        for balance in self:
-            if balance.instrument == quote_instrument:
-                values.update({
-                    balance.instrument.code: balance.amount
-                })
+
+        for entry in self:
+            if entry.instrument.code not in values and entry.amount != 0:
+                values[entry.instrument.code] = 0
+            if entry.instrument != quote_instrument:
+                values[entry.instrument.code] += entry.value_in(quote_instrument=quote_instrument)
             else:
-                values.update({
-                    balance.instrument.code: balance.valued_in(quote_instrument=quote_instrument)
-                })
+                values[entry.instrument.code] += entry.amount
+
         return values
 
-    def weights(self):
-        values = self.values()
-        total_value = sum(values.values())
+    def value_in(self, quote_instrument):
+        instrument_values = self.values_in(quote_instrument=quote_instrument)
+        return sum(instrument_values.values())
+
+    def weights(self, quote_instrument='BTC'):
+        instrument_values = self.values_in(quote_instrument=quote_instrument)
+        total_value = sum(instrument_values.values())
         weights = dict()
-        for instrument_code, value in values.items():
+        for instrument_code, value in instrument_values.items():
             weights.update({
                 instrument_code: value / total_value
             })
