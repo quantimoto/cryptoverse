@@ -1,7 +1,9 @@
+from .balances import Balance, Balances
 from .credentials import Credentials
 from .object_list import ObjectList
 from .offers import Offer, Offers
 from .orders import Order, Orders
+from .wallets import ExchangeWallet, Wallets
 
 
 class Account(object):
