@@ -68,7 +68,7 @@ class Order(object):
         """
         from cryptoverse.domain import Account
         from cryptoverse.domain import Exchange
-        if type(arg) is str and arg.lower() in ['buy', 'sell', 'bid', 'ask']:
+        if type(arg) is str and arg.lower() in ['buy', 'sell']:
             return 'side'
         elif type(arg) is str and Pair.is_valid_str(arg):
             return 'pair'
@@ -98,11 +98,7 @@ class Order(object):
                         raise TypeError("Invalid type for the argument '{}={}': {}".format(kw, arg, type(arg).__name__))
 
                 if kw == 'side':
-                    if arg.lower() == 'bid':
-                        arg = 'buy'
-                    elif arg.lower() == 'ask':
-                        arg = 'sell'
-                    elif arg.lower() in ['buy', 'sell']:
+                    if arg.lower() in ['buy', 'sell']:
                         arg = arg.lower()
                     else:
                         raise ValueError("Invalid value for '{}' supplied: '{}'".format(kw, arg))

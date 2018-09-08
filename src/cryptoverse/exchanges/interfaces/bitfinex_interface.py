@@ -282,7 +282,7 @@ class BitfinexInterface(ExchangeInterface):
             order = {
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
-                'side': 'bid',
+                'side': 'buy',
             }
             result['bids'].append(order)
 
@@ -290,7 +290,7 @@ class BitfinexInterface(ExchangeInterface):
             order = {
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
-                'side': 'ask',
+                'side': 'sell',
             }
             result['asks'].append(order)
 
