@@ -73,11 +73,31 @@ class Account(object):
     def lends(self, market):
         return self.exchange.interface.get_account_lends(market=market)
 
-    def wallets(self):
-        return self.exchange.interface.get_account_wallets()
+    def wallets(self, label=None):
+        response = self.exchange.interface.get_account_wallets()
+        result = Wallets()
+        for kw, entries in response.items():
+            wallet = ExchangeWallet(
+                account=self,
+                label=kw,
+                balances=Balances()
+            )
+            for entry in entries:
+                instrument_code = entry['instrument']['code']
+                instrument = self.exchange.instruments[instrument_code]
+                balance = Balance(
+                    amount=entry['amount'],
+                    available=entry['available'],
+                    instrument=instrument,
+                    wallet=wallet,
+                )
+                wallet.balances.append(balance)
+            result.append(wallet)
 
-    def balances(self):
-        return self.exchange.interface.get_account_balances()
+        if label is None:
+            return result
+        else:
+            return result[label]
 
     def deposits(self):
         return self.exchange.interface.get_account_deposits()

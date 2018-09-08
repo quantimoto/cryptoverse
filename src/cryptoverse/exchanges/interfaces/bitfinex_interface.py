@@ -426,7 +426,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_balances(self):
+    def get_account_wallets(self):
         response = self.rest_client.balances()
 
         result = {
@@ -450,7 +450,6 @@ class BitfinexInterface(ExchangeInterface):
                     'instrument': instrument,
                     'amount': amount,
                     'available': available,
-                    'wallet': wallet,
                 }
                 result[wallet].append(balance)
 

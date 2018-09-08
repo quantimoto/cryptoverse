@@ -14,3 +14,4 @@ from .pairs import Pair, Pairs
 from .positions import Position, Positions
 from .tickers import Ticker, Tickers
 from .trades import Trade, Trades
+from .wallets import ExchangeWallet, Wallets
