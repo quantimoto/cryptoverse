@@ -58,6 +58,7 @@ class Balance(object):
                 intermediate_instrument_candidates = (markets_with_instrument.get_values('base') +
                                                       markets_with_instrument.get_values('quote')).get_unique()
 
+                intermediate_market, final_market = None, None
                 for intermediate_instrument in intermediate_instrument_candidates:
                     if intermediate_instrument != self.instrument and intermediate_instrument != quote_instrument and \
                             exchange.spot_markets[self.instrument, intermediate_instrument] and \
