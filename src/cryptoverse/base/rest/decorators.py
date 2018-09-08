@@ -86,7 +86,7 @@ class Backoff(object):
                     successful = True
                 except self.exception:
                     counter += 1
-                    cprint('{}: {}'.format(time.time(), self.exception.__name__), 'red')
+                    cprint('{} {}: {} {} {}'.format(time.time(), self.exception.__name__, func, args, kwargs), 'red')
                     if self.max_tries is not None and self.max_tries == counter:
                         raise ExchangeMaxRetryException
                     time.sleep(self.wait)
