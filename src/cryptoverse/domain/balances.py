@@ -45,6 +45,32 @@ class Balance(object):
             elif type(value) is str:
                 self._instrument = Instrument.from_str(value)
 
+    def markets(self, quote_instrument):
+        if self.instrument == quote_instrument:
+            result = Markets()
+        else:
+            result = self.wallet.account.exchange.spot_markets.find(base=self.instrument, quote=quote_instrument)
+            if not result:
+                result = self.wallet.account.exchange.spot_markets.find(quote=self.instrument, base=quote_instrument)
+            if not result:
+                exchange = self.wallet.account.exchange
+                markets_with_instrument = exchange.spot_markets.with_instruments(self.instrument)
+                intermediate_instrument_candidates = (markets_with_instrument.get_values('base') +
+                                                      markets_with_instrument.get_values('quote')).get_unique()
+
+                for intermediate_instrument in intermediate_instrument_candidates:
+                    if intermediate_instrument != self.instrument and intermediate_instrument != quote_instrument and \
+                            exchange.spot_markets[self.instrument, intermediate_instrument] and \
+                            exchange.spot_markets[intermediate_instrument, quote_instrument]:
+                        intermediate_market = exchange.spot_markets[self.instrument, intermediate_instrument]
+                        final_market = exchange.spot_markets[intermediate_instrument, quote_instrument]
+                        break
+                if intermediate_market and final_market:
+                    result = Markets()
+                    result.append(intermediate_market)
+                    result.append(final_market)
+        return result
+
     def value_in(self, quote_instrument):
         if self.wallet is not None and self.wallet.account is not None:
             exchange = self.wallet.account.exchange
@@ -121,4 +147,10 @@ class Balances(ObjectList):
 
     @property
     def instruments(self):
-        return Instruments(self.get_values('instrument'))
+        return Instruments(self.get_unique_values('instrument'))
+
+    def markets(self, quote_instrument):
+        result = Markets()
+        for entry in self:
+            result += entry.markets(quote_instrument=quote_instrument)
+        return result.get_unique()

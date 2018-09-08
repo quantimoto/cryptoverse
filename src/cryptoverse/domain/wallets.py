@@ -19,6 +19,15 @@ class ExchangeWallet(object):
     def instruments(self):
         return self.balances.instruments
 
+    def markets(self, quote_instrument):
+        return self.balances.markets(quote_instrument=quote_instrument)
+
+    def values_in(self, quote_instrument):
+        return self.balances.values_in(quote_instrument=quote_instrument)
+
+    def value_in(self, quote_instrument):
+        return self.balances.value_in(quote_instrument=quote_instrument)
+
 
 class Wallet(object):
     seed = None
@@ -51,5 +60,22 @@ class Wallets(ObjectList):
         from .instruments import Instruments
         result = Instruments()
         for entry in self:
-            result = result + entry.instruments
+            result += entry.instruments
+        return result.get_unique()
+
+    def markets(self, quote_instrument):
+        from .markets import Markets
+        result = Markets()
+        for entry in self:
+            result += entry.markets(quote_instrument=quote_instrument)
+        return result.get_unique()
+
+    def values_in(self, quote_instrument):
+        result = dict()
+        for entry in self:
+            result.update({entry.label: entry.values_in(quote_instrument=quote_instrument)})
         return result
+
+    def value_in(self, quote_instrument):
+        values = self.values_in(quote_instrument=quote_instrument)
+        return sum([sum(entries.values()) for kw, entries in values.items()])
