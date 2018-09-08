@@ -4,18 +4,21 @@ class ResponseObj(object):
     the requests library returns.
     """
 
-    raw_response = None
+    raw = None
     decoded_response = None
 
-    def __init__(self, raw_response):
-        self.raw_response = raw_response
-        self.decoded_response = self._decode_raw_response(raw_response)
+    def __init__(self, response):
+        self.raw = response
+        self.decoded_response = self._decode_response(response)
 
     @staticmethod
-    def _decode_raw_response(raw_response):
+    def _decode_response(raw_response):
         json_response = raw_response.json()
         decoded_response = json_response
         return decoded_response
+
+    def as_obj(self):
+        return self.decoded_response
 
     def copy(self):
         return self.decoded_response.copy()
@@ -33,10 +36,10 @@ class ResponseObj(object):
         return self.decoded_response.values()
 
     def __contains__(self, *args, **kwargs):
-        return self.decoded_response(*args, **kwargs)
+        return self.decoded_response.__contains__(*args, **kwargs)
 
     def __eq__(self, *args, **kwargs):
-        return self.decoded_response(*args, **kwargs)
+        return self.decoded_response.__eq__(*args, **kwargs)
 
     def __getitem__(self, item):
         return self.decoded_response.__getitem__(item)
@@ -45,4 +48,10 @@ class ResponseObj(object):
         return self.decoded_response.__iter__(*args, **kwargs)
 
     def __repr__(self):
-        return repr(self.decoded_response)
+        return self.decoded_response.__repr__()
+
+    def __str__(self):
+        return self.decoded_response.__str__()
+
+    def __len__(self):
+        return self.decoded_response.__len__()
