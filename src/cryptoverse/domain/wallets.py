@@ -22,11 +22,19 @@ class ExchangeWallet(object):
     def markets(self, quote_instrument):
         return self.balances.markets(quote_instrument=quote_instrument)
 
-    def values_in(self, quote_instrument):
-        return self.balances.values_in(quote_instrument=quote_instrument)
+    def values_in(self, quote_instrument, tickers=None):
+        if tickers is None:
+            markets = self.account.exchange.markets(quote_instrument=quote_instrument)
+            tickers = self.account.exchange.tickers(markets)
 
-    def value_in(self, quote_instrument):
-        return self.balances.value_in(quote_instrument=quote_instrument)
+        return self.balances.values_in(quote_instrument=quote_instrument, tickers=tickers)
+
+    def value_in(self, quote_instrument, tickers=None):
+        if tickers is None:
+            markets = self.account.exchange.markets(quote_instrument=quote_instrument)
+            tickers = self.account.exchange.tickers(markets)
+
+        return self.balances.value_in(quote_instrument=quote_instrument, tickers=tickers)
 
 
 class Wallet(object):
@@ -70,12 +78,29 @@ class Wallets(ObjectList):
             result += entry.markets(quote_instrument=quote_instrument)
         return result.get_unique()
 
-    def values_in(self, quote_instrument):
+    def values_in(self, quote_instrument, tickers=None):
+        if tickers is None:
+            markets = self.markets(quote_instrument=quote_instrument)
+            from .tickers import Tickers
+            tickers = Tickers()
+            for exchange in markets.get_unique_values('exchange'):
+                exchange_markets = markets.find(exchange=exchange)
+                tickers += exchange.tickers(exchange_markets)
+
         result = dict()
         for entry in self:
-            result.update({entry.label: entry.values_in(quote_instrument=quote_instrument)})
+            result.update({entry.label: entry.values_in(quote_instrument=quote_instrument, tickers=tickers)})
+
         return result
 
-    def value_in(self, quote_instrument):
-        values = self.values_in(quote_instrument=quote_instrument)
+    def value_in(self, quote_instrument, tickers=None):
+        if tickers is None:
+            markets = self.markets(quote_instrument=quote_instrument)
+            from .tickers import Tickers
+            tickers = Tickers()
+            for exchange in markets.get_unique_values('exchange'):
+                exchange_markets = markets.find(exchange=exchange)
+                tickers += exchange.tickers(exchange_markets)
+
+        values = self.values_in(quote_instrument=quote_instrument, tickers=tickers)
         return sum([sum(entries.values()) for kw, entries in values.items()])

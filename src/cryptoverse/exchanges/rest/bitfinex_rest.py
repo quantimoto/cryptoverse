@@ -311,6 +311,7 @@ class BitfinexREST(RESTClient):
     # V1 Authenticated Endpoints
     #
 
+    @Memoize(expires=60. / 45)
     @RateLimit(calls=45, period=60)
     def account_infos(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-account-info
@@ -337,7 +338,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @RateLimit(calls=45, period=60)
+    @Memoize(expires=60. / 1)
+    @RateLimit(calls=1, period=60)
     def account_fees(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-fees
         """

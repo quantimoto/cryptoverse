@@ -49,11 +49,11 @@ class Balance(object):
         if self.instrument == quote_instrument:
             result = Markets()
         else:
-            result = self.wallet.account.exchange.spot_markets.find(base=self.instrument, quote=quote_instrument)
+            exchange = self.wallet.account.exchange
+            result = exchange.spot_markets.find(base=self.instrument, quote=quote_instrument)
             if not result:
-                result = self.wallet.account.exchange.spot_markets.find(quote=self.instrument, base=quote_instrument)
+                result = exchange.spot_markets.find(quote=self.instrument, base=quote_instrument)
             if not result:
-                exchange = self.wallet.account.exchange
                 markets_with_instrument = exchange.spot_markets.with_instruments(self.instrument)
                 intermediate_instrument_candidates = (markets_with_instrument.get_values('base') +
                                                       markets_with_instrument.get_values('quote')).get_unique()
@@ -72,12 +72,16 @@ class Balance(object):
                     result.append(final_market)
         return result
 
-    def value_in(self, quote_instrument):
+    def value_in(self, quote_instrument, tickers=None):
         if self.wallet is not None and self.wallet.account is not None:
             exchange = self.wallet.account.exchange
             account = self.wallet.account
             base_instrument = self.instrument
             amount = self.amount
+
+            if tickers is None:
+                markets = self.markets(quote_instrument=quote_instrument)
+                tickers = exchange.tickers(markets)
 
             market = self.wallet.account.exchange.spot_markets[base_instrument, quote_instrument]
             if type(market) is Markets and len(market) > 0:
@@ -91,13 +95,17 @@ class Balance(object):
                     if intermediate_instrument != base_instrument and intermediate_instrument != quote_instrument and \
                             exchange.spot_markets[base_instrument, intermediate_instrument] and \
                             exchange.spot_markets[intermediate_instrument, quote_instrument]:
-                        amount = self.value_in(intermediate_instrument)
+                        amount = self.value_in(intermediate_instrument, tickers=tickers)
                         market = exchange.spot_markets[intermediate_instrument, quote_instrument]
                         break
 
             if market:
                 side = market.get_side(output_instrument=quote_instrument)
-                price = 'bid' if side == 'buy' else 'ask'
+                if tickers is not None:
+                    ticker = tickers.get(pair=market.pair)
+                    price = ticker.bid if side == 'buy' else ticker.ask
+                else:
+                    price = 'bid' if side == 'buy' else 'ask'
                 result = Order(
                     account=account,
                     market=market,
@@ -119,25 +127,40 @@ class Balances(ObjectList):
             result = result + self.find(instrument=instrument)
         return result
 
-    def values_in(self, quote_instrument):
-        values = dict()
+    def values_in(self, quote_instrument, tickers=None):
+        if tickers is None:
+            markets = self.markets(quote_instrument=quote_instrument)
+            from .tickers import Tickers
+            tickers = Tickers()
+            for exchange in markets.get_unique_values('exchange'):
+                exchange_markets = markets.find(exchange=exchange)
+                tickers += exchange.tickers(exchange_markets)
 
+        values = dict()
         for entry in self:
             if entry.instrument.code not in values and entry.amount != 0:
                 values[entry.instrument.code] = 0
             if entry.instrument != quote_instrument:
-                values[entry.instrument.code] += entry.value_in(quote_instrument=quote_instrument)
+                values[entry.instrument.code] += entry.value_in(quote_instrument=quote_instrument, tickers=tickers)
             else:
                 values[entry.instrument.code] += entry.amount
 
         return values
 
-    def value_in(self, quote_instrument):
-        instrument_values = self.values_in(quote_instrument=quote_instrument)
+    def value_in(self, quote_instrument, tickers=None):
+        if tickers is None:
+            markets = self.markets(quote_instrument=quote_instrument)
+            from .tickers import Tickers
+            tickers = Tickers()
+            for exchange in markets.get_unique_values('exchange'):
+                exchange_markets = markets.find(exchange=exchange)
+                tickers += exchange.tickers(exchange_markets)
+
+        instrument_values = self.values_in(quote_instrument=quote_instrument, tickers=tickers)
         return sum(instrument_values.values())
 
-    def weights(self, quote_instrument='BTC'):
-        instrument_values = self.values_in(quote_instrument=quote_instrument)
+    def weights(self, quote_instrument='BTC', tickers=None):
+        instrument_values = self.values_in(quote_instrument=quote_instrument, tickers=tickers)
         total_value = sum(instrument_values.values())
         weights = dict()
         for instrument_code, value in instrument_values.items():
