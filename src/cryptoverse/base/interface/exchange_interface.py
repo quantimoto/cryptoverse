@@ -88,7 +88,7 @@ class ExchangeInterface(object):
     def get_account_fees(self):
         raise NotImplementedError
 
-    def get_account_balances(self):
+    def get_account_wallets(self):
         raise NotImplementedError
 
     def get_account_orders(self, *args, **kwargs):
