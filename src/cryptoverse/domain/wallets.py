@@ -24,14 +24,14 @@ class ExchangeWallet(object):
 
     def values_in(self, quote_instrument, tickers=None):
         if tickers is None:
-            markets = self.account.exchange.markets(quote_instrument=quote_instrument)
+            markets = self.markets(quote_instrument=quote_instrument)
             tickers = self.account.exchange.tickers(markets)
 
         return self.balances.values_in(quote_instrument=quote_instrument, tickers=tickers)
 
     def value_in(self, quote_instrument, tickers=None):
         if tickers is None:
-            markets = self.account.exchange.markets(quote_instrument=quote_instrument)
+            markets = self.markets(quote_instrument=quote_instrument)
             tickers = self.account.exchange.tickers(markets)
 
         return self.balances.value_in(quote_instrument=quote_instrument, tickers=tickers)
