@@ -208,15 +208,6 @@ class Accounts(ObjectList):
         else:
             return super(self.__class__, self).__getitem__(item)
 
-    def as_dict(self):
-        result = dict()
-        for account in self:
-            exchange_slug = account.exchange.interface.slug
-            credentials_label = account.label
-            account_key = '{}_{}'.format(exchange_slug, credentials_label)
-            result.update({account_key: account})
-        return result
-
     @property
     def slugs(self):
         result = list()
@@ -225,4 +216,13 @@ class Accounts(ObjectList):
             credentials_label = account.label
             key = '{}_{}'.format(exchange_slug, credentials_label)
             result.append(key)
+        return result
+
+    def as_dict(self):
+        result = dict()
+        for account in self:
+            exchange_slug = account.exchange.interface.slug
+            credentials_label = account.label
+            account_key = '{}_{}'.format(exchange_slug, credentials_label)
+            result.update({account_key: account})
         return result
