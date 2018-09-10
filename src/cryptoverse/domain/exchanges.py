@@ -268,20 +268,20 @@ class Exchange(object):
 
     def trades(self, market, limit=100):
         if type(market) is Market:
-            symbol = market.pair.as_str()
-            pair = market.pair
+            pair_str = market.pair.as_str()
+            pair_obj = market.pair
         elif type(market) is Pair:
-            symbol = market.as_str()
-            pair = market
+            pair_str = market.as_str()
+            pair_obj = market
         elif type(market) is str and '/' in market:
-            symbol = market
-            pair = market
+            pair_str = market
+            pair_obj = market
         else:
-            symbol = None
-            pair = None
+            pair_str = None
+            pair_obj = None
 
-        if symbol is not None:
-            response = self.interface.get_market_trades(symbol=symbol, limit=limit)
+        if pair_str is not None:
+            response = self.interface.get_market_trades(pair=pair_str, limit=limit)
             result = Trades()
             for entry in response:
                 trade = Trade(
@@ -291,7 +291,7 @@ class Exchange(object):
                     exchange_id=entry['id'],
                     timestamp=entry['timestamp'],
                     exchange=self,
-                    pair=pair,
+                    pair=pair_obj,
                 )
                 result.append(trade)
             return result
