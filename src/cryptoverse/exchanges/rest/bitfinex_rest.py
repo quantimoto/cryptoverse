@@ -1228,7 +1228,7 @@ class BitfinexREST(RESTClient):
                 'version': 1,
             },
             data={
-                'offer_id': offer_id,
+                'offer_id': int(offer_id),
             },
             credentials=credentials,
         )
@@ -1944,7 +1944,7 @@ class BitfinexREST(RESTClient):
             path_params={
                 'version': 2,
                 'symbol': symbol,
-                'order_id': order_id,
+                'order_id': int(order_id),
             },
             credentials=credentials,
         )
