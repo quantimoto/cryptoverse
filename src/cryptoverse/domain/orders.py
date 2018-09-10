@@ -144,7 +144,11 @@ class Order(object):
                 side = kwargs['side']
                 multiplier = float(arg[:-1]) * 0.01
                 input_instrument = pair.get_input_instrument(side)
-                instrument_balance = account.wallets('exchange').balances.find(instrument=input_instrument).first.amount
+                balances = account.wallets('exchange').balances.find(instrument=input_instrument)
+                if len(balances) > 0:
+                    instrument_balance = balances.first.amount
+                else:
+                    instrument_balance = 0.0
                 result['input'] = instrument_balance * multiplier
 
         return result
