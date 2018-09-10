@@ -95,6 +95,14 @@ def remove_keys(kwargs, keys):
     return kwargs
 
 
+def filter_keys(kwargs, keys):
+    kwargs = kwargs.copy()
+    for k in kwargs.copy().keys():
+        if k not in keys:
+            del kwargs[k]
+    return kwargs
+
+
 def multiply_as_decimals(a, b):
     """
     >>> a = 1.1

@@ -7,7 +7,7 @@ from .pairs import Pair
 from ..utilities import add_as_decimals as add
 from ..utilities import divide_as_decimals as divide
 from ..utilities import multiply_as_decimals as multiply
-from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down
+from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys
 from ..utilities import subtract_as_decimals as subtract
 
 
@@ -741,6 +741,11 @@ class Order(object):
 
         # Derive missing argument values again with newly collected arguments
         all_arguments = self._derive_missing_kwargs(derived_arguments)
+
+        # Derive argument again but only the minimum_arguments. This to ensure precision with calculation priority
+        calculation_priority_arguments = filter_keys(all_arguments, keys=['amount', 'price', 'side'])
+        calculation_priority_arguments = self._derive_missing_kwargs(calculation_priority_arguments)
+        all_arguments.update(calculation_priority_arguments)
 
         # Split arguments into supplied and derived
         derived_arguments = remove_keys(kwargs=all_arguments, keys=supplied_arguments.keys())
