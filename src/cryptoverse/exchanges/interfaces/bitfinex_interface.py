@@ -290,6 +290,8 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
                 'side': 'buy',
+                'pair': pair,
+                'type': 'limit',
             }
             result['bids'].append(order)
 
@@ -298,6 +300,8 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
                 'side': 'sell',
+                'pair': pair,
+                'type': 'limit',
             }
             result['asks'].append(order)
 
@@ -462,8 +466,72 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_orders(self, *args, **kwargs):
-        raise NotImplementedError
+    def get_account_orders(self):
+        response = self.rest_client.orders()
+
+        result = list()
+        for entry in response:
+            pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
+            if entry['type'] == 'market':
+                context = 'margin'
+                type_ = 'market'
+            elif entry['type'] == 'limit':
+                context = 'margin'
+                type_ = 'limit'
+            elif entry['type'] == 'stop':
+                context = 'margin'
+                type_ = 'stop'
+            elif entry['type'] == 'trailing-stop':
+                context = 'margin'
+                type_ = 'trailing-stop'
+            elif entry['type'] == 'fill-or-kill':
+                context = 'margin'
+                type_ = 'fill-or-kill'
+            elif entry['type'] == 'exchange market':
+                context = 'exchange'
+                type_ = 'market'
+            elif entry['type'] == 'exchange limit':
+                context = 'exchange'
+                type_ = 'limit'
+            elif entry['type'] == 'exchange stop':
+                context = 'exchange'
+                type_ = 'stop'
+            elif entry['type'] == 'exchange trailing-stop':
+                context = 'exchange'
+                type_ = 'trailing-stop'
+            elif entry['type'] == 'exchange fill-or-kill':
+                context = 'exchange'
+                type_ = 'fill-or-kill'
+            else:
+                context = None
+                type_ = None
+
+            order = {
+                'amount': float(entry['original_amount']),
+                'price': float(entry['price']),
+                'side': str(entry['side']),
+                'exchange_id': str(entry['id']),
+                'timestamp': float(entry['timestamp']),
+                'pair': pair,
+                'context': context,
+                'type': type_,
+                'hidden': entry['is_hidden'],
+                'metadata': {
+                    'avg_execution_price': entry['avg_execution_price'],
+                    'cid': entry['cid'],
+                    'cid_date': entry['cid_date'],
+                    'executed_amount': entry['executed_amount'],
+                    'gid': entry['gid'],
+                    'is_cancelled': entry['is_cancelled'],
+                    'is_live': entry['is_live'],
+                    'oco_order': entry['oco_order'],
+                    'remaining_amount': entry['remaining_amount'],
+                    'src': entry['src'],
+                    'was_forced': entry['was_forced'],
+                }
+            }
+            result.append(order)
+        return result
 
     def get_account_trades(self, *args, **kwargs):
         raise NotImplementedError

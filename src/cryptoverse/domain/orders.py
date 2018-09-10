@@ -26,17 +26,20 @@ class Order(object):
         'input': float,
         'output': float,
         'timestamp': float,
-        'id': str,
+        'exchange_id': str,
         'hidden': bool,
         'exchange': None,
         'account': None,
         'fee_instrument': Instrument,
         'input_instrument': Instrument,
         'output_instrument': Instrument,
+        'metadata': dict,
     }
 
     _supplied_arguments = None
     _derived_arguments = None
+
+    metadata = None
 
     trades = None
 
@@ -96,6 +99,7 @@ class Order(object):
     @classmethod
     def _sanitize_kwargs(cls, kwargs):
         result = dict()
+
         for kw, arg in kwargs.items():
             if kw in cls._arg_types.keys():
                 arg_type_obj = cls._arg_types[kw]
@@ -682,7 +686,7 @@ class Order(object):
                     "'{kw}' recognized as keyword for '{arg1}' argument, but '{kw}={arg2}' was also supplied.".format(
                         kw=kw, arg1=arg, arg2=kwargs[kw]))
 
-        # Merge newly keyworded args with kwargs
+        # Merge args with kwargs
         new_arguments = dict()
         new_arguments.update(kwargs_from_args)
         new_arguments.update(kwargs)
@@ -711,6 +715,11 @@ class Order(object):
         for kw, arg in supplied_arguments.copy().items():
             if arg is None:
                 del supplied_arguments[kw]
+
+        # Move metadata away
+        if 'metadata' in supplied_arguments:
+            self.metadata = supplied_arguments['metadata']
+            del supplied_arguments['metadata']
 
         # Derive missing argument values from supplied arguments
         derived_arguments = self._derive_missing_kwargs(supplied_arguments)
@@ -940,8 +949,8 @@ class Order(object):
         self.update(timestamp=value)
 
     @property
-    def id(self):
-        key = 'id'
+    def exchange_id(self):
+        key = 'exchange_id'
         if key in self._supplied_arguments:
             return self._supplied_arguments[key]
         elif key in self._derived_arguments:
@@ -949,9 +958,9 @@ class Order(object):
         else:
             return None
 
-    @id.setter
-    def id(self, value):
-        self.update(id=value)
+    @exchange_id.setter
+    def exchange_id(self, value):
+        self.update(exchange_id=value)
 
     @property
     def hidden(self):

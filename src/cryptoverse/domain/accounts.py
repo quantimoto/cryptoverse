@@ -60,8 +60,26 @@ class Account(object):
     def fees(self):
         return self.exchange.interface.get_account_fees()
 
-    def orders(self, market=None):
-        return self.exchange.interface.get_account_orders(market=market)
+    def orders(self):
+        response = self.exchange.interface.get_account_orders()
+        result = Orders()
+        for entry in response:
+            order = Order(
+                account=self,
+                exchange=self.exchange,
+                amount=entry['amount'],
+                price=entry['price'],
+                side=entry['side'],
+                pair=entry['pair'],
+                hidden=entry['hidden'],
+                type=entry['type'],
+                context=entry['context'],
+                timestamp=entry['timestamp'],
+                exchange_id=entry['exchange_id'],
+                metadata=entry['metadata'],
+            )
+            result.append(order)
+        return result
 
     def trades(self, market):
         return self.exchange.interface.get_account_trades(market=market)
