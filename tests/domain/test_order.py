@@ -227,7 +227,7 @@ class TestOrder(TestCase):
                                        quote=Instrument(code='USD')),
                           'price': 1000.0,
                           'side': 'buy',
-                          'total': 2000,
+                          'total': 2000.0,
                           'type': 'limit'}, Order._derive_missing_kwargs(kwargs))
 
     def test_update(self):
