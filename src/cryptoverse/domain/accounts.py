@@ -175,6 +175,9 @@ class Account(object):
         if type(obj) is Order:
             response = self.exchange.interface.cancel_single_order(obj.id)
             obj.update_arguments(**response)
+            if not obj.is_cancelled:
+                while not obj.is_cancelled:
+                    obj = self.update(obj)
         elif type(obj) is Orders:
             response = self.exchange.interface.cancel_multiple_orders(obj.get_values('id'))
             return response
