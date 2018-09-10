@@ -230,6 +230,27 @@ class TestOrder(TestCase):
                           'total': 2000.0,
                           'type': 'limit'}, Order._derive_missing_kwargs(kwargs))
 
+        # Calculations
+        kwargs = {'amount': 1.1, 'price': 2.2}
+        self.assertEqual(2.42, Order._derive_missing_kwargs(kwargs)['total'])
+        self.assertIsInstance(Order._derive_missing_kwargs(kwargs)['total'], float)
+        self.assertNotEqual(kwargs['amount'] * kwargs['price'], Order._derive_missing_kwargs(kwargs)['total'])
+
+        kwargs = {'total': 2.42, 'price': 2.2}
+        self.assertEqual(1.1, Order._derive_missing_kwargs(kwargs)['amount'])
+        self.assertIsInstance(Order._derive_missing_kwargs(kwargs)['amount'], float)
+        self.assertNotEqual(kwargs['total'] / kwargs['price'], Order._derive_missing_kwargs(kwargs)['amount'])
+
+        kwargs = {'gross': 3.3, 'fees': 1.1}
+        self.assertEqual(2.2, Order._derive_missing_kwargs(kwargs)['net'])
+        self.assertIsInstance(Order._derive_missing_kwargs(kwargs)['net'], float)
+        self.assertNotEqual(kwargs['gross'] - kwargs['fees'], Order._derive_missing_kwargs(kwargs)['net'])
+
+        kwargs = {'net': 2.2, 'fees': 1.1}
+        self.assertEqual(3.3, Order._derive_missing_kwargs(kwargs)['gross'])
+        self.assertIsInstance(Order._derive_missing_kwargs(kwargs)['gross'], float)
+        self.assertNotEqual(kwargs['net'] + kwargs['fees'], Order._derive_missing_kwargs(kwargs)['gross'])
+
     def test_update(self):
         order = Order()
         self.assertEqual(order._supplied_arguments, {})
@@ -267,4 +288,3 @@ class TestOrder(TestCase):
         self.assertEqual(repr(order),
                          "Order(pair=Pair('BTC/USD'), side='buy', "
                          "amount=2.0, price=1000.0, fee_percentage=0.1)")
-#

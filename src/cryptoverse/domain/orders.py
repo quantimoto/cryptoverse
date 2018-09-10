@@ -1,8 +1,12 @@
-from cryptoverse.utilities import round_significant, strip_none, remove_keys, strip_empty
 from .instruments import Instrument
 from .markets import Market
 from .object_list import ObjectList
 from .pairs import Pair
+from ..utilities import add_as_decimals as add
+from ..utilities import divide_as_decimals as divide
+from ..utilities import multiply_as_decimals as multiply
+from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down
+from ..utilities import subtract_as_decimals as subtract
 
 
 class Order(object):
@@ -143,14 +147,14 @@ class Order(object):
                 account = kwargs['account']
                 pair = kwargs['pair']
                 side = kwargs['side']
-                multiplier = float(arg[:-1]) * 0.01
+                multiplier = multiply(arg[:-1], 0.01)
                 input_instrument = pair.get_input_instrument(side)
                 balances = account.wallets('exchange').balances.find(instrument=input_instrument)
                 if len(balances) > 0:
                     instrument_balance = balances.first.amount
                 else:
                     instrument_balance = 0.0
-                result['input'] = instrument_balance * multiplier
+                result['input'] = multiply(instrument_balance, multiplier)
 
         return result
 
@@ -169,7 +173,7 @@ class Order(object):
 
             # amount = total / price
             elif kwargs['price'] is not None and kwargs['total'] is not None:
-                value = kwargs['total'] / kwargs['price']
+                value = divide(kwargs['total'], kwargs['price'])
 
             # when we buy, gross equals amount
             elif kwargs['gross'] is not None and kwargs['side'] == 'buy':
@@ -192,7 +196,7 @@ class Order(object):
 
             # price = total / amount
             elif kwargs['amount'] is not None and kwargs['total'] is not None:
-                value = kwargs['total'] / kwargs['amount']
+                value = divide(kwargs['total'], kwargs['amount'])
 
             else:
                 value = None
@@ -213,7 +217,7 @@ class Order(object):
 
             # total = amount * price
             elif kwargs['amount'] is not None and kwargs['price'] is not None:
-                value = kwargs['amount'] * kwargs['price']
+                value = multiply(kwargs['amount'], kwargs['price'])
 
             # when we sell, gross equals total
             elif kwargs['gross'] is not None and kwargs['side'] == 'sell':
@@ -263,11 +267,11 @@ class Order(object):
 
             # gross = net + fees
             elif kwargs['net'] is not None and kwargs['fees'] is not None:
-                value = kwargs['net'] + kwargs['fees']
+                value = add(kwargs['net'], kwargs['fees'])
 
             # gross = net / (1 - (fee_percentage * 0.01))
             elif kwargs['net'] is not None and kwargs['fee_percentage'] is not None:
-                value = kwargs['net'] / (1 - (kwargs['fee_percentage'] * 0.01))
+                value = divide(kwargs['net'], subtract(1, multiply(kwargs['fee_percentage'], 0.01)))
 
             else:
                 value = None
@@ -282,11 +286,11 @@ class Order(object):
 
             # fees = gross * fee_percentage * 0.01
             elif kwargs['gross'] is not None and kwargs['fee_percentage'] is not None:
-                value = kwargs['gross'] * kwargs['fee_percentage'] * 0.01
+                value = multiply(multiply(kwargs['gross'], kwargs['fee_percentage']), 0.01)
 
             # fees = gross - net
             elif kwargs['gross'] is not None and kwargs['net'] is not None:
-                value = kwargs['gross'] - kwargs['net']
+                value = subtract(kwargs['gross'], kwargs['net'])
 
             else:
                 value = None
@@ -301,7 +305,7 @@ class Order(object):
 
             # fee_percentage = fees / gross / 0.01
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
-                value = kwargs['fees'] / kwargs['gross'] / 0.01
+                value = divide(divide(kwargs['fees'], kwargs['gross']), 0.01)
 
             # get fee_percentage for hidden limit order from market fees
             elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None \
@@ -335,7 +339,7 @@ class Order(object):
 
             # net = gross - fees
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
-                value = kwargs['gross'] - kwargs['fees']
+                value = subtract(kwargs['gross'], kwargs['fees'])
 
             else:
                 value = None
@@ -950,11 +954,11 @@ class Order(object):
     def followup(self, output='100%'):
         if type(output) is str and output[-1:] == '%':
             if output[:1] in ['+', '-']:
-                multiplier = 1 + (float(output[:-1]) * 0.01)
-                output = self.input * multiplier
+                multiplier = add(1, multiply(output[:-1], 0.01))
+                output = multiply(self.input, multiplier)
             else:
-                multiplier = float(output[:-1]) * 0.01
-                output = self.input * multiplier
+                multiplier = multiply(output[:-1], 0.01)
+                output = multiply(self.input, multiplier)
 
         order = self.__class__(
             account=self.account,

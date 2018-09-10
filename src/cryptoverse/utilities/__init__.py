@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+
 def strip_none(data):
     if isinstance(data, dict):
         result = {k: strip_none(v) for k, v in data.items() if k is not None and v is not None}
@@ -90,3 +93,51 @@ def remove_keys(kwargs, keys):
         if k in keys:
             del kwargs[k]
     return kwargs
+
+
+def multiply_as_decimals(a, b):
+    """
+    >>> a = 1.1
+    >>> b = 2.2
+    >>> a * b
+    2.4200000000000004
+    >>> multiply_as_decimals(a, b)
+    2.42
+    """
+    return float(Decimal(str(float(a))) * Decimal(str(float(b))))
+
+
+def divide_as_decimals(a, b):
+    """
+    >>> a = 2.42
+    >>> b = 2.2
+    >>> a / b
+    1.0999999999999999
+    >>> multiply_as_decimals(a, b)
+    1.1
+    """
+    return float(Decimal(str(float(a))) / Decimal(str(float(b))))
+
+
+def add_as_decimals(a, b):
+    """
+    >>> a = 1.1
+    >>> b = 2.2
+    >>> a + b
+    3.3000000000000003
+    >>> multiply_as_decimals(a, b)
+    3.3
+    """
+    return float(Decimal(str(float(a))) + Decimal(str(float(b))))
+
+
+def subtract_as_decimals(a, b):
+    """
+    >>> a = 3.3
+    >>> b = 2.2
+    >>> a - b
+    1.0999999999999996
+    >>> subtract_as_decimals(a, b)
+    1.1
+    """
+    return float(Decimal(str(float(a))) - Decimal(str(float(b))))
