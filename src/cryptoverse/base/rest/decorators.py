@@ -68,7 +68,7 @@ class RateLimit(object):
         return wrapper
 
 
-class Backoff(object):
+class Retry(object):
     def __init__(self, exception, wait=10, max_tries=None):
         self.exception = exception
         self.wait = wait

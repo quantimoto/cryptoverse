@@ -1,11 +1,11 @@
-from ...base.rest.decorators import Memoize, Backoff
+from ...base.rest.decorators import Memoize, Retry
 from ...base.scrape import ScrapeClient
 
 
 class BitfinexScrape(ScrapeClient):
 
     @Memoize(expires=60 * 60 * 24)
-    @Backoff(IndexError, wait=20)
+    @Retry(IndexError, wait=20)
     def fees(self):
         soup = self.get_soup('https://www.bitfinex.com/fees')
 
