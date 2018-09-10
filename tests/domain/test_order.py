@@ -217,6 +217,7 @@ class TestOrder(TestCase):
                           'fee_percentage': 0.1,
                           'fees': 0.002,
                           'gross': 2.,
+                          'hidden': False,
                           'input': 2000.,
                           'input_instrument': Instrument(code='USD'),
                           'net': 1.998,

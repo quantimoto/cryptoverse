@@ -22,6 +22,7 @@ class Order(object):
         'output': float,
         'timestamp': float,
         'id': str,
+        'hidden': bool,
         'exchange': None,
         'account': None,
         'fee_instrument': Instrument,
@@ -302,9 +303,14 @@ class Order(object):
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
                 value = kwargs['fees'] / kwargs['gross'] / 0.01
 
-            # get fee_percentage for limit order from market fees
+            # get fee_percentage for hidden limit order from market fees
             elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None \
-                    and kwargs['type'] is 'limit':
+                    and kwargs['type'] is 'limit' and kwargs['hidden'] is True:
+                value = kwargs['market'].fees['taker']
+
+            # get fee_percentage for visible limit order from market fees
+            elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None \
+                    and kwargs['type'] is 'limit' and kwargs['hidden'] is not True:
                 value = kwargs['market'].fees['maker']
 
             # get fee_percentage for market order from market fees
@@ -383,6 +389,18 @@ class Order(object):
         def get_type(kwargs):
             key = 'type'
             default = 'limit'
+
+            if kwargs[key] is not None:
+                value = kwargs[key]
+
+            else:
+                value = default
+
+            return value
+
+        def get_hidden(kwargs):
+            key = 'hidden'
+            default = False
 
             if kwargs[key] is not None:
                 value = kwargs[key]
@@ -522,6 +540,7 @@ class Order(object):
                 kwargs['output'] = get_output(kwargs)
                 kwargs['side'] = get_side(kwargs)
                 kwargs['type'] = get_type(kwargs)
+                kwargs['hidden'] = get_hidden(kwargs)
                 kwargs['pair'] = get_pair(kwargs)
                 kwargs['market'] = get_market(kwargs)
                 kwargs['exchange'] = get_exchange(kwargs)
@@ -547,7 +566,7 @@ class Order(object):
 
         if fees is not None and 'pair' in kwargs and kwargs['pair'] is not None:
             pair = '{}/{}'.format(kwargs['pair'].base.code, kwargs['pair'].quote.code)
-            if 'type' in kwargs and kwargs['type'] == 'market':
+            if 'type' in kwargs and kwargs['type'] == 'market' or 'hidden' in kwargs and kwargs['hidden'] is True:
                 kwargs['fee_percentage'] = fees['orders'][pair]['taker']
             else:
                 kwargs['fee_percentage'] = fees['orders'][pair]['maker']
@@ -834,6 +853,20 @@ class Order(object):
     @id.setter
     def id(self, value):
         self.update(id=value)
+
+    @property
+    def hidden(self):
+        key = 'hidden'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @hidden.setter
+    def hidden(self, value):
+        self.update(hidden=value)
 
     @property
     def exchange(self):
