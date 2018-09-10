@@ -20,11 +20,17 @@ class ObjectList(list):
 
     @property
     def first(self):
-        return self[0]
+        if len(self) > 0:
+            return self[0]
+        else:
+            return None
 
     @property
     def last(self):
-        return self[-1]
+        if len(self) > 0:
+            return self[-1]
+        else:
+            return None
 
     def find(self, **kwargs):
         response = self.__class__()
