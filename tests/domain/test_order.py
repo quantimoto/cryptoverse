@@ -213,6 +213,7 @@ class TestOrder(TestCase):
         # General testing
         kwargs = {'pair': Pair('BTC', 'USD'), 'side': 'buy', 'amount': 2.0, 'price': 1000.0, 'fee_percentage': 0.1}
         self.assertEqual({'amount': 2.0,
+                          'context': 'exchange',
                           'fee_instrument': Instrument(code='BTC'),
                           'fee_percentage': 0.1,
                           'fees': 0.002,
@@ -251,20 +252,20 @@ class TestOrder(TestCase):
         self.assertIsInstance(Order._derive_missing_kwargs(kwargs)['gross'], float)
         self.assertNotEqual(kwargs['net'] + kwargs['fees'], Order._derive_missing_kwargs(kwargs)['gross'])
 
-    def test_update(self):
+    def test_update_arguments(self):
         order = Order()
         self.assertEqual(order._supplied_arguments, {})
         from cryptoverse.domain import Pair
-        order.update('buy', Pair('BTC/USD'), amount=1)
+        order.update_arguments('buy', Pair('BTC/USD'), amount=1)
         self.assertEqual(list(order._supplied_arguments.keys()), ['side', 'pair', 'amount'])
-        self.assertRaises(ValueError, order.update, 'buy', side='sell')
+        self.assertRaises(ValueError, order.update_arguments, 'buy', side='sell')
 
-        self.assertRaises(ValueError, order.update, 'foobar')
+        self.assertRaises(ValueError, order.update_arguments, 'foobar')
 
-        self.assertRaises(TypeError, order.update, foo='bar')
+        self.assertRaises(TypeError, order.update_arguments, foo='bar')
         self.assertEqual(order._supplied_arguments['pair'], 'BTC/USD')
         self.assertIsInstance(order._supplied_arguments['pair'], Pair)
-        order.update(pair=None)
+        order.update_arguments(pair=None)
         self.assertFalse('pair' in order._supplied_arguments.keys())
         self.assertEqual(list(order._supplied_arguments.keys()), ['side', 'amount'])
 
