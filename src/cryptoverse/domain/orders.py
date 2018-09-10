@@ -17,6 +17,7 @@ class Order(object):
         'amount': float,
         'price': float,
         'type': str,
+        'context': str,
         'total': float,
         'gross': float,
         'net': float,
@@ -75,6 +76,10 @@ class Order(object):
         from cryptoverse.domain import Exchange
         if type(arg) is str and arg.lower() in ['buy', 'sell']:
             return 'side'
+        elif type(arg) is str and arg.lower() in ['exchange', 'margin']:
+            return 'context'
+        elif type(arg) is str and arg.lower() in ['limit', 'market']:
+            return 'type'
         elif type(arg) is str and Pair.is_valid_str(arg):
             return 'pair'
         elif type(arg) is Pair:
@@ -110,6 +115,12 @@ class Order(object):
 
                 if kw == 'type':
                     if arg.lower() in ['limit', 'market']:
+                        arg = arg.lower()
+                    else:
+                        raise ValueError("Invalid value for '{}' supplied: {}".format(kw, arg))
+
+                if kw == 'context':
+                    if arg.lower() in ['exchange', 'margin']:
                         arg = arg.lower()
                     else:
                         raise ValueError("Invalid value for '{}' supplied: {}".format(kw, arg))
@@ -413,6 +424,18 @@ class Order(object):
 
             return value
 
+        def get_context(kwargs):
+            key = 'context'
+            default = 'exchange'
+
+            if kwargs[key] is not None:
+                value = kwargs[key]
+
+            else:
+                value = default
+
+            return value
+
         def get_hidden(kwargs):
             key = 'hidden'
             default = False
@@ -579,6 +602,7 @@ class Order(object):
                 kwargs['output'] = get_output(kwargs)
                 kwargs['side'] = get_side(kwargs)
                 kwargs['type'] = get_type(kwargs)
+                kwargs['context'] = get_context(kwargs)
                 kwargs['hidden'] = get_hidden(kwargs)
                 kwargs['pair'] = get_pair(kwargs)
                 kwargs['market'] = get_market(kwargs)
