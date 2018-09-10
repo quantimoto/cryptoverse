@@ -125,7 +125,7 @@ class Order(object):
         kwargs = kwargs.copy()
 
         prepare_kwargs = dict()
-        for key in ['account', 'exchange', 'market', 'pair', 'side']:
+        for key in ['account', 'exchange', 'market', 'pair', 'side', 'input_instrument', 'output_instrument']:
             if key in kwargs:
                 prepare_kwargs.update({key: kwargs[key]})
         prepare_kwargs.update(cls._sanitize_kwargs(prepare_kwargs))
@@ -385,6 +385,17 @@ class Order(object):
                 else:
                     value = None
 
+            # side from input_instrument, output_instrument and exchange
+            elif kwargs['input_instrument'] is not None and kwargs['output_instrument'] is not None \
+                    and kwargs['exchange'] is not None:
+                pairs = kwargs['exchange'].pairs.with_instruments(kwargs['input_instrument'],
+                                                                  kwargs['output_instrument'])
+                if pairs.first:
+                    pair = pairs.first
+                    value = pair.get_side(input_instrument=kwargs['input_instrument'])
+                else:
+                    value = None
+
             else:
                 value = None
 
@@ -420,6 +431,16 @@ class Order(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
+            # pair from input_instrument, output_instrument and exchange
+            elif kwargs['input_instrument'] is not None and kwargs['output_instrument'] is not None \
+                    and kwargs['exchange'] is not None:
+                pairs = kwargs['exchange'].pairs.with_instruments(kwargs['input_instrument'],
+                                                                  kwargs['output_instrument'])
+                if pairs.first:
+                    value = pairs.first
+                else:
+                    value = None
+
             # pair from input_instrument, output_instrument and side
             elif kwargs['input_instrument'] is not None \
                     and kwargs['output_instrument'] is not None and kwargs['side'] is not None:
@@ -452,6 +473,20 @@ class Order(object):
             # market from pair and exchange
             elif kwargs['pair'] is not None and kwargs['exchange'] is not None:
                 value = kwargs['exchange'].markets.get(symbol=kwargs['pair'], context='spot')
+
+            # market from input_instrument and output_instrument and exchange
+            elif kwargs['input_instrument'] is not None and kwargs['output_instrument'] is not None \
+                    and kwargs['exchange'] is not None:
+                markets = kwargs['exchange'].markets
+                if kwargs['context'] is not None and kwargs['context'] in markets:
+                    markets = markets[kwargs['context']].with_instruments(kwargs['input_instrument'],
+                                                                          kwargs['output_instrument'])
+                    if markets.first:
+                        value = markets.first
+                    else:
+                        value = None
+                else:
+                    value = None
 
             else:
                 value = None
@@ -570,6 +605,9 @@ class Order(object):
 
         if fees is not None and 'pair' in kwargs and kwargs['pair'] is not None:
             pair = '{}/{}'.format(kwargs['pair'].base.code, kwargs['pair'].quote.code)
+            if pair not in fees['orders']:
+                raise ValueError("pair not found in fee information: {}".format(pair))
+
             if 'type' in kwargs and kwargs['type'] == 'market' or 'hidden' in kwargs and kwargs['hidden'] is True:
                 kwargs['fee_percentage'] = fees['orders'][pair]['taker']
             else:

@@ -166,6 +166,10 @@ class Pair(object):
         return cls(**kwargs)
 
     def get_side(self, input_instrument=None, output_instrument=None):
+        if input_instrument is not None and output_instrument is not None and input_instrument == output_instrument:
+            raise ValueError(
+                "'input_instrument' and 'output_instrument' cannot be equal: {}, {}".format(input_instrument,
+                                                                                            output_instrument))
         if input_instrument is not None:
             if self.base == input_instrument:
                 return 'sell'
@@ -201,3 +205,15 @@ class Pairs(ObjectList):
         for entry in self:
             if entry == item:
                 return entry
+
+    def with_instruments(self, *instruments):
+        result = self.__class__()
+        for entry in self:
+            candidate = entry
+            for instrument in instruments:
+                if instrument not in entry.instruments:
+                    candidate = None
+                    break
+            if candidate:
+                result.append(candidate)
+        return result
