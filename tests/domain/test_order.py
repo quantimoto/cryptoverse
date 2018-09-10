@@ -67,10 +67,10 @@ class TestOrder(TestCase):
         self.assertEqual(Order._sanitize_kwargs(kwargs), {'side': 'sell'})
 
         kwargs = {'side': 'bid'}
-        self.assertEqual(Order._sanitize_kwargs(kwargs), {'side': 'buy'})
+        self.assertRaises(ValueError, Order._sanitize_kwargs, kwargs)
 
         kwargs = {'side': 'ask'}
-        self.assertEqual(Order._sanitize_kwargs(kwargs), {'side': 'sell'})
+        self.assertRaises(ValueError, Order._sanitize_kwargs, kwargs)
 
         kwargs = {'side': 'nonsense'}
         self.assertRaises(ValueError, Order._sanitize_kwargs, kwargs)
