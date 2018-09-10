@@ -26,7 +26,7 @@ class Order(object):
         'input': float,
         'output': float,
         'timestamp': float,
-        'exchange_id': str,
+        'id': str,
         'hidden': bool,
         'exchange': None,
         'account': None,
@@ -44,7 +44,7 @@ class Order(object):
     trades = None
 
     def __init__(self, *args, **kwargs):
-        self.update(*args, **kwargs)
+        self.update_arguments(*args, **kwargs)
 
     def as_dict(self):
         dict_obj = dict()
@@ -52,6 +52,10 @@ class Order(object):
             if value is not None:
                 dict_obj.update({key: value})
         return dict_obj
+
+    @classmethod
+    def from_dict(cls, dict_obj):
+        return cls(**dict_obj)
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -673,7 +677,7 @@ class Order(object):
 
         return results
 
-    def update(self, *args, **kwargs):
+    def update_arguments(self, *args, **kwargs):
 
         # Derive keywords for keyword-less args
         kwargs_from_args = dict()
@@ -764,7 +768,7 @@ class Order(object):
 
     @pair.setter
     def pair(self, value):
-        self.update(pair=value)
+        self.update_arguments(pair=value)
 
     @property
     def market(self):
@@ -778,7 +782,7 @@ class Order(object):
 
     @market.setter
     def market(self, value):
-        self.update(market=value)
+        self.update_arguments(market=value)
 
     @property
     def side(self):
@@ -792,7 +796,7 @@ class Order(object):
 
     @side.setter
     def side(self, value):
-        self.update(side=value)
+        self.update_arguments(side=value)
 
     @property
     def amount(self):
@@ -806,7 +810,7 @@ class Order(object):
 
     @amount.setter
     def amount(self, value):
-        self.update(amount=value)
+        self.update_arguments(amount=value)
 
     @property
     def price(self):
@@ -820,7 +824,7 @@ class Order(object):
 
     @price.setter
     def price(self, value):
-        self.update(price=value)
+        self.update_arguments(price=value)
 
     @property
     def type(self):
@@ -834,7 +838,21 @@ class Order(object):
 
     @type.setter
     def type(self, value):
-        self.update(type=value)
+        self.update_arguments(type=value)
+
+    @property
+    def context(self):
+        key = 'context'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @context.setter
+    def context(self, value):
+        self.update_arguments(context=value)
 
     @property
     def total(self):
@@ -848,7 +866,7 @@ class Order(object):
 
     @total.setter
     def total(self, value):
-        self.update(total=value)
+        self.update_arguments(total=value)
 
     @property
     def gross(self):
@@ -862,7 +880,7 @@ class Order(object):
 
     @gross.setter
     def gross(self, value):
-        self.update(gross=value)
+        self.update_arguments(gross=value)
 
     @property
     def net(self):
@@ -876,7 +894,7 @@ class Order(object):
 
     @net.setter
     def net(self, value):
-        self.update(net=value)
+        self.update_arguments(net=value)
 
     @property
     def fees(self):
@@ -890,7 +908,7 @@ class Order(object):
 
     @fees.setter
     def fees(self, value):
-        self.update(fees=value)
+        self.update_arguments(fees=value)
 
     @property
     def fee_percentage(self):
@@ -904,7 +922,7 @@ class Order(object):
 
     @fee_percentage.setter
     def fee_percentage(self, value):
-        self.update(fee_percentage=value)
+        self.update_arguments(fee_percentage=value)
 
     @property
     def input(self):
@@ -918,7 +936,7 @@ class Order(object):
 
     @input.setter
     def input(self, value):
-        self.update(input=value)
+        self.update_arguments(input=value)
 
     @property
     def output(self):
@@ -932,7 +950,7 @@ class Order(object):
 
     @output.setter
     def output(self, value):
-        self.update(output=value)
+        self.update_arguments(output=value)
 
     @property
     def timestamp(self):
@@ -946,11 +964,11 @@ class Order(object):
 
     @timestamp.setter
     def timestamp(self, value):
-        self.update(timestamp=value)
+        self.update_arguments(timestamp=value)
 
     @property
-    def exchange_id(self):
-        key = 'exchange_id'
+    def id(self):
+        key = 'id'
         if key in self._supplied_arguments:
             return self._supplied_arguments[key]
         elif key in self._derived_arguments:
@@ -958,9 +976,9 @@ class Order(object):
         else:
             return None
 
-    @exchange_id.setter
-    def exchange_id(self, value):
-        self.update(exchange_id=value)
+    @id.setter
+    def id(self, value):
+        self.update_arguments(id=value)
 
     @property
     def hidden(self):
@@ -974,7 +992,7 @@ class Order(object):
 
     @hidden.setter
     def hidden(self, value):
-        self.update(hidden=value)
+        self.update_arguments(hidden=value)
 
     @property
     def exchange(self):
@@ -988,7 +1006,7 @@ class Order(object):
 
     @exchange.setter
     def exchange(self, value):
-        self.update(exchange=value)
+        self.update_arguments(exchange=value)
 
     @property
     def account(self):
@@ -1002,7 +1020,7 @@ class Order(object):
 
     @account.setter
     def account(self, value):
-        self.update(account=value)
+        self.update_arguments(account=value)
 
     @property
     def fee_instrument(self):
@@ -1016,7 +1034,7 @@ class Order(object):
 
     @fee_instrument.setter
     def fee_instrument(self, value):
-        self.update(fee_instrument=value)
+        self.update_arguments(fee_instrument=value)
 
     @property
     def input_instrument(self):
@@ -1030,7 +1048,7 @@ class Order(object):
 
     @input_instrument.setter
     def input_instrument(self, value):
-        self.update(input_instrument=value)
+        self.update_arguments(input_instrument=value)
 
     @property
     def output_instrument(self):
@@ -1044,13 +1062,19 @@ class Order(object):
 
     @output_instrument.setter
     def output_instrument(self, value):
-        self.update(output_instrument=value)
+        self.update_arguments(output_instrument=value)
 
     def place(self):
-        raise NotImplementedError
+        if self.account is not None:
+            return self.account.place(self)
+
+    def update(self):
+        if self.account is not None:
+            return self.account.update(self)
 
     def cancel(self):
-        raise NotImplementedError
+        if self.account is not None:
+            return self.account.cancel(self)
 
     def wait_for_completion(self):
         raise NotImplemented

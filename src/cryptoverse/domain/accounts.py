@@ -64,20 +64,9 @@ class Account(object):
         response = self.exchange.interface.get_account_orders()
         result = Orders()
         for entry in response:
-            order = Order(
-                account=self,
-                exchange=self.exchange,
-                amount=entry['amount'],
-                price=entry['price'],
-                side=entry['side'],
-                pair=entry['pair'],
-                hidden=entry['hidden'],
-                type=entry['type'],
-                context=entry['context'],
-                timestamp=entry['timestamp'],
-                exchange_id=entry['exchange_id'],
-                metadata=entry['metadata'],
-            )
+            entry['account'] = self
+            entry['exchange'] = self.exchange
+            order = Order.from_dict(entry)
             result.append(order)
         return result
 
@@ -146,46 +135,70 @@ class Account(object):
 
     def place(self, obj):
         if type(obj) is Order:
-            self.exchange.interface.place_single_order(obj)
+            response = self.exchange.interface.place_single_order(
+                pair=obj.pair.as_str(),
+                amount=obj.amount,
+                price=obj.price,
+                side=obj.side,
+                context=obj.context,
+                type_=obj.type,
+                hidden=obj.hidden,
+            )
+            obj.update_arguments(**response)
         elif type(obj) is Orders:
-            self.exchange.interface.place_multiple_orders(obj)
+            response = self.exchange.interface.place_multiple_orders(obj)
+            return response
         elif type(obj) is Offer:
-            self.exchange.interface.place_single_offer(obj)
+            response = self.exchange.interface.place_single_offer(obj)
+            obj.update_arguments(**response)
         elif type(obj) is Offers:
-            self.exchange.interface.place_multiple_offers(obj)
+            response = self.exchange.interface.place_multiple_offers(obj)
+            return response
         return obj
 
     def update(self, obj):
         if type(obj) is Order:
-            self.exchange.interface.update_single_order(obj)
+            response = self.exchange.interface.update_single_order(obj.id)
+            obj.update_arguments(**response)
         elif type(obj) is Orders:
-            self.exchange.interface.update_multiple_orders(obj)
+            response = self.exchange.interface.update_multiple_orders(obj.get_values('id'))
+            return response
         elif type(obj) is Offer:
-            self.exchange.interface.update_single_offer(obj)
+            response = self.exchange.interface.update_single_offer(obj.id)
+            obj.update_arguments(**response)
         elif type(obj) is Offers:
-            self.exchange.interface.update_multiple_offers(obj)
+            response = self.exchange.interface.update_multiple_offers(obj.get_values('id'))
+            return response
         return obj
 
     def cancel(self, obj):
         if type(obj) is Order:
-            self.exchange.interface.cancel_single_order(obj)
+            response = self.exchange.interface.cancel_single_order(obj.id)
+            obj.update_arguments(**response)
         elif type(obj) is Orders:
-            self.exchange.interface.cancel_multiple_orders(obj)
+            response = self.exchange.interface.cancel_multiple_orders(obj.get_values('id'))
+            return response
         elif type(obj) is Offer:
-            self.exchange.interface.cancel_single_offer(obj)
+            response = self.exchange.interface.cancel_single_offer(obj.id)
+            obj.update_arguments(**response)
         elif type(obj) is Offers:
-            self.exchange.interface.cancel_multiple_offers(obj)
+            response = self.exchange.interface.cancel_multiple_offers(obj.get_values('id'))
+            return response
         return obj
 
     def replace(self, obj):
         if type(obj) is Order:
-            self.exchange.interface.replace_single_order(obj)
+            response = self.exchange.interface.replace_single_order(obj.id)
+            return response
         elif type(obj) is Orders:
-            self.exchange.interface.replace_multiple_orders(obj)
+            response = self.exchange.interface.replace_multiple_orders(obj.get_values('id'))
+            return response
         elif type(obj) is Offer:
-            self.exchange.interface.replace_single_offer(obj)
+            response = self.exchange.interface.replace_single_offer(obj.id)
+            return response
         elif type(obj) is Offers:
-            self.exchange.interface.replace_multiple_offers(obj)
+            response = self.exchange.interface.replace_multiple_offers(obj.get_values('id'))
+            return response
         return obj
 
 

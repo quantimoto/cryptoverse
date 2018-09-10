@@ -658,10 +658,10 @@ class BitfinexREST(RESTClient):
             },
             data={
                 'symbol': symbol,
-                'amount': amount,
-                'price': price,
+                'amount': str(float(amount)),
+                'price': str(float(price)),
                 'side': side,
-                'type_': type_,
+                'type': type_,
                 'exchange': exchange,
                 'is_hidden': is_hidden,
                 'is_postonly': is_postonly,
@@ -738,7 +738,7 @@ class BitfinexREST(RESTClient):
                 'version': 1,
             },
             data={
-                'order_id': order_id,
+                'order_id': int(order_id),
             },
             credentials=credentials,
         )
@@ -836,7 +836,7 @@ class BitfinexREST(RESTClient):
                 'version': 1,
             },
             data={
-                'order_id': order_id,
+                'order_id': int(order_id),
                 'symbol': symbol,
                 'amount': amount,
                 'price': price,
@@ -876,7 +876,7 @@ class BitfinexREST(RESTClient):
                 'version': 1,
             },
             data={
-                'order_id': order_id,
+                'order_id': int(order_id),
             },
             credentials=credentials,
         )
@@ -1197,7 +1197,7 @@ class BitfinexREST(RESTClient):
                 'version': 1,
             },
             data={
-                'order_id': offer_id,
+                'offer_id': int(offer_id),
             },
             credentials=credentials,
         )

@@ -124,19 +124,19 @@ class ExchangeInterface(object):
     def replace_multiple_orders(self, *args, **kwargs):
         raise NotImplementedError
 
-    def update_single_order(self, *args, **kwargs):
+    def update_single_order(self, order_id):
         raise NotImplementedError
 
-    def update_multiple_orders(self, *args, **kwargs):
+    def update_multiple_orders(self, *order_ids):
         raise NotImplementedError
 
-    def cancel_single_order(self, *args, **kwargs):
+    def cancel_single_order(self, order_id):
         raise NotImplementedError
 
-    def cancel_multiple_orders(self, *args, **kwargs):
+    def cancel_multiple_orders(self, *orders_ids):
         raise NotImplementedError
 
-    def cancel_all_orders(self, *args, **kwargs):
+    def cancel_all_orders(self):
         raise NotImplementedError
 
     def place_single_offer(self, *args, **kwargs):
@@ -151,17 +151,17 @@ class ExchangeInterface(object):
     def replace_multiple_offers(self, *args, **kwargs):
         raise NotImplementedError
 
-    def update_single_offer(self, *args, **kwargs):
+    def update_single_offer(self, offer_id):
         raise NotImplementedError
 
-    def update_multiple_offers(self, *args, **kwargs):
+    def update_multiple_offers(self, *offer_ids):
         raise NotImplementedError
 
-    def cancel_single_offer(self, *args, **kwargs):
+    def cancel_single_offer(self, offer_id):
         raise NotImplementedError
 
-    def cancel_multiple_offers(self, *args, **kwargs):
+    def cancel_multiple_offers(self, *offer_ids):
         raise NotImplementedError
 
-    def cancel_all_offers(self, *args, **kwargs):
+    def cancel_all_offers(self):
         raise NotImplementedError

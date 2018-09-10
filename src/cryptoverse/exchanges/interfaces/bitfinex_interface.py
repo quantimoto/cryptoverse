@@ -472,6 +472,7 @@ class BitfinexInterface(ExchangeInterface):
         result = list()
         for entry in response:
             pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
+
             if entry['type'] == 'market':
                 context = 'margin'
                 type_ = 'market'
@@ -510,7 +511,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['original_amount']),
                 'price': float(entry['price']),
                 'side': str(entry['side']),
-                'exchange_id': str(entry['id']),
+                'id': str(entry['id']),
                 'timestamp': float(entry['timestamp']),
                 'pair': pair,
                 'context': context,
@@ -520,6 +521,7 @@ class BitfinexInterface(ExchangeInterface):
                     'avg_execution_price': entry['avg_execution_price'],
                     'cid': entry['cid'],
                     'cid_date': entry['cid_date'],
+                    'exchange': entry['exchange'],
                     'executed_amount': entry['executed_amount'],
                     'gid': entry['gid'],
                     'is_cancelled': entry['is_cancelled'],
@@ -551,8 +553,89 @@ class BitfinexInterface(ExchangeInterface):
     def get_account_withdrawals(self, *args, **kwargs):
         raise NotImplementedError
 
-    def place_single_order(self, *args, **kwargs):
-        raise NotImplementedError
+    def place_single_order(self, pair, amount, price, side, context='exchange', type_='limit', hidden=False,
+                           postonly=None):
+        if context not in ['exchange', 'margin']:
+            raise ValueError("'context' attribute must be either 'exchange' or 'margin', not: {}".format(context))
+        if type_ not in ['limit', 'market']:
+            raise ValueError("'type_' attritube must be either 'limit' or 'market', not: {}".format(type_))
+        if type_ == 'limit' and postonly is None:
+            postonly = True
+
+        response = self.rest_client.order_new(
+            symbol='{}{}'.format(*pair.split('/')),
+            amount=amount,
+            price=price,
+            side=side,
+            type_='{} {}'.format(context, type_),
+            exchange='bitfinex',
+            is_hidden=hidden,
+            is_postonly=postonly,
+        )
+
+        pair = '{}/{}'.format(response['symbol'][:3].upper(), response['symbol'][3:].upper())
+
+        if response['type'] == 'market':
+            context = 'margin'
+            type_ = 'market'
+        elif response['type'] == 'limit':
+            context = 'margin'
+            type_ = 'limit'
+        elif response['type'] == 'stop':
+            context = 'margin'
+            type_ = 'stop'
+        elif response['type'] == 'trailing-stop':
+            context = 'margin'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'fill-or-kill':
+            context = 'margin'
+            type_ = 'fill-or-kill'
+        elif response['type'] == 'exchange market':
+            context = 'exchange'
+            type_ = 'market'
+        elif response['type'] == 'exchange limit':
+            context = 'exchange'
+            type_ = 'limit'
+        elif response['type'] == 'exchange stop':
+            context = 'exchange'
+            type_ = 'stop'
+        elif response['type'] == 'exchange trailing-stop':
+            context = 'exchange'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'exchange fill-or-kill':
+            context = 'exchange'
+            type_ = 'fill-or-kill'
+        else:
+            context = None
+            type_ = None
+
+        result = {
+            'amount': float(response['original_amount']),
+            'price': float(response['price']),
+            'side': str(response['side']),
+            'id': str(response['id']),
+            'timestamp': float(response['timestamp']),
+            'pair': pair,
+            'context': context,
+            'type': type_,
+            'hidden': response['is_hidden'],
+            'metadata': {
+                'avg_execution_price': response['avg_execution_price'],
+                'cid': response['cid'],
+                'cid_date': response['cid_date'],
+                'exchange': response['exchange'],
+                'executed_amount': response['executed_amount'],
+                'gid': response['gid'],
+                'is_cancelled': response['is_cancelled'],
+                'is_live': response['is_live'],
+                'oco_order': response['oco_order'],
+                'remaining_amount': response['remaining_amount'],
+                'src': response['src'],
+                'was_forced': response['was_forced'],
+            }
+        }
+
+        return result
 
     def place_multiple_orders(self, *args, **kwargs):
         raise NotImplementedError
@@ -563,25 +646,153 @@ class BitfinexInterface(ExchangeInterface):
     def replace_multiple_orders(self, *args, **kwargs):
         raise NotImplementedError
 
-    def update_single_order(self, *args, **kwargs):
+    def update_single_order(self, order_id):
+        response = self.rest_client.order_status(order_id=int(order_id))
+
+        pair = '{}/{}'.format(response['symbol'][:3].upper(), response['symbol'][3:].upper())
+
+        if response['type'] == 'market':
+            context = 'margin'
+            type_ = 'market'
+        elif response['type'] == 'limit':
+            context = 'margin'
+            type_ = 'limit'
+        elif response['type'] == 'stop':
+            context = 'margin'
+            type_ = 'stop'
+        elif response['type'] == 'trailing-stop':
+            context = 'margin'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'fill-or-kill':
+            context = 'margin'
+            type_ = 'fill-or-kill'
+        elif response['type'] == 'exchange market':
+            context = 'exchange'
+            type_ = 'market'
+        elif response['type'] == 'exchange limit':
+            context = 'exchange'
+            type_ = 'limit'
+        elif response['type'] == 'exchange stop':
+            context = 'exchange'
+            type_ = 'stop'
+        elif response['type'] == 'exchange trailing-stop':
+            context = 'exchange'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'exchange fill-or-kill':
+            context = 'exchange'
+            type_ = 'fill-or-kill'
+        else:
+            context = None
+            type_ = None
+
+        result = {
+            'amount': float(response['original_amount']),
+            'price': float(response['price']),
+            'side': str(response['side']),
+            'id': str(response['id']),
+            'timestamp': float(response['timestamp']),
+            'pair': pair,
+            'context': context,
+            'type': type_,
+            'hidden': response['is_hidden'],
+            'metadata': {
+                'avg_execution_price': response['avg_execution_price'],
+                'cid': response['cid'],
+                'cid_date': response['cid_date'],
+                'exchange': response['exchange'],
+                'executed_amount': response['executed_amount'],
+                'gid': response['gid'],
+                'is_cancelled': response['is_cancelled'],
+                'is_live': response['is_live'],
+                'oco_order': response['oco_order'],
+                'remaining_amount': response['remaining_amount'],
+                'src': response['src'],
+                'was_forced': response['was_forced'],
+            }
+        }
+
+        return result
+
+    def update_multiple_orders(self, *order_ids):
         raise NotImplementedError
 
-    def update_multiple_orders(self, *args, **kwargs):
+    def cancel_single_order(self, order_id):
+        response = self.rest_client.order_cancel(order_id=int(order_id))
+
+        pair = '{}/{}'.format(response['symbol'][:3].upper(), response['symbol'][3:].upper())
+
+        if response['type'] == 'market':
+            context = 'margin'
+            type_ = 'market'
+        elif response['type'] == 'limit':
+            context = 'margin'
+            type_ = 'limit'
+        elif response['type'] == 'stop':
+            context = 'margin'
+            type_ = 'stop'
+        elif response['type'] == 'trailing-stop':
+            context = 'margin'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'fill-or-kill':
+            context = 'margin'
+            type_ = 'fill-or-kill'
+        elif response['type'] == 'exchange market':
+            context = 'exchange'
+            type_ = 'market'
+        elif response['type'] == 'exchange limit':
+            context = 'exchange'
+            type_ = 'limit'
+        elif response['type'] == 'exchange stop':
+            context = 'exchange'
+            type_ = 'stop'
+        elif response['type'] == 'exchange trailing-stop':
+            context = 'exchange'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'exchange fill-or-kill':
+            context = 'exchange'
+            type_ = 'fill-or-kill'
+        else:
+            context = None
+            type_ = None
+
+        result = {
+            'amount': float(response['original_amount']),
+            'price': float(response['price']),
+            'side': str(response['side']),
+            'id': str(response['id']),
+            'timestamp': float(response['timestamp']),
+            'pair': pair,
+            'context': context,
+            'type': type_,
+            'hidden': response['is_hidden'],
+            'metadata': {
+                'avg_execution_price': response['avg_execution_price'],
+                'cid': response['cid'],
+                'cid_date': response['cid_date'],
+                'exchange': response['exchange'],
+                'executed_amount': response['executed_amount'],
+                'gid': response['gid'],
+                'is_cancelled': response['is_cancelled'],
+                'is_live': response['is_live'],
+                'oco_order': response['oco_order'],
+                'remaining_amount': response['remaining_amount'],
+                'src': response['src'],
+                'was_forced': response['was_forced'],
+            }
+        }
+
+        return result
+
+    def cancel_multiple_orders(self, *order_ids):
         raise NotImplementedError
 
-    def cancel_single_order(self, *args, **kwargs):
+    def cancel_all_orders(self):
         raise NotImplementedError
 
-    def cancel_multiple_orders(self, *args, **kwargs):
+    def place_single_offer(self, offer_id):
         raise NotImplementedError
 
-    def cancel_all_orders(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def place_single_offer(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def place_multiple_offers(self, *args, **kwargs):
+    def place_multiple_offers(self, *offer_ids):
         raise NotImplementedError
 
     def replace_single_offer(self, *args, **kwargs):
@@ -590,17 +801,17 @@ class BitfinexInterface(ExchangeInterface):
     def replace_multiple_offers(self, *args, **kwargs):
         raise NotImplementedError
 
-    def update_single_offer(self, *args, **kwargs):
+    def update_single_offer(self, offer_id):
         raise NotImplementedError
 
-    def update_multiple_offers(self, *args, **kwargs):
+    def update_multiple_offers(self, *offer_ids):
         raise NotImplementedError
 
-    def cancel_single_offer(self, *args, **kwargs):
+    def cancel_single_offer(self, offer_id):
         raise NotImplementedError
 
-    def cancel_multiple_offers(self, *args, **kwargs):
+    def cancel_multiple_offers(self, *offer_ids):
         raise NotImplementedError
 
-    def cancel_all_offers(self, *args, **kwargs):
+    def cancel_all_offers(self):
         raise NotImplementedError

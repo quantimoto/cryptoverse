@@ -201,6 +201,7 @@ class Pair(object):
 
 
 class Pairs(ObjectList):
+
     def __getattr__(self, item):
         for entry in self:
             if entry == item:

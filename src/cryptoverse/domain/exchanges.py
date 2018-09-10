@@ -192,25 +192,17 @@ class Exchange(object):
             bids = Orders()
             if 'bids' in response:
                 for entry in response['bids']:
-                    order = Order(
-                        amount=entry['amount'],
-                        price=entry['price'],
-                        side=entry['side'],
-                        pair=pair,
-                        exchange=self,
-                    )
+                    entry['exchange'] = self
+                    entry['pair'] = pair
+                    order = Order.from_dict(entry)
                     bids.append(order)
 
             asks = Orders()
             if 'asks' in response:
                 for entry in response['asks']:
-                    order = Order(
-                        amount=entry['amount'],
-                        price=entry['price'],
-                        side=entry['side'],
-                        pair=pair,
-                        exchange=self,
-                    )
+                    entry['exchange'] = self
+                    entry['pair'] = pair
+                    order = Order.from_dict(entry)
                     asks.append(order)
 
             result = OrderBook(bids, asks)
