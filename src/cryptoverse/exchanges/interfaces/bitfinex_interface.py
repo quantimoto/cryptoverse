@@ -104,12 +104,19 @@ class BitfinexInterface(ExchangeInterface):
         }
 
         for entry in symbols_details:
-            base = {'code': entry['pair'][:3].upper()}
-            quote = {'code': entry['pair'][3:].upper()}
+            base = {
+                'code': entry['pair'][:3].upper(),
+                'precision': 8,
+            }
+            quote = {
+                'code': entry['pair'][3:].upper(),
+                'precision': 8,
+            }
             pair = {'base': base, 'quote': quote}
             order_limits = {
                 'amount': {'min': float(entry['minimum_order_size']),
-                           'max': float(entry['maximum_order_size'])},
+                           'max': float(entry['maximum_order_size']),
+                           'precision': 8},
                 'price': {'significant digits': float(entry['price_precision'])}}
             order_fees = {
                 'maker': float(fees['Order Execution'][0]['Maker fees'].rstrip('%')),
