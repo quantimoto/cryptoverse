@@ -197,6 +197,19 @@ class Order(object):
             else:
                 value = None
 
+            if kwargs['market'] is not None and kwargs['market'].limits is not None:
+                if key in kwargs['market'].limits:
+                    if 'precision' in kwargs['market'].limits[key]:
+                        precision = kwargs['market'].limits[key]['precision']
+                        if precision is not None:
+                            value = round_down(value, precision) if value is not None else value
+
+            if kwargs['pair'] is not None and kwargs['pair'].base is not None and \
+                    kwargs['pair'].base.precision is not None:
+                precision = kwargs['pair'].base.precision
+                if precision is not None:
+                    value = round_down(value, precision) if value is not None else value
+
             return value
 
         def get_price(kwargs):
@@ -218,6 +231,10 @@ class Order(object):
                         significant_digits = kwargs['market'].limits[key]['significant digits']
                         if significant_digits is not None:
                             value = round_significant(value, significant_digits) if value is not None else value
+                    if 'precision' in kwargs['market'].limits[key]:
+                        precision = kwargs['market'].limits[key]['precision']
+                        if precision is not None:
+                            value = round_down(value, precision) if value is not None else value
             return value
 
         def get_total(kwargs):
@@ -240,6 +257,19 @@ class Order(object):
 
             else:
                 value = None
+
+            if kwargs['market'] is not None and kwargs['market'].limits is not None:
+                if key in kwargs['market'].limits:
+                    if 'precision' in kwargs['market'].limits[key]:
+                        precision = kwargs['market'].limits[key]['precision']
+                        if precision is not None:
+                            value = round_down(value, precision) if value is not None else value
+
+            if kwargs['pair'] is not None and kwargs['pair'].quote is not None and \
+                    kwargs['pair'].quote.precision is not None:
+                precision = kwargs['pair'].quote.precision
+                if precision is not None:
+                    value = round_down(value, precision) if value is not None else value
 
             return value
 
@@ -663,13 +693,15 @@ class Order(object):
         else:
             supplied_arguments = self._supplied_arguments.copy()
 
-        # Replace shortcut strings with external values
+        # merge stored supplied arguments with newly supplied arguments
         combined_arguments = supplied_arguments.copy()
         combined_arguments.update(new_arguments)
-        replace_arguments = self._replace_shortcuts(combined_arguments)
-        new_arguments.update(replace_arguments)
 
-        # Force type for new arguments
+        # Replace shortcut strings with external values
+        replaced_arguments = self._replace_shortcuts(combined_arguments)
+        new_arguments.update(replaced_arguments)
+
+        # Sanitize new arguments
         new_arguments = self._sanitize_kwargs(new_arguments)
 
         # Update previously supplied arguments with new arguments
@@ -688,10 +720,11 @@ class Order(object):
         derived_arguments.update(collected_arguments)
 
         # Derive missing argument values again with newly collected arguments
-        derived_arguments = self._derive_missing_kwargs(derived_arguments)
+        all_arguments = self._derive_missing_kwargs(derived_arguments)
 
-        # Remove supplied arguments from derived arguments
-        derived_arguments = remove_keys(kwargs=derived_arguments, keys=supplied_arguments.keys())
+        # Split arguments into supplied and derived
+        derived_arguments = remove_keys(kwargs=all_arguments, keys=supplied_arguments.keys())
+        supplied_arguments = remove_keys(kwargs=all_arguments, keys=derived_arguments.keys())
 
         # Store supplied and derived arguments
         supplied_arguments = strip_empty(supplied_arguments)
