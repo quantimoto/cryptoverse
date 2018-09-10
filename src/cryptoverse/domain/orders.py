@@ -1,3 +1,5 @@
+from termcolor import colored
+
 from .instruments import Instrument
 from .markets import Market
 from .object_list import ObjectList
@@ -28,6 +30,7 @@ class Order(object):
         'timestamp': float,
         'id': str,
         'hidden': bool,
+        'active': bool,
         'exchange': None,
         'account': None,
         'fee_instrument': Instrument,
@@ -61,8 +64,12 @@ class Order(object):
         class_name = self.__class__.__name__
         arguments = list()
         for entry in self._minimum_arguments.items():
-            arguments.append('{}={!r}'.format(*entry))
-        return '{}({})'.format(class_name, ', '.join(arguments))
+            if entry[0] == 'side':
+                color = self._side_color
+            else:
+                color = None
+            arguments.append(colored('{}={!r}'.format(*entry), color))
+        return '{}({})'.format(colored(class_name, self._status_color), ', '.join(arguments))
 
     @staticmethod
     def _get_kw_for_arg(arg):
@@ -995,6 +1002,20 @@ class Order(object):
         self.update_arguments(hidden=value)
 
     @property
+    def active(self):
+        key = 'active'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @active.setter
+    def active(self, value):
+        self.update_arguments(active=value)
+
+    @property
     def exchange(self):
         key = 'exchange'
         if key in self._supplied_arguments:
@@ -1098,6 +1119,53 @@ class Order(object):
             output=output,
         )
         return order
+
+    @property
+    def remaining_amount(self):
+        return self.amount  # TODO: temporary, check trades for real remaining amount
+
+    @property
+    def is_placed(self):
+        if self.id is not None:
+            return True
+        return False
+
+    @property
+    def is_active(self):
+        if self.id is not None and self.active is True:
+            return True
+        return False
+
+    @property
+    def is_completed(self):
+        if self.id is not None and self.active is False and self.remaining_amount == 0.0:
+            return True
+        return False
+
+    @property
+    def is_cancelled(self):
+        if self.id is not None and self.active is False and self.remaining_amount > 0.0:
+            return True
+        return False
+
+    @property
+    def _status_color(self):
+        if self.is_active:
+            return 'yellow'
+        elif self.is_cancelled:
+            return 'red'
+        elif self.is_completed:
+            return 'green'
+        else:
+            return None
+
+    @property
+    def _side_color(self):
+        if self.side == 'buy':
+            return 'green'
+        elif self.side == 'sell':
+            return 'red'
+        return None
 
 
 class Orders(ObjectList):
