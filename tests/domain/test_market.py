@@ -28,8 +28,11 @@ class TestMarket(TestCase):
     def test_as_dict(self):
         m = Market('BTC/USD')
         from cryptoverse.domain import Pair, Instrument
-        self.assertEqual(m.as_dict(),
-                         {'context': 'spot', 'symbol': Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD'))})
+        expected = {
+            'context': 'spot',
+            'symbol': Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD'))
+        }
+        self.assertEqual(expected, m.as_dict())
 
     def test_set_symbol(self):
         from cryptoverse.domain import Pair, Instrument

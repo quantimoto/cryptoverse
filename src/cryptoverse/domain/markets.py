@@ -47,10 +47,8 @@ class Market(object):
         dict_obj = dict()
         for key, value in self.__dict__.items():
             if key in ['symbol', 'context', 'exchange', 'limits', 'fees']:
-                value = strip_empty(value)
-                value = strip_none(value)
-                if value:
-                    dict_obj.update({key: value})
+                dict_obj.update({key: value})
+        dict_obj = strip_none(strip_empty(strip_none(dict_obj)))
         return dict_obj
 
     def set_symbol(self, symbol):

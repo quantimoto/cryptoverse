@@ -1,33 +1,42 @@
 def strip_none(data):
     if isinstance(data, dict):
-        results = {k: strip_none(v) for k, v in data.items() if k is not None and v is not None}
+        result = {k: strip_none(v) for k, v in data.items() if k is not None and v is not None}
     elif isinstance(data, list):
-        results = [strip_none(item) for item in data if item is not None]
+        result = [strip_none(item) for item in data if item is not None]
     elif isinstance(data, tuple):
-        results = tuple(strip_none(item) for item in data if item is not None)
+        result = tuple(strip_none(item) for item in data if item is not None)
     elif isinstance(data, set):
-        results = {strip_none(item) for item in data if item is not None}
+        result = {strip_none(item) for item in data if item is not None}
     else:
-        results = data
+        result = data
 
-    if results:
-        return results
+    if result is not None:
+        return result
 
 
 def strip_empty(data):
     if isinstance(data, dict):
-        results = {k: strip_empty(v) for k, v in data.items() if k and v}
+        result = {kw: strip_empty(item) for kw, item in data.items() if
+                  not hasattr(item, '__len__') or (hasattr(item, '__len__') and len(item) > 0)}
     elif isinstance(data, list):
-        results = [strip_empty(item) for item in data if item]
+        result = [strip_empty(item) for item in data if
+                  not hasattr(item, '__len__') or (hasattr(item, '__len__') and len(item) > 0)]
     elif isinstance(data, tuple):
-        results = tuple(strip_empty(item) for item in data if item)
+        result = tuple(strip_empty(item) for item in data if
+                       not hasattr(item, '__len__') or (hasattr(item, '__len__') and len(item) > 0))
     elif isinstance(data, set):
-        results = {strip_empty(item) for item in data if item}
+        result = {strip_empty(item) for item in data if
+                  not hasattr(item, '__len__') or (hasattr(item, '__len__') and len(item) > 0)}
     else:
-        results = data
+        result = data
 
-    if results:
-        return results
+    if hasattr(result, '__len__'):
+        if len(result) > 0:
+            return result
+        else:
+            return None
+    else:
+        return result
 
 
 def round_down(x, ndigits=8):
