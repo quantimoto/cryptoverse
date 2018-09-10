@@ -911,7 +911,7 @@ class BitfinexREST(RESTClient):
         return response
 
     @Memoize(expires=60. / 1)
-    @RateLimit(calls=1, period=60)  # Documentation states: 1 req/min
+    @RateLimit(calls=1, period=60)
     def orders_hist(self, limit=None, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-orders-history
         """
