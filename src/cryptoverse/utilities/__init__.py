@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from termcolor import colored
+
 
 def strip_none(data):
     if isinstance(data, dict):
@@ -149,3 +151,12 @@ def subtract_as_decimals(a, b):
     1.1
     """
     return float(Decimal(str(float(a))) - Decimal(str(float(b))))
+
+
+def side_colored(value, side):
+    if side == 'buy':
+        return colored(value, 'green')
+    elif side == 'sell':
+        return colored(value, 'red')
+    else:
+        return value
