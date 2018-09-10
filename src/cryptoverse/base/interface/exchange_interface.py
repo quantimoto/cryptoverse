@@ -94,7 +94,7 @@ class ExchangeInterface(object):
     def get_account_orders(self, *args, **kwargs):
         raise NotImplementedError
 
-    def get_account_trades(self, *args, **kwargs):
+    def get_account_trades(self, pair, limit):
         raise NotImplementedError
 
     def get_account_positions(self, *args, **kwargs):
