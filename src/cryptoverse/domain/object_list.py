@@ -1,3 +1,7 @@
+from ..utilities import divide_as_decimals as divide
+from ..utilities import sum_as_decimals as sum_
+
+
 class ObjectList(list):
 
     def __str__(self):
@@ -59,8 +63,10 @@ class ObjectList(list):
         return response
 
     def get_sum(self, key):
-        response = self.get_values(key)
-        return sum(response)
+        return sum_(self.get_values(key))
+
+    def get_average(self, key):
+        return divide(self.get_sum(key), len(self))
 
     def get_unique_values(self, key):
         response = ObjectList()

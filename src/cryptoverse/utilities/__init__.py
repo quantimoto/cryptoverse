@@ -153,6 +153,13 @@ def subtract_as_decimals(a, b):
     return float(Decimal(str(float(a))) - Decimal(str(float(b))))
 
 
+def sum_as_decimals(entries):
+    value = Decimal()
+    for entry in entries:
+        value = add_as_decimals(value, entry)
+    return value
+
+
 def side_colored(value, side):
     if side == 'buy':
         return colored(value, 'green')
