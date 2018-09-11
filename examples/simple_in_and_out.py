@@ -42,7 +42,7 @@ my_buy_order.wait_while_active()
 my_sell_order.wait_while_active()
 
 # %% Now that both trades have completed we can send a notification
-# notify('Trade completed. P&L +1%.')  # TODO: implement notifications
+# notify('Trade completed. P&L +1%.')  # todo: implement notifications
 
 
 # %% Using method chaining, you could do the exact same trade from one line of code:

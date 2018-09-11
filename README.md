@@ -43,24 +43,36 @@ Ticker(exchange=Poloniex(), pair='LTC/BTC')
 Ticker(exchange=Kraken(), pair='LTC/BTC')
 ```
 
-When you store your keys in ~/.cryptoverse/default.kdbx, you can use authenticated methods:
+After you store your keys in ~/.cryptoverse/default.kdbx, you can use authenticated methods:
 ```python
 >>> cryptoverse.load_accounts()
 Password: ***
->>> myaccount = cryptoverse.accounts['bitfinex account1'].balances()
+
+>>> myaccount = cryptoverse.accounts['bitfinex account1']
 >>> myaccount
 Account(exchange=Bitfinex(), credentials=Credentials(key='abc..123', secret='qwe..890'), label='account1')
->>> myaccount.balances()
->>> myaccount.orders()
 
->>> myorder = myaccount.create_order('BTC/USD', 'buy', amount=0.1, price=1000)
->>> myorder
-Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1)
->>> myorder.place()
-Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='active')
+>>> myaccount.wallets('exchange')
+ExchangeWallet(label=exchange):
+Balances():
+	Balance(instrument=Instrument('BTC'), amount=..., available=...),
+	Balance(instrument=Instrument('USD'), amount=..., available=...),
+
 >>> myaccount.orders()
 Orders():
-    Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='active')
+    Order(pair=Pair('BTC/USD'), side='...', amount=..., price=..., fee_percentage=0.1, status='active')
+
+>>> myorder = myaccount.create_order('BTC/USD', 'buy', input='100%', price='bid')
+>>> myorder
+Order(pair=Pair('BTC/USD'), side='buy', amount=..., price=..., fee_percentage=0.1)
+
+>>> myorder.place()
+Order(pair=Pair('BTC/USD'), side='buy', amount=..., price=..., fee_percentage=0.1, status='active')
+
+>>> myaccount.orders()
+Orders():
+    Order(pair=Pair('BTC/USD'), side='buy', amount=..., price=..., fee_percentage=0.1, status='active')
+
 >>> myorder.cancel()
-Order(pair=Pair('BTC/USD'), side='buy', amount=0.1, price=1000, fee_percentage=0.1, status='cancelled')
+Order(pair=Pair('BTC/USD'), side='buy', amount=..., price=..., fee_percentage=0.1, status='cancelled')
 ```

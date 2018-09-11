@@ -71,5 +71,5 @@ class TestBitfinexREST(TestCase):
 
     # def test_foreign_exchange_rate(self):
     #     response = bitfinex.foreign_exchange_rate(ccy1='BTC',
-    #                                               ccy2='USD')  # TODO: ask bitfinex support why this doesn't work
+    #                                               ccy2='USD')  # todo: ask bitfinex support why this doesn't work
     #     self.assertIsInstance(response, ResponseObj)
