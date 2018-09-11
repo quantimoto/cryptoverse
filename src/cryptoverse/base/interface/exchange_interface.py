@@ -91,7 +91,7 @@ class ExchangeInterface(object):
     def get_account_wallets(self):
         raise NotImplementedError
 
-    def get_account_orders(self, *args, **kwargs):
+    def get_account_orders(self):
         raise NotImplementedError
 
     def get_account_trades(self, pair, limit):
@@ -100,10 +100,10 @@ class ExchangeInterface(object):
     def get_account_positions(self):
         raise NotImplementedError
 
-    def get_account_offers(self, *args, **kwargs):
+    def get_account_offers(self):
         raise NotImplementedError
 
-    def get_account_lends(self, *args, **kwargs):
+    def get_account_lends(self, instrument, limit=100):
         raise NotImplementedError
 
     def get_account_deposits(self, *args, **kwargs):
