@@ -270,22 +270,20 @@ class TestOrder(TestCase):
         self.assertEqual(list(order._supplied_arguments.keys()), ['side', 'amount'])
 
         order = Order('BTC/USD')
-        self.assertEqual(repr(order),
-                         "Order(pair=Pair('BTC/USD'), side=None, "
-                         "amount=None, price=None, fee_percentage=None)")
+        self.assertEqual("Order(pair=Pair('BTC/USD'), side=None, "
+                         "amount=None, price=None, fee_percentage=None)", repr(order))
         order = Order('BTC/USD', 'buy')
-        self.assertEqual(repr(order),
-                         "Order(pair=Pair('BTC/USD'), side='buy', "
-                         "amount=None, price=None, fee_percentage=None)")
+        self.assertEqual("Order(pair=Pair('BTC/USD'), [32mside='buy'[0m, "
+                         "amount=None, price=None, fee_percentage=None)", repr(order))
         order = Order('BTC/USD', 'buy', fee_percentage=0.1)
-        self.assertEqual(repr(order),
-                         "Order(pair=Pair('BTC/USD'), side='buy', "
-                         "amount=None, price=None, fee_percentage=0.1)")
+        self.assertEqual(
+            "Order(pair=Pair('BTC/USD'), [32mside='buy'[0m, amount=None, price=None, fee_percentage=0.1)",
+            repr(order))
         order = Order('BTC/USD', 'buy', fee_percentage=0.1, input=2000)
-        self.assertEqual(repr(order),
-                         "Order(pair=Pair('BTC/USD'), side='buy', "
-                         "amount=None, price=None, fee_percentage=0.1)")
+        self.assertEqual(
+            "Order(pair=Pair('BTC/USD'), [32mside='buy'[0m, amount=None, price=None, fee_percentage=0.1)",
+            repr(order))
         order = Order('BTC/USD', 'buy', fee_percentage=0.1, input=2000, price=1000)
-        self.assertEqual(repr(order),
-                         "Order(pair=Pair('BTC/USD'), side='buy', "
-                         "amount=2.0, price=1000.0, fee_percentage=0.1)")
+        self.assertEqual(
+            "Order(pair=Pair('BTC/USD'), [32mside='buy'[0m, amount=2.0, price=1000.0, fee_percentage=0.1)",
+            repr(order))

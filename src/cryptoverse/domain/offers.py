@@ -1,7 +1,15 @@
-from cryptoverse.utilities import remove_keys, strip_empty, strip_none
+from time import sleep
+
+from termcolor import colored
+
 from .instruments import Instrument
 from .markets import Market
 from .object_list import ObjectList
+from ..utilities import add_as_decimals as add, filter_keys
+from ..utilities import divide_as_decimals as divide
+from ..utilities import multiply_as_decimals as multiply
+from ..utilities import strip_none, remove_keys, strip_empty, side_colored
+from ..utilities import subtract_as_decimals as subtract
 
 
 class Offer(object):
@@ -21,17 +29,32 @@ class Offer(object):
         'fee_percentage': float,
         'timestamp': float,
         'id': str,
+        'active': bool,
         'exchange': None,
         'account': None,
+        'metadata': dict,
     }
 
     _supplied_arguments = None
     _derived_arguments = None
 
+    metadata = None
+
     lends = None
 
     def __init__(self, *args, **kwargs):
-        self.update(*args, **kwargs)
+        self.update_arguments(*args, **kwargs)
+
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        arguments = list()
+        for entry in self._minimum_arguments.items():
+            if entry[0] == 'side':
+                arguments.append(side_colored('{}={!r}'.format(*entry), entry[1]))
+            else:
+                arguments.append('{}={!r}'.format(*entry))
+
+        return '{}({})'.format(self._status_colored(class_name), ', '.join(arguments))
 
     def as_dict(self):
         dict_obj = dict()
@@ -40,12 +63,9 @@ class Offer(object):
                 dict_obj.update({key: value})
         return dict_obj
 
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        arguments = list()
-        for entry in self._minimum_arguments.items():
-            arguments.append('{}={!r}'.format(*entry))
-        return '{}({})'.format(class_name, ', '.join(arguments))
+    @classmethod
+    def from_dict(cls, dict_obj):
+        return cls(**dict_obj)
 
     @staticmethod
     def _get_kw_for_arg(arg):
@@ -64,7 +84,7 @@ class Offer(object):
         """
         from .accounts import Account
         from .exchanges import Exchange
-        if type(arg) is str and arg.lower() in ['buy', 'sell', 'bid', 'ask']:
+        if type(arg) is str and arg.lower() in ['buy', 'sell']:
             return 'side'
         elif type(arg) is str and arg.lower() in ['normal', 'hidden']:
             return 'type'
@@ -94,11 +114,7 @@ class Offer(object):
                         raise TypeError("Invalid type for the argument '{}={}': {}".format(kw, arg, type(arg).__name__))
 
                 if kw == 'side':
-                    if arg.lower() == 'bid':
-                        arg = 'buy'
-                    elif arg.lower() == 'ask':
-                        arg = 'sell'
-                    elif arg.lower() in ['buy', 'sell']:
+                    if arg.lower() in ['buy', 'sell']:
                         arg = arg.lower()
                     else:
                         raise ValueError("Invalid value for '{}' supplied: '{}'".format(kw, arg))
@@ -175,7 +191,7 @@ class Offer(object):
 
             # daily_rate = annual_rate / 365
             elif kwargs['annual_rate'] is not None:
-                value = kwargs['annual_rate'] / 365
+                value = divide(kwargs['annual_rate'], 365)
 
             else:
                 value = None
@@ -190,7 +206,7 @@ class Offer(object):
 
             # monthly_rate = annual_rate / 12
             elif kwargs['annual_rate'] is not None:
-                value = kwargs['annual_rate'] / 12
+                value = divide(kwargs['annual_rate'], 12)
 
             else:
                 value = None
@@ -205,11 +221,11 @@ class Offer(object):
 
             # annual_rate = daily_rate * 365
             elif kwargs['daily_rate'] is not None:
-                value = kwargs['daily_rate'] * 365
+                value = multiply(kwargs['daily_rate'], 365)
 
             # annual_rate = monthly_rate * 12
             elif kwargs['monthly_rate'] is not None:
-                value = kwargs['monthly_rate'] * 365
+                value = multiply(kwargs['monthly_rate'], 365)
 
             else:
                 value = None
@@ -236,11 +252,11 @@ class Offer(object):
 
             # fees = gross * fee_percentage * 0.01
             elif kwargs['gross'] is not None and kwargs['fee_percentage'] is not None:
-                value = kwargs['gross'] * kwargs['fee_percentage'] * 0.01
+                value = multiply(multiply(kwargs['gross'], kwargs['fee_percentage']), 0.01)
 
             # fees = gross - net
             elif kwargs['gross'] is not None and kwargs['net'] is not None:
-                value = kwargs['gross'] - kwargs['net']
+                value = subtract(kwargs['gross'], kwargs['net'])
 
             else:
                 value = None
@@ -253,17 +269,17 @@ class Offer(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
-            # gross = amount * (daily_rate * 0.01) * period
+            # gross = amount * daily_rate * 0.01 * period
             elif kwargs['amount'] is not None and kwargs['daily_rate'] is not None and kwargs['period'] is not None:
-                value = kwargs['amount'] * (kwargs['daily_rate'] * 0.01) * kwargs['period']
+                value = multiply(multiply(multiply(kwargs['amount'], kwargs['daily_rate']), 0.01), kwargs['period'])
 
             # gross = net + fees
             elif kwargs['net'] is not None and kwargs['fees'] is not None:
-                value = kwargs['net'] + kwargs['fees']
+                value = add(kwargs['net'], kwargs['fees'])
 
             # gross = net / (1 - (fee_percentage * 0.01))
             elif kwargs['net'] is not None and kwargs['fee_percentage'] is not None:
-                value = kwargs['net'] / (1 - (kwargs['fee_percentage'] * 0.01))
+                value = divide(kwargs['net'], subtract(1, multiply(kwargs['fee_percentage'], 0.01)))
 
             else:
                 value = None
@@ -278,7 +294,7 @@ class Offer(object):
 
             # net = gross - fees
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
-                value = kwargs['gross'] - kwargs['fees']
+                value = subtract(kwargs['gross'], kwargs['fees'])
 
             else:
                 value = None
@@ -293,7 +309,7 @@ class Offer(object):
 
             # fee_percentage = fees / gross / 0.01
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
-                value = kwargs['fees'] / kwargs['gross'] / 0.01
+                value = divide(divide(kwargs['fees'], kwargs['gross']), 0.01)
 
             # get fee_percentage for normal offer from market fees
             elif kwargs['market'] is not None and kwargs['market'].fees['normal'] is not None \
@@ -423,7 +439,7 @@ class Offer(object):
 
         return results
 
-    def update(self, *args, **kwargs):
+    def update_arguments(self, *args, **kwargs):
 
         # Derive keywords for keyword-less args
         kwargs_from_args = dict()
@@ -436,7 +452,7 @@ class Offer(object):
                     "'{kw}' recognized as keyword for '{arg1}' argument, but '{kw}={arg2}' was also supplied.".format(
                         kw=kw, arg1=arg, arg2=kwargs[kw]))
 
-        # Merge newly keyworded args with kwargs
+        # Merge args with kwargs
         new_arguments = dict()
         new_arguments.update(kwargs_from_args)
         new_arguments.update(kwargs)
@@ -447,13 +463,15 @@ class Offer(object):
         else:
             supplied_arguments = self._supplied_arguments.copy()
 
-        # Replace shortcut strings with external values
+        # merge stored supplied arguments with newly supplied arguments
         combined_arguments = supplied_arguments.copy()
         combined_arguments.update(new_arguments)
-        replace_arguments = self._replace_shortcuts(combined_arguments)
-        new_arguments.update(replace_arguments)
 
-        # Force type for new arguments
+        # Replace shortcut strings with external values
+        replaced_arguments = self._replace_shortcuts(combined_arguments)
+        new_arguments.update(replaced_arguments)
+
+        # Sanitize new arguments
         new_arguments = self._sanitize_kwargs(new_arguments)
 
         # Update previously supplied arguments with new arguments
@@ -464,6 +482,11 @@ class Offer(object):
             if arg is None:
                 del supplied_arguments[kw]
 
+        # Move metadata away
+        if 'metadata' in supplied_arguments:
+            self.metadata = supplied_arguments['metadata']
+            del supplied_arguments['metadata']
+
         # Derive missing argument values from supplied arguments
         derived_arguments = self._derive_missing_kwargs(supplied_arguments)
 
@@ -472,10 +495,16 @@ class Offer(object):
         derived_arguments.update(collected_arguments)
 
         # Derive missing argument values again with newly collected arguments
-        derived_arguments = self._derive_missing_kwargs(derived_arguments)
+        all_arguments = self._derive_missing_kwargs(derived_arguments)
 
-        # Remove supplied arguments from derived arguments
-        derived_arguments = remove_keys(kwargs=derived_arguments, keys=supplied_arguments.keys())
+        # Derive argument again but only the minimum_arguments. This to ensure precision with calculation priority
+        calculation_priority_arguments = filter_keys(all_arguments, keys=['amount', 'price', 'side'])
+        calculation_priority_arguments = self._derive_missing_kwargs(calculation_priority_arguments)
+        all_arguments.update(calculation_priority_arguments)
+
+        # Split arguments into supplied and derived
+        derived_arguments = remove_keys(kwargs=all_arguments, keys=supplied_arguments.keys())
+        supplied_arguments = remove_keys(kwargs=all_arguments, keys=derived_arguments.keys())
 
         # Store supplied and derived arguments
         supplied_arguments = strip_empty(supplied_arguments)
@@ -506,7 +535,7 @@ class Offer(object):
 
     @instrument.setter
     def instrument(self, value):
-        self.update(instrument=value)
+        self.update_arguments(instrument=value)
 
     @property
     def market(self):
@@ -520,7 +549,7 @@ class Offer(object):
 
     @market.setter
     def market(self, value):
-        self.update(market=value)
+        self.update_arguments(market=value)
 
     @property
     def side(self):
@@ -534,7 +563,7 @@ class Offer(object):
 
     @side.setter
     def side(self, value):
-        self.update(side=value)
+        self.update_arguments(side=value)
 
     @property
     def period(self):
@@ -548,7 +577,7 @@ class Offer(object):
 
     @period.setter
     def period(self, value):
-        self.update(period=value)
+        self.update_arguments(period=value)
 
     @property
     def amount(self):
@@ -562,7 +591,7 @@ class Offer(object):
 
     @amount.setter
     def amount(self, value):
-        self.update(amount=value)
+        self.update_arguments(amount=value)
 
     @property
     def daily_rate(self):
@@ -576,7 +605,7 @@ class Offer(object):
 
     @daily_rate.setter
     def daily_rate(self, value):
-        self.update(daily_rate=value)
+        self.update_arguments(daily_rate=value)
 
     @property
     def monthly_rate(self):
@@ -590,7 +619,7 @@ class Offer(object):
 
     @monthly_rate.setter
     def monthly_rate(self, value):
-        self.update(monthly_rate=value)
+        self.update_arguments(monthly_rate=value)
 
     @property
     def annual_rate(self):
@@ -604,7 +633,7 @@ class Offer(object):
 
     @annual_rate.setter
     def annual_rate(self, value):
-        self.update(annual_rate=value)
+        self.update_arguments(annual_rate=value)
 
     @property
     def type(self):
@@ -618,7 +647,7 @@ class Offer(object):
 
     @type.setter
     def type(self, value):
-        self.update(type=value)
+        self.update_arguments(type=value)
 
     @property
     def fees(self):
@@ -632,7 +661,7 @@ class Offer(object):
 
     @fees.setter
     def fees(self, value):
-        self.update(fees=value)
+        self.update_arguments(fees=value)
 
     @property
     def gross(self):
@@ -646,7 +675,7 @@ class Offer(object):
 
     @gross.setter
     def gross(self, value):
-        self.update(gross=value)
+        self.update_arguments(gross=value)
 
     @property
     def net(self):
@@ -660,7 +689,7 @@ class Offer(object):
 
     @net.setter
     def net(self, value):
-        self.update(net=value)
+        self.update_arguments(net=value)
 
     @property
     def fee_percentage(self):
@@ -674,7 +703,7 @@ class Offer(object):
 
     @fee_percentage.setter
     def fee_percentage(self, value):
-        self.update(fee_percentage=value)
+        self.update_arguments(fee_percentage=value)
 
     @property
     def timestamp(self):
@@ -688,7 +717,7 @@ class Offer(object):
 
     @timestamp.setter
     def timestamp(self, value):
-        self.update(timestamp=value)
+        self.update_arguments(timestamp=value)
 
     @property
     def id(self):
@@ -702,7 +731,21 @@ class Offer(object):
 
     @id.setter
     def id(self, value):
-        self.update(id=value)
+        self.update_arguments(id=value)
+
+    @property
+    def active(self):
+        key = 'active'
+        if key in self._supplied_arguments:
+            return self._supplied_arguments[key]
+        elif key in self._derived_arguments:
+            return self._derived_arguments[key]
+        else:
+            return None
+
+    @active.setter
+    def active(self, value):
+        self.update_arguments(active=value)
 
     @property
     def exchange(self):
@@ -716,7 +759,7 @@ class Offer(object):
 
     @exchange.setter
     def exchange(self, value):
-        self.update(exchange=value)
+        self.update_arguments(exchange=value)
 
     @property
     def account(self):
@@ -730,7 +773,98 @@ class Offer(object):
 
     @account.setter
     def account(self, value):
-        self.update(account=value)
+        self.update_arguments(account=value)
+
+    def place(self):
+        if self.account is not None:
+            return self.account.place(self)
+
+    def update(self):
+        if self.account is not None:
+            return self.account.update(self)
+
+    def cancel(self):
+        if self.account is not None:
+            return self.account.cancel(self)
+
+    def sleep_while_active(self, interval=15):
+        while self.is_active:
+            self.update()
+            try:
+                sleep(interval)
+            except KeyboardInterrupt:
+                continue
+        return self
+
+    @property
+    def executed_amount(self):
+        if self.lends is not None:
+            return self.lends.get_sum('amount')
+        else:
+            return float()
+
+    @property
+    def remaining_amount(self):
+        return subtract(self.amount, self.executed_amount)
+
+    @property
+    def percentage_filled(self):
+        return divide(self.remaining_amount, self.amount)
+
+    @property
+    def is_placed(self):
+        if self.id is not None:
+            return True
+        return False
+
+    @property
+    def is_active(self):
+        if self.id is not None and self.active is True:
+            return True
+        return False
+
+    @property
+    def is_partially_filled(self):
+        if self.id is not None and 0.0 < self.remaining_amount < self.amount:
+            return True
+        return False
+
+    @property
+    def is_cancelled(self):
+        if self.id is not None and self.active is False and self.remaining_amount > 0.0:
+            return True
+        return False
+
+    @property
+    def is_executed(self):
+        if self.id is not None and self.active is False and self.remaining_amount == 0.0:
+            return True
+        return False
+
+    @property
+    def status(self):
+        if self.is_executed:
+            return 'executed'
+        elif self.is_cancelled:
+            return 'cancelled'
+        elif self.is_partially_filled:
+            return 'partially filled'
+        elif self.is_active:
+            return 'active'
+        else:
+            return 'draft'
+
+    def _status_colored(self, value):
+        if self.status == 'executed':
+            return colored(value, 'green')
+        elif self.status == 'cancelled':
+            return colored(value, 'red')
+        elif self.status == 'partially filled':
+            return colored(value, 'yellow')
+        elif self.status == 'active':
+            return colored(value, 'cyan')
+        else:
+            return value
 
 
 class Offers(ObjectList):

@@ -1,3 +1,5 @@
+from time import sleep
+
 from termcolor import colored
 
 from .instruments import Instrument
@@ -7,7 +9,7 @@ from .pairs import Pair
 from ..utilities import add_as_decimals as add
 from ..utilities import divide_as_decimals as divide
 from ..utilities import multiply_as_decimals as multiply
-from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys
+from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys, side_colored
 from ..utilities import subtract_as_decimals as subtract
 
 
@@ -49,6 +51,17 @@ class Order(object):
     def __init__(self, *args, **kwargs):
         self.update_arguments(*args, **kwargs)
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        arguments = list()
+        for entry in self._minimum_arguments.items():
+            if entry[0] == 'side':
+                arguments.append(side_colored('{}={!r}'.format(*entry), entry[1]))
+            else:
+                arguments.append('{}={!r}'.format(*entry))
+
+        return '{}({})'.format(self._status_colored(class_name), ', '.join(arguments))
+
     def as_dict(self):
         dict_obj = dict()
         for key, value in self._supplied_arguments.items():
@@ -59,17 +72,6 @@ class Order(object):
     @classmethod
     def from_dict(cls, dict_obj):
         return cls(**dict_obj)
-
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        arguments = list()
-        for entry in self._minimum_arguments.items():
-            if entry[0] == 'side':
-                color = self._side_color
-            else:
-                color = None
-            arguments.append(colored('{}={!r}'.format(*entry), color))
-        return '{}({})'.format(colored(class_name, self._status_color), ', '.join(arguments))
 
     @staticmethod
     def _get_kw_for_arg(arg):
@@ -1102,8 +1104,14 @@ class Order(object):
         if self.account is not None:
             return self.account.cancel(self)
 
-    def wait_for_completion(self):
-        raise NotImplemented
+    def sleep_while_active(self, interval=15):
+        while self.is_active:
+            self.update()
+            try:
+                sleep(interval)
+            except KeyboardInterrupt:
+                continue
+        return self
 
     def followup(self, output='100%'):
         if type(output) is str and output[-1:] == '%':
@@ -1114,7 +1122,7 @@ class Order(object):
                 multiplier = multiply(output[:-1], 0.01)
                 output = multiply(self.input, multiplier)
 
-        order = self.__class__(
+        result = self.__class__(
             account=self.account,
             exchange=self.exchange,
             market=self.market,
@@ -1123,11 +1131,22 @@ class Order(object):
             input=self.output,
             output=output,
         )
-        return order
+        return result
+
+    @property
+    def executed_amount(self):
+        if self.trades is not None:
+            return self.trades.get_sum('amount')
+        else:
+            return float()
 
     @property
     def remaining_amount(self):
-        return self.amount  # TODO: temporary, check trades for real remaining amount
+        return subtract(self.amount, self.executed_amount)
+
+    @property
+    def percentage_filled(self):
+        return divide(self.remaining_amount, self.amount)
 
     @property
     def is_placed(self):
@@ -1142,8 +1161,8 @@ class Order(object):
         return False
 
     @property
-    def is_completed(self):
-        if self.id is not None and self.active is False and self.remaining_amount == 0.0:
+    def is_partially_filled(self):
+        if self.id is not None and 0.0 < self.remaining_amount < self.amount:
             return True
         return False
 
@@ -1154,23 +1173,35 @@ class Order(object):
         return False
 
     @property
-    def _status_color(self):
-        if self.is_active:
-            return 'yellow'
-        elif self.is_cancelled:
-            return 'red'
-        elif self.is_completed:
-            return 'green'
-        else:
-            return None
+    def is_executed(self):
+        if self.id is not None and self.active is False and self.remaining_amount == 0.0:
+            return True
+        return False
 
     @property
-    def _side_color(self):
-        if self.side == 'buy':
-            return 'green'
-        elif self.side == 'sell':
-            return 'red'
-        return None
+    def status(self):
+        if self.is_executed:
+            return 'executed'
+        elif self.is_cancelled:
+            return 'cancelled'
+        elif self.is_partially_filled:
+            return 'partially filled'
+        elif self.is_active:
+            return 'active'
+        else:
+            return 'draft'
+
+    def _status_colored(self, value):
+        if self.status == 'executed':
+            return colored(value, 'green')
+        elif self.status == 'cancelled':
+            return colored(value, 'red')
+        elif self.status == 'partially filled':
+            return colored(value, 'yellow')
+        elif self.status == 'active':
+            return colored(value, 'cyan')
+        else:
+            return value
 
 
 class Orders(ObjectList):

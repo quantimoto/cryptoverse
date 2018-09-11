@@ -1,6 +1,7 @@
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
+from ...utilities import multiply_as_decimals as multiply
 
 
 class BitfinexInterface(ExchangeInterface):
@@ -124,7 +125,10 @@ class BitfinexInterface(ExchangeInterface):
                 'maker': float(fees['Order Execution'][0]['Maker fees'].rstrip('%')),
                 'taker': float(fees['Order Execution'][0]['Taker fees'].rstrip('%')),
             }
-            margin_funding_fees = {
+            offer_limits = {
+                'period': {'min': 2.0, 'max': 30.0},
+            }
+            offer_fees = {
                 'normal': float(fees['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')),
                 'hidden': float(fees['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
             }
@@ -147,12 +151,14 @@ class BitfinexInterface(ExchangeInterface):
                 funding_market1 = {
                     'context': 'funding',
                     'symbol': base,
-                    'fees': margin_funding_fees,
+                    'limits': offer_limits,
+                    'fees': offer_fees,
                 }
                 funding_market2 = {
                     'context': 'funding',
                     'symbol': quote,
-                    'fees': margin_funding_fees
+                    'limits': offer_limits,
+                    'fees': offer_fees
                 }
                 if funding_market1 not in markets['funding']:
                     markets['funding'].append(funding_market1)
@@ -321,7 +327,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
                 'side': str(entry['type']),
-                'id': str(entry['tid']),
+                'id_': str(entry['tid']),
                 'timestamp': float(entry['timestamp']) * 0.001,
             }
             result.append(trade)
@@ -344,7 +350,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['amount']),
                 'annual_rate': float(entry['rate']),
                 'period': int(entry['period']),
-                'side': 'bid',
+                'side': 'buy',
                 'timestamp': float(entry['timestamp']),
             }
             result['bids'].append(offer)
@@ -354,7 +360,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['amount']),
                 'annual_rate': float(entry['rate']),
                 'period': int(entry['period']),
-                'side': 'ask',
+                'side': 'sell',
                 'timestamp': float(entry['timestamp']),
             }
             result['asks'].append(offer)
@@ -373,7 +379,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': max(float(entry[2]), -float(entry[2])),
                 'daily_rate': float(entry[3]) * 100,
                 'period': int(entry[4]),
-                'id': str(entry[0]),
+                'id_': str(entry[0]),
                 'timestamp': float(entry[1]) * 0.001,
                 'side': 'sell' if float(entry[2]) > 0.0 else 'buy',
             }
@@ -535,19 +541,73 @@ class BitfinexInterface(ExchangeInterface):
                 }
             }
             result.append(order)
+
         return result
 
-    def get_account_trades(self, *args, **kwargs):
+    def get_account_trades(self, pair, limit=100):
+        symbol = '{}{}'.format(*pair.split('/'))
+        response = self.rest_client.mytrades(symbol=symbol, limit_trades=limit)
+
+        result = list()
+        for entry in response:
+            trade = {
+                'amount': float(entry['amount']),
+                'fees': max(float(entry['fee_amount']), -float(entry['fee_amount'])),
+                'fee_instrument': 'USD',
+                'order_id': str(entry['order_id']),
+                'price': float(entry['price']),
+                'id_': str(entry['tid']),
+                'timestamp': float(entry['timestamp']),
+                'side': str(entry['type']).lower(),
+            }
+            result.append(trade)
+
+        return result
+
+    def get_account_positions(self):
         raise NotImplementedError
 
-    def get_account_positions(self, *args, **kwargs):
-        raise NotImplementedError
+    def get_account_offers(self):
+        response = self.rest_client.offers()
 
-    def get_account_offers(self, *args, **kwargs):
-        raise NotImplementedError
+        result = list()
+        for entry in response:
+            offer = {
+                'amount': float(entry['original_amount']),
+                'instrument': str(entry['currency']),
+                'side': 'sell' if entry['direction'] == 'lend' else 'buy',
+                'id': str(entry['id']),
+                'period': entry['period'],
+                'annual_rate': float(entry['rate']),
+                'timestamp': float(entry['timestamp']),
+                'active': entry['is_live'],
+                'metadata': {
+                    'executed_amount': entry['executed_amount'],
+                    'is_cancelled': entry['is_cancelled'],
+                    'remaining_amount': entry['remaining_amount'],
+                },
+            }
+            result.append(offer)
+        return result
 
-    def get_account_lends(self, *args, **kwargs):
-        raise NotImplementedError
+    def get_account_lends(self, instrument, limit=100):
+        symbol = '{}'.format(instrument)
+        response = self.rest_client.mytrades_funding(symbol=symbol, limit_trades=limit)
+
+        result = list()
+        for entry in response:
+            lend = {
+                'amount': float(entry['amount']),
+                'period': float(entry['period']),
+                'daily_rate': multiply(float(entry['rate']), 100),
+                'timestamp': float(entry['timestamp']),
+                'side': str(entry['type']).lower(),
+                'id_': str(entry['tid']),
+                'offer_id': str(entry['offer_id']),
+            }
+            result.append(lend)
+
+        return result
 
     def get_account_deposits(self, *args, **kwargs):
         raise NotImplementedError
@@ -556,13 +616,13 @@ class BitfinexInterface(ExchangeInterface):
         raise NotImplementedError
 
     def place_single_order(self, pair, amount, price, side, context='exchange', type_='limit', hidden=False,
-                           postonly=None):
+                           post_only=None):
         if context not in ['exchange', 'margin']:
             raise ValueError("'context' attribute must be either 'exchange' or 'margin', not: {}".format(context))
         if type_ not in ['limit', 'market']:
             raise ValueError("'type_' attritube must be either 'limit' or 'market', not: {}".format(type_))
-        if type_ == 'limit' and postonly is None:
-            postonly = True
+        if type_ == 'limit' and post_only is None:
+            post_only = True
 
         response = self.rest_client.order_new(
             symbol='{}{}'.format(*pair.split('/')),
@@ -572,7 +632,7 @@ class BitfinexInterface(ExchangeInterface):
             type_='{} {}'.format(context, type_),
             exchange='bitfinex',
             is_hidden=hidden,
-            is_postonly=postonly,
+            is_postonly=post_only,
         )
 
         pair = '{}/{}'.format(response['symbol'][:3].upper(), response['symbol'][3:].upper())
@@ -791,8 +851,33 @@ class BitfinexInterface(ExchangeInterface):
     def cancel_all_orders(self):
         raise NotImplementedError
 
-    def place_single_offer(self, offer_id):
-        raise NotImplementedError
+    def place_single_offer(self, instrument, amount, annual_rate, period, side):
+        response = self.rest_client.offer_new(
+            currency=instrument,
+            amount=amount,
+            rate=annual_rate,
+            period=period,
+            direction='lend' if side == 'sell' else 'loan',
+        )
+
+        result = {
+            'instrument': response['currency'],
+            'side': 'sell' if response['direction'] == 'lend' else 'buy',
+            'amount': response['original_amount'],
+            'annual_rate': response['rate'],
+            'period': response['period'],
+            'id': response['id'],
+            'active': response['is_live'],
+            'timestamp': response['timestamp'],
+            'metadata': {
+                'offer_id': response['offer_id'],
+                'executed_amount': response['executed_amount'],
+                'is_cancelled': response['is_cancelled'],
+                'remaining_amount': response['remaining_amount'],
+            },
+        }
+
+        return result
 
     def place_multiple_offers(self, *offer_ids):
         raise NotImplementedError
@@ -804,13 +889,49 @@ class BitfinexInterface(ExchangeInterface):
         raise NotImplementedError
 
     def update_single_offer(self, offer_id):
-        raise NotImplementedError
+        response = self.rest_client.offer_status(offer_id=int(offer_id))
+
+        result = {
+            'amount': float(response['original_amount']),
+            'instrument': str(response['currency']),
+            'side': 'sell' if response['direction'] == 'lend' else 'buy',
+            'id': str(response['id']),
+            'period': float(response['period']),
+            'annual_rate': float(response['rate']),
+            'timestamp': float(response['timestamp']),
+            'active': response['is_live'],
+            'metadata': {
+                'executed_amount': response['executed_amount'],
+                'is_cancelled': response['is_cancelled'],
+                'remaining_amount': response['remaining_amount'],
+            },
+        }
+
+        return result
 
     def update_multiple_offers(self, *offer_ids):
         raise NotImplementedError
 
     def cancel_single_offer(self, offer_id):
-        raise NotImplementedError
+        response = self.rest_client.offer_cancel(offer_id=int(offer_id))
+
+        result = {
+            'amount': float(response['original_amount']),
+            'instrument': str(response['currency']),
+            'side': 'sell' if response['direction'] == 'lend' else 'buy',
+            'id': str(response['id']),
+            'period': float(response['period']),
+            'annual_rate': float(response['rate']),
+            'timestamp': float(response['timestamp']),
+            'active': response['is_live'],
+            'metadata': {
+                'executed_amount': response['executed_amount'],
+                'is_cancelled': response['is_cancelled'],
+                'remaining_amount': response['remaining_amount'],
+            },
+        }
+
+        return result
 
     def cancel_multiple_offers(self, *offer_ids):
         raise NotImplementedError

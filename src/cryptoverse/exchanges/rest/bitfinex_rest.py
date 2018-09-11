@@ -1163,11 +1163,11 @@ class BitfinexREST(RESTClient):
                 'version': 1,
             },
             data={
-                'currency': currency,
-                'amount': amount,
-                'rate': rate,
-                'period': period,
-                'direction': direction,
+                'currency': str(currency),
+                'amount': str(float(amount)),
+                'rate': str(float(rate)),
+                'period': int(period),
+                'direction': str(direction),
             },
             credentials=credentials,
         )

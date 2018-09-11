@@ -174,26 +174,26 @@ class Exchange(object):
 
     def order_book(self, market, limit=100):
         if type(market) is Market:
-            symbol = market.pair.as_str()
-            pair = market.pair
+            pair_str = market.pair.as_str()
+            pair_obj = market.pair
         elif type(market) is Pair:
-            symbol = market.as_str()
-            pair = market
-        elif type(market) is str:
-            symbol = market
-            pair = market
+            pair_str = market.as_str()
+            pair_obj = market
+        elif type(market) is str and '/' in market:
+            pair_str = market
+            pair_obj = market
         else:
-            symbol = None
-            pair = None
+            pair_str = None
+            pair_obj = None
 
-        if symbol is not None:
-            response = self.interface.get_market_orders(symbol=symbol, limit=limit)
+        if pair_str is not None:
+            response = self.interface.get_market_orders(pair=pair_str, limit=limit)
 
             bids = Orders()
             if 'bids' in response:
                 for entry in response['bids']:
                     entry['exchange'] = self
-                    entry['pair'] = pair
+                    entry['pair'] = pair_obj
                     order = Order.from_dict(entry)
                     bids.append(order)
 
@@ -201,7 +201,7 @@ class Exchange(object):
             if 'asks' in response:
                 for entry in response['asks']:
                     entry['exchange'] = self
-                    entry['pair'] = pair
+                    entry['pair'] = pair_obj
                     order = Order.from_dict(entry)
                     asks.append(order)
 
@@ -211,48 +211,36 @@ class Exchange(object):
 
     def offer_book(self, market, limit=100):
         if type(market) is Market:
-            symbol = market.instrument.as_str()
-            instrument = market.instrument
+            instrument_str = market.instrument.as_str()
+            instrument_obj = market.instrument
         elif type(market) is Instrument:
-            symbol = market.as_str()
-            instrument = market
+            instrument_str = market.as_str()
+            instrument_obj = market
         elif type(market) is str:
-            symbol = market
-            instrument = market
+            instrument_str = market
+            instrument_obj = market
         else:
-            symbol = None
-            instrument = None
+            instrument_str = None
+            instrument_obj = None
 
-        if symbol is not None:
-            response = self.interface.get_market_offers(symbol=symbol, limit=limit)
+        if instrument_str is not None:
+            response = self.interface.get_market_offers(instrument=instrument_str, limit=limit)
 
             bids = Offers()
             if 'bids' in response:
                 for entry in response['bids']:
-                    order = Offer(
-                        amount=entry['amount'],
-                        annual_rate=entry['annual_rate'],
-                        side=entry['side'],
-                        period=entry['period'],
-                        timestamp=entry['timestamp'],
-                        instrument=instrument,
-                        exchange=self,
-                    )
-                    bids.append(order)
+                    entry['exchange'] = self
+                    entry['instrument'] = instrument_obj
+                    offer = Offer.from_dict(entry)
+                    bids.append(offer)
 
             asks = Offers()
             if 'asks' in response:
                 for entry in response['asks']:
-                    order = Offer(
-                        amount=entry['amount'],
-                        annual_rate=entry['annual_rate'],
-                        side=entry['side'],
-                        period=entry['period'],
-                        timestamp=entry['timestamp'],
-                        instrument=instrument,
-                        exchange=self,
-                    )
-                    asks.append(order)
+                    entry['exchange'] = self
+                    entry['instrument'] = instrument_obj
+                    offer = Offer.from_dict(entry)
+                    asks.append(offer)
 
             result = OfferBook(bids, asks)
 
@@ -276,46 +264,33 @@ class Exchange(object):
             response = self.interface.get_market_trades(pair=pair_str, limit=limit)
             result = Trades()
             for entry in response:
-                trade = Trade(
-                    amount=entry['amount'],
-                    price=entry['price'],
-                    side=entry['side'],
-                    exchange_id=entry['id'],
-                    timestamp=entry['timestamp'],
-                    exchange=self,
-                    pair=pair_obj,
-                )
+                entry['exchange'] = self
+                entry['pair'] = pair_obj
+                trade = Trade.from_dict(entry)
                 result.append(trade)
             return result
 
     def lends(self, market, limit=100):
         if type(market) is Market:
-            symbol = market.instrument.as_str()
-            instrument = market.instrument
+            instrument_str = market.instrument.as_str()
+            instrument_obj = market.instrument
         elif type(market) is Instrument:
-            symbol = market.as_str()
-            instrument = market
+            instrument_str = market.as_str()
+            instrument_obj = market
         elif type(market) is str:
-            symbol = market
-            instrument = market
+            instrument_str = market
+            instrument_obj = market
         else:
-            symbol = None
-            instrument = None
+            instrument_str = None
+            instrument_obj = None
 
-        if symbol is not None:
-            response = self.interface.get_market_lends(symbol=symbol, limit=limit)
+        if instrument_str is not None:
+            response = self.interface.get_market_lends(instrument=instrument_str, limit=limit)
             result = Lends()
             for entry in response:
-                lend = Lend(
-                    amount=entry['amount'],
-                    daily_rate=entry['daily_rate'],
-                    period=entry['period'],
-                    exchange_id=entry['id'],
-                    timestamp=entry['timestamp'],
-                    side=entry['side'],
-                    exchange=self,
-                    instrument=instrument,
-                )
+                entry['exchange'] = self
+                entry['instrument'] = instrument_obj
+                lend = Lend.from_dict(entry)
                 result.append(lend)
             return result
 

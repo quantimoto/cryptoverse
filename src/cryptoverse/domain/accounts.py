@@ -1,8 +1,11 @@
 from .balances import Balance, Balances
 from .credentials import Credentials
+from .lends import Lends, Lend
+from .markets import Market
 from .object_list import ObjectList
 from .offers import Offer, Offers
 from .orders import Order, Orders
+from .pairs import Pair
 from .wallets import ExchangeWallet, Wallets
 
 
@@ -61,26 +64,105 @@ class Account(object):
         return self.exchange.interface.get_account_fees()
 
     def orders(self):
+        from .trades import Trades
         response = self.exchange.interface.get_account_orders()
+
         result = Orders()
         for entry in response:
             entry['account'] = self
             entry['exchange'] = self.exchange
             order = Order.from_dict(entry)
             result.append(order)
+
+        markets = result.get_unique_values('market')
+        trades = Trades()
+        for market in markets:
+            response = self.trades(market=market, limit=100)
+            trades += response
+
+        for entry in result:
+            entry.trades = trades.find(order_id=entry.id)
+
         return result
 
-    def trades(self, market):
-        return self.exchange.interface.get_account_trades(market=market)
+    def trades(self, market, limit=100):
+        from .markets import Market
+        from .pairs import Pair
+        from .trades import Trades, Trade
+
+        if type(market) is Market:
+            pair_str = market.pair.as_str()
+            pair_obj = market.pair
+        elif type(market) is Pair:
+            pair_str = market.as_str()
+            pair_obj = market
+        elif type(str) and '/' in market:
+            pair_str = market
+            pair_obj = market
+        else:
+            raise ValueError("Invalid value for 'market' supplied: {}".format(market))
+
+        response = self.exchange.interface.get_account_trades(pair=pair_str, limit=limit)
+
+        result = Trades()
+        for entry in response:
+            entry['account'] = self
+            entry['exchange'] = self.exchange
+            entry['pair'] = pair_obj
+            trade = Trade.from_dict(entry)
+            result.append(trade)
+
+        return result
 
     def positions(self, market=None):
         return self.exchange.interface.get_account_positions(market=market)
 
-    def offers(self, market):
-        return self.exchange.interface.get_account_positions(market=market)
+    def offers(self):
+        response = self.exchange.interface.get_account_offers()
 
-    def lends(self, market):
-        return self.exchange.interface.get_account_lends(market=market)
+        result = Offers()
+        for entry in response:
+            entry['account'] = self
+            entry['exchange'] = self.exchange
+            order = Offer.from_dict(entry)
+            result.append(order)
+
+        markets = result.get_unique_values('market')
+        lends = Lends()
+        for market in markets:
+            response = self.lends(market=market, limit=100)
+            lends += response
+
+        for entry in result:
+            entry.lends = lends.find(offer_id=entry.id)
+
+        return result
+
+    def lends(self, market, limit=100):
+
+        if type(market) is Market:
+            instrument_str = market.instrument.as_str()
+            instrument_obj = market.instrument
+        elif type(market) is Pair:
+            instrument_str = market.as_str()
+            instrument_obj = market
+        elif type(str):
+            instrument_str = market
+            instrument_obj = market
+        else:
+            raise ValueError("Invalid value for 'market' supplied: {}".format(market))
+
+        response = self.exchange.interface.get_account_lends(instrument=instrument_str, limit=limit)
+
+        result = Lends()
+        for entry in response:
+            entry['account'] = self
+            entry['exchange'] = self.exchange
+            entry['instrument'] = instrument_obj
+            trade = Lend.from_dict(entry)
+            result.append(trade)
+
+        return result
 
     def wallets(self, label=None):
         response = self.exchange.interface.get_account_wallets()
@@ -134,6 +216,7 @@ class Account(object):
         raise NotImplementedError
 
     def place(self, obj):
+
         if type(obj) is Order:
             response = self.exchange.interface.place_single_order(
                 pair=obj.pair.as_str(),
@@ -145,63 +228,97 @@ class Account(object):
                 hidden=obj.hidden,
             )
             obj.update_arguments(**response)
+
         elif type(obj) is Orders:
             response = self.exchange.interface.place_multiple_orders(obj)
             return response
+
         elif type(obj) is Offer:
-            response = self.exchange.interface.place_single_offer(obj)
+            response = self.exchange.interface.place_single_offer(
+                instrument=obj.instrument.as_str(),
+                amount=obj.amount,
+                annual_rate=obj.annual_rate,
+                period=obj.period,
+                side=obj.side,
+            )
             obj.update_arguments(**response)
+
         elif type(obj) is Offers:
             response = self.exchange.interface.place_multiple_offers(obj)
             return response
+
         return obj
 
     def update(self, obj):
+
         if type(obj) is Order:
-            response = self.exchange.interface.update_single_order(obj.id)
+            response = self.exchange.interface.update_single_order(order_id=obj.id)
             obj.update_arguments(**response)
+
+            trades = self.trades(market=obj.market, limit=100)
+            obj.trades = trades.find(order_id=obj.id)
+
         elif type(obj) is Orders:
             response = self.exchange.interface.update_multiple_orders(obj.get_values('id'))
             return response
+
         elif type(obj) is Offer:
             response = self.exchange.interface.update_single_offer(obj.id)
             obj.update_arguments(**response)
+
+            lends = self.lends(market=obj.market, limit=100)
+            obj.lends = lends.find(offer_id=obj.id)
+
         elif type(obj) is Offers:
             response = self.exchange.interface.update_multiple_offers(obj.get_values('id'))
             return response
+
         return obj
 
     def cancel(self, obj):
+
         if type(obj) is Order:
             response = self.exchange.interface.cancel_single_order(obj.id)
             obj.update_arguments(**response)
             if not obj.is_cancelled:
                 while not obj.is_cancelled:
                     obj = self.update(obj)
+
         elif type(obj) is Orders:
             response = self.exchange.interface.cancel_multiple_orders(obj.get_values('id'))
             return response
+
         elif type(obj) is Offer:
             response = self.exchange.interface.cancel_single_offer(obj.id)
             obj.update_arguments(**response)
+            if not obj.is_cancelled:
+                while not obj.is_cancelled:
+                    obj = self.update(obj)
+
         elif type(obj) is Offers:
             response = self.exchange.interface.cancel_multiple_offers(obj.get_values('id'))
             return response
+
         return obj
 
     def replace(self, obj):
+
         if type(obj) is Order:
             response = self.exchange.interface.replace_single_order(obj.id)
             return response
+
         elif type(obj) is Orders:
             response = self.exchange.interface.replace_multiple_orders(obj.get_values('id'))
             return response
+
         elif type(obj) is Offer:
             response = self.exchange.interface.replace_single_offer(obj.id)
             return response
+
         elif type(obj) is Offers:
             response = self.exchange.interface.replace_multiple_offers(obj.get_values('id'))
             return response
+
         return obj
 
 
