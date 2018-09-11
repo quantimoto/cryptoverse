@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-rm -Rf build dist *.egg-info .eggs
+rm -Rf build dist src/cryptoverse.egg-info .eggs
+rm -Rf .pytest_cache
