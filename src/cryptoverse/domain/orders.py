@@ -1104,9 +1104,6 @@ class Orders(ObjectList):
         order = Order(*args, **kwargs)
         self.append(order)
 
-    def sum(self, key):
-        return sum(self.get_values(key))
-
 
 class OrderChain(Orders):
     pass
