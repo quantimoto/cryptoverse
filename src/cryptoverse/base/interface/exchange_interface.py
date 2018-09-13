@@ -134,7 +134,7 @@ class ExchangeInterface(object):
     def cancel_single_order(self, order_id):
         raise NotImplementedError
 
-    def cancel_multiple_orders(self, orders_ids):
+    def cancel_multiple_orders(self, order_ids):
         raise NotImplementedError
 
     def cancel_all_orders(self):
