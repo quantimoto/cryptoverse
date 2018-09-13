@@ -499,6 +499,7 @@ class BitfinexInterface(ExchangeInterface):
                 'type': type_,
                 'hidden': entry['is_hidden'],
                 'active': entry['is_live'],
+                'cancelled': entry['is_cancelled'],
                 'metadata': {
                     'avg_execution_price': entry['avg_execution_price'],
                     'cid': entry['cid'],
@@ -506,7 +507,6 @@ class BitfinexInterface(ExchangeInterface):
                     'exchange': entry['exchange'],
                     'executed_amount': entry['executed_amount'],
                     'gid': entry['gid'],
-                    'is_cancelled': entry['is_cancelled'],
                     'oco_order': entry['oco_order'],
                     'remaining_amount': entry['remaining_amount'],
                     'src': entry['src'],
@@ -554,9 +554,9 @@ class BitfinexInterface(ExchangeInterface):
                 'annual_rate': float(entry['rate']),
                 'timestamp': float(entry['timestamp']),
                 'active': entry['is_live'],
+                'cancelled': entry['is_cancelled'],
                 'metadata': {
                     'executed_amount': entry['executed_amount'],
-                    'is_cancelled': entry['is_cancelled'],
                     'remaining_amount': entry['remaining_amount'],
                 },
             }
@@ -664,6 +664,7 @@ class BitfinexInterface(ExchangeInterface):
             'type': type_,
             'hidden': response['is_hidden'],
             'active': response['is_live'],
+            'cancelled': response['is_cancelled'],
             'metadata': {
                 'avg_execution_price': response['avg_execution_price'],
                 'cid': response['cid'],
@@ -671,7 +672,6 @@ class BitfinexInterface(ExchangeInterface):
                 'exchange': response['exchange'],
                 'executed_amount': response['executed_amount'],
                 'gid': response['gid'],
-                'is_cancelled': response['is_cancelled'],
                 'oco_order': response['oco_order'],
                 'remaining_amount': response['remaining_amount'],
                 'src': response['src'],
@@ -740,6 +740,7 @@ class BitfinexInterface(ExchangeInterface):
             'type': type_,
             'hidden': response['is_hidden'],
             'active': response['is_live'],
+            'cancelled': response['is_cancelled'],
             'metadata': {
                 'avg_execution_price': response['avg_execution_price'],
                 'cid': response['cid'],
@@ -747,7 +748,6 @@ class BitfinexInterface(ExchangeInterface):
                 'exchange': response['exchange'],
                 'executed_amount': response['executed_amount'],
                 'gid': response['gid'],
-                'is_cancelled': response['is_cancelled'],
                 'oco_order': response['oco_order'],
                 'remaining_amount': response['remaining_amount'],
                 'src': response['src'],
@@ -810,6 +810,7 @@ class BitfinexInterface(ExchangeInterface):
             'type': type_,
             'hidden': response['is_hidden'],
             'active': response['is_live'],
+            'cancelled': response['is_cancelled'],
             'metadata': {
                 'avg_execution_price': response['avg_execution_price'],
                 'cid': response['cid'],
@@ -817,7 +818,6 @@ class BitfinexInterface(ExchangeInterface):
                 'exchange': response['exchange'],
                 'executed_amount': response['executed_amount'],
                 'gid': response['gid'],
-                'is_cancelled': response['is_cancelled'],
                 'oco_order': response['oco_order'],
                 'remaining_amount': response['remaining_amount'],
                 'src': response['src'],
@@ -851,10 +851,10 @@ class BitfinexInterface(ExchangeInterface):
             'id': response['id'],
             'active': response['is_live'],
             'timestamp': response['timestamp'],
+            'cancelled': response['is_cancelled'],
             'metadata': {
                 'offer_id': response['offer_id'],
                 'executed_amount': response['executed_amount'],
-                'is_cancelled': response['is_cancelled'],
                 'remaining_amount': response['remaining_amount'],
             },
         }
@@ -882,9 +882,9 @@ class BitfinexInterface(ExchangeInterface):
             'annual_rate': float(response['rate']),
             'timestamp': float(response['timestamp']),
             'active': response['is_live'],
+            'cancelled': response['is_cancelled'],
             'metadata': {
                 'executed_amount': response['executed_amount'],
-                'is_cancelled': response['is_cancelled'],
                 'remaining_amount': response['remaining_amount'],
             },
         }
@@ -906,9 +906,9 @@ class BitfinexInterface(ExchangeInterface):
             'annual_rate': float(response['rate']),
             'timestamp': float(response['timestamp']),
             'active': response['is_live'],
+            'cancelled': response['is_cancelled'],
             'metadata': {
                 'executed_amount': response['executed_amount'],
-                'is_cancelled': response['is_cancelled'],
                 'remaining_amount': response['remaining_amount'],
             },
         }
