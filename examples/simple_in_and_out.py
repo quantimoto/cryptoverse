@@ -46,6 +46,6 @@ my_sell_order.wait_while_active()
 
 
 # %% Using method chaining, you could do the exact same trade from one line of code:
-account.create_order('BTC/USD', 'sell', input='100%', price='ask').place().wait_for_completion().followup(
-    output='+1%').place().sleep_until_filled()
+cryptoverse.accounts['bitfinex_account1'].create_order('BTC/USD', 'sell', input='100%', price='ask') \
+    .place().wait_while_active().followup(output='+1%').place()
 # very useful for typing simple strategies quickly from the interactive console
