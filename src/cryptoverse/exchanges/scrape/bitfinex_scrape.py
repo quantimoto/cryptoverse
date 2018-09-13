@@ -5,7 +5,7 @@ from ...base.scrape import ScrapeClient
 class BitfinexScrape(ScrapeClient):
 
     @Memoize(expires=60 * 60 * 24)
-    @Retry(IndexError, wait=20)
+    @Retry(IndexError, wait=60)
     def fees(self):
         soup = self.get_soup('https://www.bitfinex.com/fees')
 
