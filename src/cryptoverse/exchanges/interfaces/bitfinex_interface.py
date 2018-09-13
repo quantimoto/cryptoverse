@@ -681,8 +681,68 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def place_multiple_orders(self, *args, **kwargs):
-        raise NotImplementedError
+    def place_multiple_orders(self, orders):
+        order_list = list()
+        for entry in orders:
+            if entry['context'] == 'spot':
+                context = 'exchange'
+            elif entry['context'] == 'margin':
+                context = 'margin'
+            elif entry['funding'] == 'funding':
+                context = 'funding'
+            else:
+                context = None
+
+            order = {
+                'symbol': '{}{}'.format(*entry['pair'].split('/')),
+                'amount': str(entry['amount']),
+                'price': str(entry['price']),
+                'exchange': 'bitfinex',
+                'side': entry['side'],
+                'type': '{} {}'.format(context, entry['type']),
+            }
+            order_list.append(order)
+
+        response = self.rest_client.order_new_multi(order_list)
+
+        result = list()
+        for entry in response['order_ids']:
+            pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
+            if ' ' in entry['type']:
+                context = 'spot'
+                type_ = entry['type'].split(' ')[1]
+            else:
+                context = 'margin'
+                type_ = entry['type']
+
+            order = {
+                'id': entry['id'],
+                'hidden': entry['is_hidden'],
+                'active': entry['is_live'],
+                'amount': entry['original_amount'],
+                'price': entry['price'],
+                'side': entry['side'],
+                'pair': pair,
+                'timestamp': entry['timestamp'],
+                'type': type_,
+                'context': context,
+                'cancelled': entry['is_cancelled'],
+                'metadata': {
+                    'was_forced': entry['was_forced'],
+                    'avg_execution_price': entry['avg_execution_price'],
+                    'cid': entry['cid'],
+                    'cid_date': entry['cid_date'],
+                    'exchange': entry['exchange'],
+                    'executed_amount': entry['executed_amount'],
+                    'gid': entry['gid'],
+                    'oco_order': entry['oco_order'],
+                    'remaining_amount': entry['remaining_amount'],
+                    'src': entry['src'],
+                }
+            }
+            result.append(order)
+
+        return result
 
     def replace_single_order(self, *args, **kwargs):
         raise NotImplementedError
@@ -757,8 +817,68 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def update_multiple_orders(self, order_ids):
-        raise NotImplementedError
+    def update_multiple_orders(self, orders):
+        active_orders = self.rest_client.orders()
+        order_history = self.rest_client.orders_hist(limit=100)
+
+        result = list()
+        for order in orders:
+            active_entries_for_id = [entry for entry in active_orders if str(entry['id']) == order['id']]
+            try:
+                history_entries_for_id = [entry for entry in order_history if str(entry['id']) == order['id']]
+            except TypeError as e:
+                print(order_history)
+                raise TypeError(e)
+
+            entry = None
+            if len(active_entries_for_id) == 1:
+                entry = active_entries_for_id[0]
+            elif len(history_entries_for_id) == 1:
+                entry = history_entries_for_id[0]
+
+            if entry:
+                pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
+                if ' ' in entry['type']:
+                    context = 'spot'
+                    type_ = entry['type'].split(' ')[1]
+                else:
+                    context = 'margin'
+                    type_ = entry['type']
+
+                order = {
+                    'amount': float(entry['original_amount']),
+                    'price': float(entry['price']),
+                    'side': str(entry['side']),
+                    'id': str(entry['id']),
+                    'timestamp': float(entry['timestamp']),
+                    'pair': pair,
+                    'context': context,
+                    'type': type_,
+                    'hidden': entry['is_hidden'],
+                    'active': entry['is_live'],
+                    'cancelled': entry['is_cancelled'],
+                    'metadata': {
+                        'avg_execution_price': entry['avg_execution_price'],
+                        'cid': entry['cid'],
+                        'cid_date': entry['cid_date'],
+                        'exchange': entry['exchange'],
+                        'executed_amount': entry['executed_amount'],
+                        'gid': entry['gid'],
+                        'oco_order': entry['oco_order'],
+                        'remaining_amount': entry['remaining_amount'],
+                        'src': entry['src'],
+                        'was_forced': entry['was_forced'],
+                    }
+                }
+                result.append(order)
+            else:
+                order = {
+                    'id': order['id'],
+                    'active': False,
+                }
+                result.append(order)
+
+        return result
 
     def cancel_single_order(self, order_id):
         response = self.rest_client.order_cancel(order_id=int(order_id))
@@ -828,10 +948,25 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def cancel_multiple_orders(self, order_ids):
-        raise NotImplementedError
+        response = self.rest_client.order_cancel_multi(order_ids=order_ids)
+
+        result = list()
+        if 'result' in response:
+            expected_response = 'All ({}) submitted for cancellation; waiting for confirmation.'.format(len(order_ids))
+            if response['result'] == expected_response:
+                for order_id in order_ids:
+                    order = {
+                        'id': order_id,
+                    }
+                    result.append(order)
+            elif response['result'] == 'None to cancel':
+                pass
+
+        return result
 
     def cancel_all_orders(self):
-        raise NotImplementedError
+        response = self.rest_client.order_cancel_all()
+        return response
 
     def place_single_offer(self, instrument, amount, annual_rate, period, side):
         response = self.rest_client.offer_new(
