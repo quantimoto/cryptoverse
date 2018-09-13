@@ -784,7 +784,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def update_multiple_orders(self, *order_ids):
+    def update_multiple_orders(self, order_ids):
         raise NotImplementedError
 
     def cancel_single_order(self, order_id):
@@ -854,7 +854,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def cancel_multiple_orders(self, *order_ids):
+    def cancel_multiple_orders(self, order_ids):
         raise NotImplementedError
 
     def cancel_all_orders(self):
@@ -888,7 +888,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def place_multiple_offers(self, *offer_ids):
+    def place_multiple_offers(self, offers):
         raise NotImplementedError
 
     def replace_single_offer(self, *args, **kwargs):
@@ -918,7 +918,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def update_multiple_offers(self, *offer_ids):
+    def update_multiple_offers(self, offer_ids):
         raise NotImplementedError
 
     def cancel_single_offer(self, offer_id):
@@ -942,7 +942,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def cancel_multiple_offers(self, *offer_ids):
+    def cancel_multiple_offers(self, offer_ids):
         raise NotImplementedError
 
     def cancel_all_offers(self):

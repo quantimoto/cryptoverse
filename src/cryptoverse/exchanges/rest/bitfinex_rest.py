@@ -676,19 +676,14 @@ class BitfinexREST(RESTClient):
         return response
 
     @RateLimit(calls=45, period=60)
-    def order_new_multi(self, symbol, amount, price, side, type_, exchange=None, credentials=None):
+    def order_new_multi(self, orders, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-multiple-new-orders
         """
         Multiple New Orders
 
         Submit several new orders at once.
 
-        :param str symbol: The name of the symbol (see symbols()).
-        :param float amount: Order size: how much you want to buy or sell
-        :param float price: Price to buy or sell at. Must be positive. Use random number for market orders.
-        :param str side: Either "buy" or "sell".
-        :param str type_: Either "market" / "limit" / "stop" / "trailing-stop" / "fill-or-kill".
-        :param str exchange: "bitfinex"
+        :param list orders: List containing dict objects with order information
         :param dict credentials: dictionary containing authentication information like key and secret
         """
 
@@ -703,12 +698,7 @@ class BitfinexREST(RESTClient):
                 'version': 1,
             },
             data={
-                'symbol': symbol,
-                'amount': amount,
-                'price': price,
-                'side': side,
-                'type': type_,
-                'exchange': exchange,
+                'orders': orders,
             },
             credentials=credentials,
         )

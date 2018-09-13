@@ -80,7 +80,7 @@ class Exchange(object):
         result = Markets()
         for k, v in response.items():
             for entry in v:
-                entry.update({'exchange': self})
+                entry['exchange'] = self
                 obj = Market.from_dict(entry)
                 result.append(obj)
         return result
@@ -90,7 +90,7 @@ class Exchange(object):
         response = self.interface.get_spot_markets()
         result = Markets()
         for entry in response:
-            entry.update({'exchange': self})
+            entry['exchange'] = self
             obj = Market.from_dict(entry)
             result.append(obj)
         return result
@@ -100,7 +100,7 @@ class Exchange(object):
         response = self.interface.get_margin_markets()
         result = Markets()
         for entry in response:
-            entry.update({'exchange': self})
+            entry['exchange'] = self
             obj = Market.from_dict(entry)
             result.append(obj)
         return result
@@ -110,7 +110,7 @@ class Exchange(object):
         response = self.interface.get_funding_markets()
         result = Markets()
         for entry in response:
-            entry.update({'exchange': self})
+            entry['exchange'] = self
             obj = Market.from_dict(entry)
             result.append(obj)
         return result
