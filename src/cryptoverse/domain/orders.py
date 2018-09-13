@@ -54,11 +54,15 @@ class Order(object):
     def __repr__(self):
         class_name = self.__class__.__name__
         arguments = list()
-        for entry in self._minimum_arguments.items():
-            if entry[0] == 'side':
-                arguments.append(side_colored('{}={!r}'.format(*entry), entry[1]))
+        for kw in ['status', 'pair', 'side', 'amount', 'price', 'context', 'type', 'fee_percentage']:
+            arg = self._get_argument(kw)
+            if kw == 'side':
+                arguments.append(side_colored('{}={!r}'.format(kw, arg), arg))
+            elif kw == 'status':
+                arg = getattr(self, kw)
+                arguments.append(self._status_colored('{}={!r}'.format(kw, arg)))
             else:
-                arguments.append('{}={!r}'.format(*entry))
+                arguments.append('{}={!r}'.format(kw, arg))
 
         return '{}({})'.format(self._status_colored(class_name), ', '.join(arguments))
 
@@ -1018,6 +1022,12 @@ class Order(object):
         return divide(self.remaining_amount, self.amount)
 
     @property
+    def is_draft(self):
+        if self.id is None and not self.trades:
+            return True
+        return False
+
+    @property
     def is_placed(self):
         if self.id is not None:
             return True
@@ -1057,8 +1067,10 @@ class Order(object):
             return 'partially filled'
         elif self.is_active:
             return 'active'
-        else:
+        elif self.is_draft:
             return 'draft'
+        else:
+            return None
 
     def _status_colored(self, value):
         if self.status == 'executed':
