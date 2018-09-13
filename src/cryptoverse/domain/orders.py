@@ -157,7 +157,8 @@ class Order(object):
         kwargs = kwargs.copy()
 
         prepare_kwargs = dict()
-        for key in ['account', 'exchange', 'market', 'pair', 'side', 'input_instrument', 'output_instrument']:
+        for key in ['account', 'exchange', 'market', 'pair', 'side', 'context', 'input_instrument',
+                    'output_instrument']:
             if key in kwargs:
                 prepare_kwargs.update({key: kwargs[key]})
         prepare_kwargs.update(cls._sanitize_kwargs(prepare_kwargs))
@@ -674,14 +675,14 @@ class Order(object):
             fees = None
 
         if fees is not None and 'pair' in kwargs and kwargs['pair'] is not None:
-            pair = '{}/{}'.format(kwargs['pair'].base.code, kwargs['pair'].quote.code)
-            if pair not in fees['orders']:
-                raise ValueError("pair not found in fee information: {}".format(pair))
+            pair_str = kwargs['pair'].as_str()
+            if pair_str not in fees['orders']:
+                raise ValueError("pair not found in fee information: {}".format(kwargs['pair']))
 
             if 'type' in kwargs and kwargs['type'] == 'market' or 'hidden' in kwargs and kwargs['hidden'] is True:
-                kwargs['fee_percentage'] = fees['orders'][pair]['taker']
+                kwargs['fee_percentage'] = fees['orders'][pair_str]['taker']
             else:
-                kwargs['fee_percentage'] = fees['orders'][pair]['maker']
+                kwargs['fee_percentage'] = fees['orders'][pair_str]['maker']
 
         return results
 
