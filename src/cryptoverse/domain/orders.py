@@ -33,6 +33,7 @@ class Order(object):
         'id': str,
         'hidden': bool,
         'active': bool,
+        'cancelled': bool,
         'exchange': None,
         'account': None,
         'fee_instrument': Instrument,
@@ -64,7 +65,7 @@ class Order(object):
             else:
                 arguments.append('{}={!r}'.format(kw, arg))
 
-        return '{}({})'.format(self._status_colored(class_name), ', '.join(arguments))
+        return '{}({})'.format(class_name, ', '.join(arguments))
 
     def as_dict(self):
         dict_obj = dict()
@@ -912,7 +913,7 @@ class Order(object):
 
     @property
     def hidden(self):
-        return self._get_argument('hidden')
+        return self._get_argument('hidden') is True
 
     @hidden.setter
     def hidden(self, value):
@@ -920,11 +921,19 @@ class Order(object):
 
     @property
     def active(self):
-        return self._get_argument('active')
+        return self._get_argument('active') is True
 
     @active.setter
     def active(self, value):
         self.update_arguments(active=value)
+
+    @property
+    def cancelled(self):
+        return self._get_argument('cancelled') is True
+
+    @cancelled.setter
+    def cancelled(self, value):
+        self.update_arguments(cancelled=value)
 
     @property
     def exchange(self):
@@ -1030,15 +1039,15 @@ class Order(object):
 
     @property
     def is_placed(self):
-        if self.id is not None:
-            return True
-        return False
+        return self.id is not None
+
+    @property
+    def is_status_unknown(self):
+        return self.id is not None and not self.active and not self.is_cancelled and not self.trades
 
     @property
     def is_active(self):
-        if self.id is not None and self.active is True:
-            return True
-        return False
+        return self.id is not None and self.active
 
     @property
     def is_partially_filled(self):
@@ -1048,9 +1057,7 @@ class Order(object):
 
     @property
     def is_cancelled(self):
-        if self.id is not None and self.active is False and self.remaining_amount > 0.0:
-            return True
-        return False
+        return self.cancelled
 
     @property
     def is_executed(self):
@@ -1060,7 +1067,9 @@ class Order(object):
 
     @property
     def status(self):
-        if self.is_executed:
+        if self.is_status_unknown:
+            return 'unknown'
+        elif self.is_executed:
             return 'executed'
         elif self.is_cancelled:
             return 'cancelled'
@@ -1074,7 +1083,9 @@ class Order(object):
             return None
 
     def _status_colored(self, value):
-        if self.status == 'executed':
+        if self.status == 'unknown':
+            return colored(value, 'magenta')
+        elif self.status == 'executed':
             return colored(value, 'green')
         elif self.status == 'cancelled':
             return colored(value, 'red')
