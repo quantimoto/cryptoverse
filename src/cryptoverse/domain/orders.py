@@ -92,7 +92,7 @@ class Order(object):
         from cryptoverse.domain import Exchange
         if type(arg) is str and arg.lower() in ['buy', 'sell']:
             return 'side'
-        elif type(arg) is str and arg.lower() in ['exchange', 'margin']:
+        elif type(arg) is str and arg.lower() in ['spot', 'margin']:
             return 'context'
         elif type(arg) is str and arg.lower() in ['limit', 'market']:
             return 'type'
@@ -137,7 +137,7 @@ class Order(object):
                         raise ValueError("Invalid value for '{}' supplied: {}".format(kw, arg))
 
                 if kw == 'context':
-                    if arg.lower() in ['exchange', 'margin']:
+                    if arg.lower() in ['spot', 'margin']:
                         arg = arg.lower()
                     else:
                         raise ValueError("Invalid value for '{}' supplied: {}".format(kw, arg))
@@ -169,7 +169,7 @@ class Order(object):
                 else:
                     result['price'] = None
 
-        if 'input' in kwargs and 'account' in kwargs and 'pair' in kwargs and 'side' in kwargs:
+        if 'input' in kwargs and 'account' in kwargs and 'pair' in kwargs and 'side' in kwargs and 'context' in kwargs:
             arg = kwargs['input']
             if type(kwargs['input']) is str and arg[-1:] == '%':
                 account = kwargs['account']
@@ -177,9 +177,9 @@ class Order(object):
                 side = kwargs['side']
                 multiplier = multiply(arg[:-1], 0.01)
                 input_instrument = pair.get_input_instrument(side)
-                balances = account.wallets('exchange').balances.find(instrument=input_instrument)
-                if len(balances) > 0:
-                    instrument_balance = balances.first.amount
+                balance = account.wallets(kwargs['context']).balances.get(instrument=input_instrument)
+                if balance:
+                    instrument_balance = balance.amount
                 else:
                     instrument_balance = 0.0
                 result['input'] = multiply(instrument_balance, multiplier)
@@ -473,7 +473,7 @@ class Order(object):
 
         def get_context(kwargs):
             key = 'context'
-            default = 'exchange'
+            default = 'spot'
 
             if kwargs[key] is not None:
                 value = kwargs[key]
@@ -540,23 +540,18 @@ class Order(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
-            # market from pair and exchange
-            elif kwargs['pair'] is not None and kwargs['exchange'] is not None:
-                value = kwargs['exchange'].markets.get(symbol=kwargs['pair'], context='spot')
+            # market from pair, exchange and context
+            elif kwargs['pair'] is not None and kwargs['exchange'] is not None and kwargs['context'] is not None \
+                    and kwargs['exchange'].markets.find(context=kwargs['context']):
+                value = kwargs['exchange'].markets.get(symbol=kwargs['pair'], context=kwargs['context'])
 
-            # market from input_instrument and output_instrument and exchange
+            # market from input_instrument, output_instrument, exchange and context
             elif kwargs['input_instrument'] is not None and kwargs['output_instrument'] is not None \
-                    and kwargs['exchange'] is not None:
-                markets = kwargs['exchange'].markets
-                if kwargs['context'] is not None and kwargs['context'] in markets:
-                    markets = markets[kwargs['context']].with_instruments(kwargs['input_instrument'],
-                                                                          kwargs['output_instrument'])
-                    if markets.first:
-                        value = markets.first
-                    else:
-                        value = None
-                else:
-                    value = None
+                    and kwargs['exchange'] is not None and kwargs['context'] is not None \
+                    and kwargs['context'] in kwargs['exchange'].markets:
+                value = kwargs['exchange'].markets[kwargs['context']] \
+                    .with_instruments(kwargs['input_instrument'], kwargs['output_instrument']) \
+                    .get(context=kwargs['context'])
 
             else:
                 value = None

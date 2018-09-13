@@ -51,7 +51,10 @@ class ObjectList(list):
         return response
 
     def get(self, **kwargs):
-        return self.find(**kwargs).first
+        response = self.find(**kwargs)
+        if response:
+            return response.first
+        return None
 
     def get_values(self, key):
         response = ObjectList()

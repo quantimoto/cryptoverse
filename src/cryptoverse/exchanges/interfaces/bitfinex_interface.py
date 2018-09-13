@@ -449,14 +449,14 @@ class BitfinexInterface(ExchangeInterface):
         response = self.rest_client.balances()
 
         result = {
-            'exchange': list(),
+            'spot': list(),
             'margin': list(),
             'funding': list(),
         }
         for entry in response:
             wallet = None
             if entry['type'] == 'exchange':
-                wallet = 'exchange'
+                wallet = 'spot'
             elif entry['type'] == 'trading':
                 wallet = 'margin'
             elif entry['type'] == 'deposit':
@@ -497,19 +497,19 @@ class BitfinexInterface(ExchangeInterface):
                 context = 'margin'
                 type_ = 'fill-or-kill'
             elif entry['type'] == 'exchange market':
-                context = 'exchange'
+                context = 'spot'
                 type_ = 'market'
             elif entry['type'] == 'exchange limit':
-                context = 'exchange'
+                context = 'spot'
                 type_ = 'limit'
             elif entry['type'] == 'exchange stop':
-                context = 'exchange'
+                context = 'spot'
                 type_ = 'stop'
             elif entry['type'] == 'exchange trailing-stop':
-                context = 'exchange'
+                context = 'spot'
                 type_ = 'trailing-stop'
             elif entry['type'] == 'exchange fill-or-kill':
-                context = 'exchange'
+                context = 'spot'
                 type_ = 'fill-or-kill'
             else:
                 context = None
@@ -615,14 +615,23 @@ class BitfinexInterface(ExchangeInterface):
     def get_account_withdrawals(self, *args, **kwargs):
         raise NotImplementedError
 
-    def place_single_order(self, pair, amount, price, side, context='exchange', type_='limit', hidden=False,
+    def place_single_order(self, pair, amount, price, side, context='spot', type_='limit', hidden=False,
                            post_only=None):
-        if context not in ['exchange', 'margin']:
-            raise ValueError("'context' attribute must be either 'exchange' or 'margin', not: {}".format(context))
+        if context not in ['spot', 'margin']:
+            raise ValueError("'context' attribute must be either 'spot' or 'margin', not: {}".format(context))
         if type_ not in ['limit', 'market']:
             raise ValueError("'type_' attritube must be either 'limit' or 'market', not: {}".format(type_))
         if type_ == 'limit' and post_only is None:
             post_only = True
+
+        if context == 'spot':
+            context = 'exchange'
+        elif context == 'margin':
+            context = 'margin'
+        elif context == 'funding':
+            context = 'funding'
+        else:
+            context = None
 
         response = self.rest_client.order_new(
             symbol='{}{}'.format(*pair.split('/')),
@@ -653,19 +662,19 @@ class BitfinexInterface(ExchangeInterface):
             context = 'margin'
             type_ = 'fill-or-kill'
         elif response['type'] == 'exchange market':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'market'
         elif response['type'] == 'exchange limit':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'limit'
         elif response['type'] == 'exchange stop':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'stop'
         elif response['type'] == 'exchange trailing-stop':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'trailing-stop'
         elif response['type'] == 'exchange fill-or-kill':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'fill-or-kill'
         else:
             context = None
@@ -729,19 +738,19 @@ class BitfinexInterface(ExchangeInterface):
             context = 'margin'
             type_ = 'fill-or-kill'
         elif response['type'] == 'exchange market':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'market'
         elif response['type'] == 'exchange limit':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'limit'
         elif response['type'] == 'exchange stop':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'stop'
         elif response['type'] == 'exchange trailing-stop':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'trailing-stop'
         elif response['type'] == 'exchange fill-or-kill':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'fill-or-kill'
         else:
             context = None
@@ -799,19 +808,19 @@ class BitfinexInterface(ExchangeInterface):
             context = 'margin'
             type_ = 'fill-or-kill'
         elif response['type'] == 'exchange market':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'market'
         elif response['type'] == 'exchange limit':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'limit'
         elif response['type'] == 'exchange stop':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'stop'
         elif response['type'] == 'exchange trailing-stop':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'trailing-stop'
         elif response['type'] == 'exchange fill-or-kill':
-            context = 'exchange'
+            context = 'spot'
             type_ = 'fill-or-kill'
         else:
             context = None

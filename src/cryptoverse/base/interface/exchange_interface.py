@@ -112,7 +112,8 @@ class ExchangeInterface(object):
     def get_account_withdrawals(self, *args, **kwargs):
         raise NotImplementedError
 
-    def place_single_order(self, *args, **kwargs):
+    def place_single_order(self, pair, amount, price, side, context='spot', type_='limit', hidden=False,
+                           post_only=None):
         raise NotImplementedError
 
     def place_multiple_orders(self, *args, **kwargs):
