@@ -1,6 +1,6 @@
 import time
 
-import requests
+from requests import request
 
 from .request import RequestObj
 
@@ -18,7 +18,6 @@ class RESTClient(object):
     reflect those in the official documentation as much as possible. Response is kept in-tact and no additional logic is
     executed in this obj.
     """
-    _session = None
     _timeout = (60, 60)  # Connect, Read
 
     scheme = 'https'
@@ -104,10 +103,7 @@ class RESTClient(object):
         return response
 
     def _send_request(self, request_obj):
-        if self._session is None:
-            self._session = requests.Session()
-
-        response = self._session.request(
+        response = request(
             method=request_obj.method,
             url=request_obj.url,
             params=request_obj.params,
