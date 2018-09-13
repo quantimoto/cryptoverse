@@ -420,12 +420,12 @@ class BitfinexInterface(ExchangeInterface):
             'withdrawals': dict(),
             'offers': dict(),
         }
-        public_fee_information = self.get_fees()
+        public_fee_information = self.get_fees()  # todo: find a way to make sure public calls always use the public object
 
         account_infos = self.rest_client.account_infos()
         account_fees = self.rest_client.account_fees()
 
-        for pair in self.get_all_pairs():
+        for pair in self.get_all_pairs():  # todo: find a way to make sure public calls always use the public object
             pair_str = '{}/{}'.format(pair['base']['code'], pair['quote']['code'])
             for entry in account_infos[0]['fees']:
                 if entry['pairs'] == pair['base']['code']:
