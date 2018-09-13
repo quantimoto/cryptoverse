@@ -481,39 +481,12 @@ class BitfinexInterface(ExchangeInterface):
         for entry in response:
             pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
 
-            if entry['type'] == 'market':
-                context = 'margin'
-                type_ = 'market'
-            elif entry['type'] == 'limit':
-                context = 'margin'
-                type_ = 'limit'
-            elif entry['type'] == 'stop':
-                context = 'margin'
-                type_ = 'stop'
-            elif entry['type'] == 'trailing-stop':
-                context = 'margin'
-                type_ = 'trailing-stop'
-            elif entry['type'] == 'fill-or-kill':
-                context = 'margin'
-                type_ = 'fill-or-kill'
-            elif entry['type'] == 'exchange market':
+            if ' ' in entry['type']:
                 context = 'spot'
-                type_ = 'market'
-            elif entry['type'] == 'exchange limit':
-                context = 'spot'
-                type_ = 'limit'
-            elif entry['type'] == 'exchange stop':
-                context = 'spot'
-                type_ = 'stop'
-            elif entry['type'] == 'exchange trailing-stop':
-                context = 'spot'
-                type_ = 'trailing-stop'
-            elif entry['type'] == 'exchange fill-or-kill':
-                context = 'spot'
-                type_ = 'fill-or-kill'
+                type_ = entry['type'].split(' ')[1]
             else:
-                context = None
-                type_ = None
+                context = 'margin'
+                type_ = entry['type']
 
             order = {
                 'amount': float(entry['original_amount']),
