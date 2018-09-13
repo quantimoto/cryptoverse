@@ -755,25 +755,31 @@ class Order(object):
         self._derived_arguments = derived_arguments if derived_arguments is not None else dict()
 
     @property
-    def _minimum_arguments(self):
-        combined_arguments = self._supplied_arguments.copy()
-        if self._derived_arguments is not None:
-            combined_arguments.update(self._derived_arguments)
+    def _all_arguments(self):
+        result = dict()
 
+        if self._supplied_arguments is not None:
+            result.update(self._supplied_arguments)
+        if self._derived_arguments is not None:
+            result.update(self._derived_arguments)
+
+        return result
+
+    def _get_argument(self, key):
+        if key in self._all_arguments:
+            return self._all_arguments[key]
+        return None
+
+    @property
+    def _minimum_arguments(self):
         result = dict()
         for key in ['pair', 'side', 'amount', 'price', 'fee_percentage']:
-            result[key] = combined_arguments.get(key)
+            result[key] = self._get_argument(key)
         return result
 
     @property
     def pair(self):
-        key = 'pair'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('pair')
 
     @pair.setter
     def pair(self, value):
@@ -781,13 +787,7 @@ class Order(object):
 
     @property
     def market(self):
-        key = 'market'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('market')
 
     @market.setter
     def market(self, value):
@@ -795,13 +795,7 @@ class Order(object):
 
     @property
     def side(self):
-        key = 'side'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('side')
 
     @side.setter
     def side(self, value):
@@ -809,13 +803,7 @@ class Order(object):
 
     @property
     def amount(self):
-        key = 'amount'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('amount')
 
     @amount.setter
     def amount(self, value):
@@ -823,13 +811,7 @@ class Order(object):
 
     @property
     def price(self):
-        key = 'price'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('price')
 
     @price.setter
     def price(self, value):
@@ -837,13 +819,7 @@ class Order(object):
 
     @property
     def type(self):
-        key = 'type'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('type')
 
     @type.setter
     def type(self, value):
@@ -851,13 +827,7 @@ class Order(object):
 
     @property
     def context(self):
-        key = 'context'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('context')
 
     @context.setter
     def context(self, value):
@@ -865,13 +835,7 @@ class Order(object):
 
     @property
     def total(self):
-        key = 'total'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('total')
 
     @total.setter
     def total(self, value):
@@ -879,13 +843,7 @@ class Order(object):
 
     @property
     def gross(self):
-        key = 'gross'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('gross')
 
     @gross.setter
     def gross(self, value):
@@ -893,13 +851,7 @@ class Order(object):
 
     @property
     def net(self):
-        key = 'net'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('net')
 
     @net.setter
     def net(self, value):
@@ -907,13 +859,7 @@ class Order(object):
 
     @property
     def fees(self):
-        key = 'fees'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('fees')
 
     @fees.setter
     def fees(self, value):
@@ -921,13 +867,7 @@ class Order(object):
 
     @property
     def fee_percentage(self):
-        key = 'fee_percentage'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('fee_percentage')
 
     @fee_percentage.setter
     def fee_percentage(self, value):
@@ -935,13 +875,7 @@ class Order(object):
 
     @property
     def input(self):
-        key = 'input'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('input')
 
     @input.setter
     def input(self, value):
@@ -949,13 +883,7 @@ class Order(object):
 
     @property
     def output(self):
-        key = 'output'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('output')
 
     @output.setter
     def output(self, value):
@@ -963,13 +891,7 @@ class Order(object):
 
     @property
     def timestamp(self):
-        key = 'timestamp'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('timestamp')
 
     @timestamp.setter
     def timestamp(self, value):
@@ -977,13 +899,7 @@ class Order(object):
 
     @property
     def id(self):
-        key = 'id'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('id')
 
     @id.setter
     def id(self, value):
@@ -991,13 +907,7 @@ class Order(object):
 
     @property
     def hidden(self):
-        key = 'hidden'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('hidden')
 
     @hidden.setter
     def hidden(self, value):
@@ -1005,13 +915,7 @@ class Order(object):
 
     @property
     def active(self):
-        key = 'active'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('active')
 
     @active.setter
     def active(self, value):
@@ -1019,13 +923,7 @@ class Order(object):
 
     @property
     def exchange(self):
-        key = 'exchange'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('exchange')
 
     @exchange.setter
     def exchange(self, value):
@@ -1033,13 +931,7 @@ class Order(object):
 
     @property
     def account(self):
-        key = 'account'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('account')
 
     @account.setter
     def account(self, value):
@@ -1047,13 +939,7 @@ class Order(object):
 
     @property
     def fee_instrument(self):
-        key = 'fee_instrument'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('fee_instrument')
 
     @fee_instrument.setter
     def fee_instrument(self, value):
@@ -1061,13 +947,7 @@ class Order(object):
 
     @property
     def input_instrument(self):
-        key = 'input_instrument'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('input_instrument')
 
     @input_instrument.setter
     def input_instrument(self, value):
@@ -1075,13 +955,7 @@ class Order(object):
 
     @property
     def output_instrument(self):
-        key = 'output_instrument'
-        if key in self._supplied_arguments:
-            return self._supplied_arguments[key]
-        elif key in self._derived_arguments:
-            return self._derived_arguments[key]
-        else:
-            return None
+        return self._get_argument('output_instrument')
 
     @output_instrument.setter
     def output_instrument(self, value):
