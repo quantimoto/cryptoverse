@@ -990,10 +990,7 @@ class Order(object):
     def sleep_while_active(self, interval=15):
         while self.is_active:
             self.update()
-            try:
-                sleep(interval)
-            except KeyboardInterrupt:
-                continue
+            sleep(interval)
         return self
 
     def followup(self, output='100%'):
