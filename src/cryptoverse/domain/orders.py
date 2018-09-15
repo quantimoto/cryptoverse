@@ -1116,6 +1116,42 @@ class Orders(ObjectList):
         order = Order(*args, **kwargs)
         self.append(order)
 
+    def place(self):
+        accounts = self.get_unique_values('account')
+        if len(accounts) > 1:
+            for account in accounts:
+                orders_for_account = self.find(account=account, is_draft=True)
+                orders_for_account.place()
+        elif len(accounts) == 1:
+            account = accounts.first
+            account.place(self)
+
+        return self
+
+    def update(self):
+        accounts = self.get_unique_values('account')
+        if len(accounts) > 1:
+            for account in accounts:
+                orders_for_account = self.find(account=account, is_placed=True)
+                orders_for_account.update()
+        elif len(accounts) == 1:
+            account = accounts.first
+            account.update(self)
+
+        return self
+
+    def cancel(self):
+        accounts = self.get_unique_values('account')
+        if len(accounts) > 1:
+            for account in accounts:
+                orders_for_account = self.find(account=account, is_active=True)
+                orders_for_account.cancel()
+        elif len(accounts) == 1:
+            account = accounts.first
+            account.cancel(self)
+
+        return self
+
 
 class OrderChain(Orders):
     pass
