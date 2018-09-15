@@ -1043,14 +1043,20 @@ class Order(object):
         return self.id is not None and not self.active and not self.is_cancelled and not self.trades
 
     @property
-    def is_active(self):
-        return self.id is not None and self.active
+    def is_unfilled(self):
+        return self.executed_amount == 0.0
 
     @property
     def is_partially_filled(self):
-        if self.id is not None and 0.0 < self.remaining_amount < self.amount:
-            return True
-        return False
+        return 0.0 < self.remaining_amount < self.amount
+
+    @property
+    def is_filled(self):
+        return self.amount == self.executed_amount
+
+    @property
+    def is_active(self):
+        return self.id is not None and self.active is True
 
     @property
     def is_cancelled(self):
@@ -1058,9 +1064,7 @@ class Order(object):
 
     @property
     def is_executed(self):
-        if self.id is not None and self.active is False and self.remaining_amount == 0.0:
-            return True
-        return False
+        return not self.is_cancelled and not self.is_active and (self.is_partially_filled or self.is_filled)
 
     @property
     def status(self):
