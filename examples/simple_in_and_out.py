@@ -22,7 +22,7 @@ print(my_sell_order.price)
 # my_sell_order.place()
 
 # %% Tell the script to block execution until the order is executed.
-my_sell_order.wait_while_active()
+my_sell_order.sleep_while_active()
 
 # %% Right after the last order is executed, we calculate a followup order for +1% profit.
 my_buy_order = my_sell_order.followup(output='+1%')
@@ -36,10 +36,10 @@ print(my_buy_order.price)
 # my_buy_order.place()
 
 # %% Tell the script to block execution until the order is executed.
-my_buy_order.wait_while_active()
+my_buy_order.sleep_while_active()
 
 # %% We're going to block the execution again until this order is executed.
-my_sell_order.wait_while_active()
+my_sell_order.sleep_while_active()
 
 # %% Now that both trades have completed we can send a notification
 # notify('Trade completed. P&L +1%.')  # todo: implement notifications
@@ -47,5 +47,5 @@ my_sell_order.wait_while_active()
 
 # %% Using method chaining, you could do the exact same trade from one line of code:
 cryptoverse.accounts['bitfinex_account1'].create_order('BTC/USD', 'sell', input='100%', price='ask') \
-    .place().wait_while_active().followup(output='+1%').place()
+    .place().sleep_while_active().followup(output='+1%').place()
 # very useful for typing simple strategies quickly from the interactive console
