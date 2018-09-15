@@ -1,5 +1,9 @@
+import logging
+
 from .domain import Accounts, Exchanges
 from .exchanges import Bitfinex, Bl3p, Kraken, Poloniex
+
+logging.basicConfig()
 
 exchanges = Exchanges()
 accounts = Accounts()

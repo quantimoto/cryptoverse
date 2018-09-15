@@ -1,5 +1,9 @@
-from ...base.rest.decorators import Memoize, Retry
+import logging
+
+from ...base.rest.decorators import Memoize, Retry, RateLimit
 from ...base.scrape import ScrapeClient
+
+logger = logging.getLogger(__name__)
 
 
 class BitfinexScrape(ScrapeClient):

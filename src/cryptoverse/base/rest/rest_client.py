@@ -1,8 +1,11 @@
+import logging
 import time
 
 from requests import request
 
 from .request import RequestObj
+
+logger = logging.getLogger(__name__)
 
 
 class RESTClient(object):
@@ -98,8 +101,10 @@ class RESTClient(object):
             query_params=query_params,
             data=data,
         )
-
+        logger.debug("Sending request: {}".format(request_obj))
         response = self._send_request(request_obj)
+        logger.debug("Received response")
+
         return response
 
     def _send_request(self, request_obj):

@@ -1,13 +1,14 @@
 import hashlib
+import logging
 import sys
 import time
 from functools import wraps
 from math import floor
 
-from termcolor import cprint
-
 from cryptoverse.exceptions import ExchangeMaxRetryException
 from .response import ResponseObj
+
+logger = logging.getLogger(__name__)
 
 
 class Memoize(object):
@@ -28,6 +29,8 @@ class Memoize(object):
                 (timestamp, response), = self.store[key_hash].items()
                 if timestamp < time.time() - self.expires:
                     response = None
+                else:
+                    logger.debug('Returning stored response for : {} {} {}'.format(func, args, kwargs))
 
             if response is None:
                 response = func(*args, **kwargs)
@@ -58,6 +61,7 @@ class RateLimit(object):
                 remaining = self.delay - elapsed
 
             if remaining > 0:
+                logger.debug('sleeping for {} seconds to respect ratelimit for: {}'.format(remaining, func))
                 time.sleep(remaining)
 
             response = func(*args, **kwargs)
@@ -86,7 +90,7 @@ class Retry(object):
                     successful = True
                 except self.exception:
                     counter += 1
-                    cprint('{} {}: {} {} {}'.format(time.time(), self.exception.__name__, func, args, kwargs), 'red')
+                    logger.warning('{} {}: {} {} {}'.format(time.time(), self.exception.__name__, func, args, kwargs))
                     if self.max_tries is not None and self.max_tries == counter:
                         raise ExchangeMaxRetryException
                     time.sleep(self.wait)
