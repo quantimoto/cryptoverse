@@ -65,7 +65,7 @@ class Account(object):
 
     def orders(self):
         from .trades import Trades
-        response = self.exchange.interface.get_account_orders()
+        response = self.exchange.interface.get_account_active_orders()
 
         result = Orders()
         for entry in response:
