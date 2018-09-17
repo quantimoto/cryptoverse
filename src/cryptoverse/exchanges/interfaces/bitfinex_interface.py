@@ -474,7 +474,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_orders(self):
+    def get_account_active_orders(self):
         response = self.rest_client.orders()
 
         result = list()
@@ -516,6 +516,9 @@ class BitfinexInterface(ExchangeInterface):
             result.append(order)
 
         return result
+
+    def get_account_past_orders(self):
+        raise NotImplementedError
 
     def get_account_trades(self, pair, limit=100):
         symbol = '{}{}'.format(*pair.split('/'))

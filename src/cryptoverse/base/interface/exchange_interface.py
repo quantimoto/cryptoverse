@@ -91,7 +91,10 @@ class ExchangeInterface(object):
     def get_account_wallets(self):
         raise NotImplementedError
 
-    def get_account_orders(self):
+    def get_account_active_orders(self):
+        raise NotImplementedError
+
+    def get_account_order_history(self):
         raise NotImplementedError
 
     def get_account_trades(self, pair, limit):
