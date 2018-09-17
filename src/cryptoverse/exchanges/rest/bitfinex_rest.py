@@ -902,7 +902,7 @@ class BitfinexREST(RESTClient):
 
     @Memoize(expires=60. / 1)
     @RateLimit(calls=1, period=60)
-    def orders_hist(self, limit=None, credentials=None):
+    def orders_hist(self, limit=None, credentials=None):  # todo: is the limit argument being ignored server-side?
         # https://docs.bitfinex.com/v1/reference#rest-auth-orders-history
         """
         Orders History
