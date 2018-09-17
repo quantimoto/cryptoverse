@@ -150,7 +150,6 @@ class Market(object):
         elif type(self.symbol) is Instrument:
             return Instruments([self.symbol])
 
-    @property
     def ticker(self):
         if self.exchange:
             return self.exchange.ticker(market=self)

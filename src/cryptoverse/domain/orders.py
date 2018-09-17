@@ -171,7 +171,7 @@ class Order(object):
             if ticker_key in ['bid', 'ask', 'last', 'mid']:
                 if 'market' in kwargs:
                     market = kwargs['market']
-                    result['price'] = market.ticker[ticker_key]
+                    result['price'] = market.ticker()[ticker_key]
                 else:
                     result['price'] = None
 
