@@ -100,6 +100,9 @@ class ExchangeInterface(object):
     def get_account_trades(self, pair, limit):
         raise NotImplementedError
 
+    def get_account_trades_for_order(self, order_id):
+        raise NotImplementedError
+
     def get_account_positions(self):
         raise NotImplementedError
 
