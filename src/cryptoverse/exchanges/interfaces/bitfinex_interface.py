@@ -540,6 +540,9 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
+    def get_account_trades_for_order(self, order_id):
+        raise NotImplementedError
+
     def get_account_positions(self):
         raise NotImplementedError
 
