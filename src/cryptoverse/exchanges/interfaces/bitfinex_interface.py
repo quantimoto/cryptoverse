@@ -747,8 +747,99 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def replace_single_order(self, *args, **kwargs):
-        raise NotImplementedError
+    def replace_single_order(self, order_id, pair, amount, price, side, context='spot', type_='limit', hidden=False,
+                             post_only=None):
+        if context not in ['spot', 'margin']:
+            raise ValueError("'context' attribute must be either 'spot' or 'margin', not: {}".format(context))
+        if type_ not in ['limit', 'market']:
+            raise ValueError("'type_' attritube must be either 'limit' or 'market', not: {}".format(type_))
+        if type_ == 'limit' and post_only is None:
+            post_only = True
+
+        if context == 'spot':
+            context = 'exchange'
+        elif context == 'margin':
+            context = 'margin'
+        elif context == 'funding':
+            context = 'funding'
+        else:
+            context = None
+
+        response = self.rest_client.order_cancel_replace(
+            order_id=order_id,
+            symbol='{}{}'.format(*pair.split('/')),
+            amount=amount,
+            price=price,
+            side=side,
+            type_='{} {}'.format(context, type_),
+            exchange='bitfinex',
+            is_hidden=hidden,
+            is_postonly=post_only,
+        )
+
+        pair = '{}/{}'.format(response['symbol'][:3].upper(), response['symbol'][3:].upper())
+
+        if response['type'] == 'market':
+            context = 'margin'
+            type_ = 'market'
+        elif response['type'] == 'limit':
+            context = 'margin'
+            type_ = 'limit'
+        elif response['type'] == 'stop':
+            context = 'margin'
+            type_ = 'stop'
+        elif response['type'] == 'trailing-stop':
+            context = 'margin'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'fill-or-kill':
+            context = 'margin'
+            type_ = 'fill-or-kill'
+        elif response['type'] == 'exchange market':
+            context = 'spot'
+            type_ = 'market'
+        elif response['type'] == 'exchange limit':
+            context = 'spot'
+            type_ = 'limit'
+        elif response['type'] == 'exchange stop':
+            context = 'spot'
+            type_ = 'stop'
+        elif response['type'] == 'exchange trailing-stop':
+            context = 'spot'
+            type_ = 'trailing-stop'
+        elif response['type'] == 'exchange fill-or-kill':
+            context = 'spot'
+            type_ = 'fill-or-kill'
+        else:
+            context = None
+            type_ = None
+
+        result = {
+            'amount': float(response['original_amount']),
+            'price': float(response['price']),
+            'side': str(response['side']),
+            'id': str(response['id']),
+            'timestamp': float(response['timestamp']),
+            'pair': pair,
+            'context': context,
+            'type': type_,
+            'hidden': response['is_hidden'],
+            'active': response['is_live'],
+            'cancelled': response['is_cancelled'],
+            'metadata': {
+                'avg_execution_price': response['avg_execution_price'],
+                'cid': response['cid'],
+                'cid_date': response['cid_date'],
+                'exchange': response['exchange'],
+                'executed_amount': response['executed_amount'],
+                'gid': response['gid'],
+                'oco_order': response['oco_order'],
+                'remaining_amount': response['remaining_amount'],
+                'src': response['src'],
+                'was_forced': response['was_forced'],
+            }
+        }
+
+        return result
 
     def replace_multiple_orders(self, *args, **kwargs):
         raise NotImplementedError

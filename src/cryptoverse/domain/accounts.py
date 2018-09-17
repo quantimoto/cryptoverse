@@ -301,25 +301,35 @@ class Account(object):
 
         return obj
 
-    def replace(self, obj):
+    def replace(self, old_obj, new_obj):
 
-        if type(obj) is Order:
-            response = self.exchange.interface.replace_single_order(obj.id)
-            return response
+        if type(old_obj) is Order and type(new_obj) is Order:
+            response = self.exchange_auth.interface.replace_single_order(
+                order_id=old_obj.id,
+                pair=new_obj.pair.as_str(),
+                amount=new_obj.amount,
+                price=new_obj.price,
+                side=new_obj.side,
+                context=new_obj.context,
+                type_=new_obj.type,
+                hidden=new_obj.hidden,
+            )
+            new_obj.update_arguments(**response)
+            old_obj.update()
 
-        elif type(obj) is Orders:
-            response = self.exchange.interface.replace_multiple_orders(obj.get_values('id'))
-            return response
+        # elif type(old_obj) is Orders and type(new_obj) is Orders:
+        #     response = self.exchange_auth.interface.replace_multiple_orders(obj.get_values('id'))
+        #     return response
+        #
+        # elif type(old_obj) is Offer and type(new_obj) is Offer:
+        #     response = self.exchange_auth.interface.replace_single_offer(obj.id)
+        #     return response
+        #
+        # elif type(old_obj) is Offers and type(new_obj) is Offers:
+        #     response = self.exchange_auth.interface.replace_multiple_offers(obj.get_values('id'))
+        #     return response
 
-        elif type(obj) is Offer:
-            response = self.exchange.interface.replace_single_offer(obj.id)
-            return response
-
-        elif type(obj) is Offers:
-            response = self.exchange.interface.replace_multiple_offers(obj.get_values('id'))
-            return response
-
-        return obj
+        return Orders([old_obj, new_obj])
 
 
 class Accounts(ObjectList):
