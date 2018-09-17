@@ -61,7 +61,7 @@ class RateLimit(object):
                 remaining = self.delay - elapsed
 
             if remaining > 0:
-                logger.debug('sleeping for {} seconds to respect ratelimit for: {}'.format(remaining, func))
+                logger.debug('Sleeping for {} seconds to respect ratelimit for: {}'.format(remaining, func))
                 time.sleep(remaining)
 
             response = func(*args, **kwargs)
