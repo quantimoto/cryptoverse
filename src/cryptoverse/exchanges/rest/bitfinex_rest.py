@@ -38,6 +38,7 @@ class BitfinexREST(RESTClient):
         :param request_obj: Object containing all the attributes required to do the request.
         :param credentials: Credentials object that contains the key and secret, required to sign the request.
         """
+
         payload = request_obj.data
         payload.update({
             'nonce': self.nonce(),
