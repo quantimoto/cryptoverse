@@ -90,7 +90,8 @@ class Retry(object):
                     successful = True
                 except self.exception as e:
                     counter += 1
-                    logger.warning('{} {}: {} - {}({} {})'.format(time.time(), self.exception.__name__, e, func, args, kwargs))
+                    logger.warning(
+                        '{} {}: {} - {}({} {})'.format(time.time(), self.exception.__name__, e, func, args, kwargs))
                     if self.max_tries is not None and self.max_tries == counter:
                         raise ExchangeMaxRetryException
                     time.sleep(self.wait)
