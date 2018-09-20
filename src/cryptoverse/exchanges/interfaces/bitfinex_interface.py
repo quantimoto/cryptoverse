@@ -118,7 +118,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': {'min': float(entry['minimum_order_size']),
                            'max': float(entry['maximum_order_size']),
                            'precision': 8},
-                'price': {'significant digits': float(entry['price_precision'])},
+                'price': {'significant digits': int(entry['price_precision'])},
                 'total': {'precision': 8},
             }
             order_fees = {
