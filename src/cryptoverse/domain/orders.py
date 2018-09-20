@@ -997,6 +997,12 @@ class Order(object):
             sleep(interval)
         return self
 
+    def sleep_while_unfilled(self, interval=5):
+        while self.is_unfilled:
+            self.update()
+            sleep(interval)
+        return self
+
     def followup(self, output='100%'):
         if type(output) is str and output[-1:] == '%':
             if output[:1] in ['+', '-']:
