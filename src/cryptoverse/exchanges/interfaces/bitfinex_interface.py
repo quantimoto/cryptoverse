@@ -420,7 +420,8 @@ class BitfinexInterface(ExchangeInterface):
             'withdrawals': dict(),
             'offers': dict(),
         }
-        public_fee_information = self.get_fees()  # todo: find a way to make sure public calls always use the public object
+        public_fee_information = self.get_fees()
+        # todo: find a way to make sure public calls always use the public object
 
         account_infos = self.rest_client.account_infos()
         account_fees = self.rest_client.account_fees()
