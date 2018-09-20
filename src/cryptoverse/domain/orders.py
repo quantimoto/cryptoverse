@@ -1032,7 +1032,9 @@ class Order(object):
 
     @property
     def remaining_amount(self):
-        return subtract(self.amount, self.executed_amount)
+        if self.amount is not None and self.executed_amount is not None:
+            return subtract(self.amount, self.executed_amount)
+        return None
 
     @property
     def percentage_filled(self):
@@ -1058,7 +1060,9 @@ class Order(object):
 
     @property
     def is_partially_filled(self):
-        return 0.0 < self.remaining_amount < self.amount
+        if self.remaining_amount is not None and self.amount is not None:
+            return 0.0 < self.remaining_amount < self.amount
+        return False
 
     @property
     def is_filled(self):
