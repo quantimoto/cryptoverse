@@ -88,9 +88,9 @@ class Retry(object):
                 try:
                     response = func(*args, **kwargs)
                     successful = True
-                except self.exception:
+                except self.exception as e:
                     counter += 1
-                    logger.warning('{} {}: {} {} {}'.format(time.time(), self.exception.__name__, func, args, kwargs))
+                    logger.warning('{} {}: {} - {}({} {})'.format(time.time(), self.exception.__name__, e, func, args, kwargs))
                     if self.max_tries is not None and self.max_tries == counter:
                         raise ExchangeMaxRetryException
                     time.sleep(self.wait)
