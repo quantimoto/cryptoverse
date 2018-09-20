@@ -991,7 +991,7 @@ class Order(object):
         if self.account is not None:
             return self.account.replace(self, new_order)
 
-    def sleep_while_active(self, interval=15):
+    def sleep_while_active(self, interval=5):
         while self.is_active:
             self.update()
             sleep(interval)
