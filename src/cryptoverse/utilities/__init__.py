@@ -52,9 +52,9 @@ def round_down(x, ndigits=8):
     1.987
     """
     if x is not None:
-        split = (('%.' + str(ndigits + 1) + 'f') % x).split('.')  # prevent scientific notation
-        truncated = '.'.join([split[0], split[1][:ndigits]])
-        return float(truncated)
+        split = str(float(x)).split('.')
+        return float('{}.{:.{decimal_truncate}}'.format(*split, decimal_truncate=ndigits))
+
     else:
         return None
 
@@ -75,8 +75,7 @@ def round_significant(x, ndigits=5):
     0.019877
     """
     if x is not None and ndigits > 0:
-        rounded = ('%.' + str(int(ndigits)) + 'g') % x
-        return float(rounded)
+        return float('{:.{ndigits}}'.format(x, ndigits=ndigits))
     else:
         return None
 
