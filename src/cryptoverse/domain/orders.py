@@ -99,7 +99,7 @@ class Order(object):
             return 'side'
         elif type(arg) is str and arg.lower() in ['spot', 'margin']:
             return 'context'
-        elif type(arg) is str and arg.lower() in ['limit', 'market']:
+        elif type(arg) is str and arg.lower() in ['limit', 'market', 'trailing stop']:
             return 'type'
         elif type(arg) is str and Pair.is_valid_str(arg):
             return 'pair'
@@ -136,7 +136,7 @@ class Order(object):
                         raise ValueError("Invalid value for '{}' supplied: '{}'".format(kw, arg))
 
                 if kw == 'type':
-                    if arg.lower() in ['limit', 'market']:
+                    if arg.lower() in ['limit', 'market', 'trailing stop']:
                         arg = arg.lower()
                     else:
                         raise ValueError("Invalid value for '{}' supplied: {}".format(kw, arg))
