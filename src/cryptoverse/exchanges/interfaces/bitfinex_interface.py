@@ -481,9 +481,9 @@ class BitfinexInterface(ExchangeInterface):
         for entry in response:
             pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
 
-            if ' ' in entry['type']:
+            if 'exchange ' in entry['type']:
                 context = 'spot'
-                type_ = entry['type'].split(' ')[1]
+                type_ = entry['type'].split(' ', 1)[1]
             else:
                 context = 'margin'
                 type_ = entry['type']
