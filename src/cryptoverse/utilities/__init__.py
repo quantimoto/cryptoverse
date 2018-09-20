@@ -74,6 +74,8 @@ def round_significant(x, ndigits=5):
     >>> round_significant(0.01987654321, ndigits=5)
     0.019877
     """
+    x = float(x)
+    ndigits = int(ndigits)
     if x is not None and ndigits > 0:
         return float('{:.{ndigits}}'.format(x, ndigits=ndigits))
     else:
