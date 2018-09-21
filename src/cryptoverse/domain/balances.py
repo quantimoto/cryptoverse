@@ -102,7 +102,7 @@ class Balance(object):
             if market:
                 side = market.get_side(output_instrument=quote_instrument)
                 if tickers is not None:
-                    ticker = tickers.get(pair=market.pair)
+                    ticker = tickers.get(market=market)
                     price = ticker.bid if side == 'buy' else ticker.ask
                 else:
                     price = 'bid' if side == 'buy' else 'ask'
