@@ -1118,8 +1118,8 @@ class BitfinexREST(RESTClient):
             },
             data={
                 'symbol': symbol,
-                'timestamp': timestamp,
-                'until': until,
+                'timestamp': str(timestamp) if timestamp is not None else None,
+                'until': str(until) if until is not None else None,
                 'limit_trades': limit_trades,
                 'reverse': reverse,
             },

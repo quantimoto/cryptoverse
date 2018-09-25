@@ -1,5 +1,6 @@
 from .object_list import ObjectList
-from ..utilities import side_colored
+from ..utilities import side_colored, multiply_as_decimals as multiply, subtract_as_decimals as subtract, \
+    divide_as_decimals as divide
 
 
 class Trade(object):
@@ -60,8 +61,33 @@ class Trade(object):
 
     @property
     def total(self):
-        from decimal import Decimal
-        return float(Decimal(str(self.amount)) * Decimal(str(self.price)))
+        return multiply(self.amount, self.price)
+
+    @property
+    def input(self):
+        if self.side == 'buy':
+            return self.total
+        elif self.side == 'sell':
+            return self.amount
+
+    @property
+    def gross(self):
+        if self.side == 'buy':
+            return self.amount
+        elif self.side == 'sell':
+            return self.total
+
+    @property
+    def net(self):
+        return subtract(self.gross, self.fees)
+
+    @property
+    def output(self):
+        return self.net
+
+    @property
+    def fee_percentage(self):
+        return multiply(divide(self.fees, self.gross) * 100)
 
 
 class Trades(ObjectList):
