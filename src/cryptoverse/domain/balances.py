@@ -176,3 +176,14 @@ class Balances(ObjectList):
         for entry in self:
             result += entry.markets(quote_instrument=quote_instrument)
         return result.get_unique()
+
+    def collapse(self):
+        result = type(self)()
+        for instrument in self.instruments:
+            balance = Balance(
+                instrument=instrument,
+                amount=self.find(instrument=instrument).get_sum('amount'),
+                available=self.find(instrument=instrument).get_sum('available'),
+            )
+            result.append(balance)
+        return result
