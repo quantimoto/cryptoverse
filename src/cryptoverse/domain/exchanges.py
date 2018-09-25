@@ -316,10 +316,13 @@ class Exchanges(ObjectList):
         raise AttributeError("'{}' object has no attribute: '{}'".format(self.__class__.__name__, item))
 
     def __getitem__(self, item):
-        for exchange in self:
-            if str(exchange.interface.slug).lower() == str(item).lower():
-                return exchange
-        raise KeyError("'{}' object has no item: '{}'".format(self.__class__.__name__, item))
+        if type(item) is int:
+            return super(self.__class__, self).__getitem__(item)
+        else:
+            for exchange in self:
+                if str(exchange.interface.slug).lower() == str(item).lower():
+                    return exchange
+            raise KeyError("'{}' object has no item: '{}'".format(self.__class__.__name__, item))
 
     @property
     def slugs(self):
