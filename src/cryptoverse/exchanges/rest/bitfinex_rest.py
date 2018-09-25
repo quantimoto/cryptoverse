@@ -88,6 +88,9 @@ class BitfinexREST(RESTClient):
                 raise ExchangeUnavailableException(result_from_json['error_description'])
             else:
                 raise ExchangeException(result.json())
+        elif type(result_from_json) is dict and 'message' in result_from_json and \
+                result_from_json['message'] == 'Ratelimit':
+            raise ExchangeRateLimitException
         elif type(result_from_json) is list and 'error' in result_from_json:
             raise ExchangeException(result.json())
 
