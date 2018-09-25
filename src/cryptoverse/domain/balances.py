@@ -17,11 +17,9 @@ class Balance(object):
         self.wallet = wallet
 
     def __repr__(self):
-        class_name = self.__class__.__name__
-        arguments = list()
-        for entry in self.as_dict().items():
-            arguments.append('{}={!r}'.format(*entry))
-        return '{}({})'.format(class_name, ', '.join(arguments))
+        return '{}(instrument={instrument}, ' \
+               'amount={amount:.8f}, ' \
+               'available={available:.8f})'.format(self.__class__.__name__, **self.as_dict())
 
     def as_dict(self):
         dict_obj = dict()
