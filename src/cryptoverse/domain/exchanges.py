@@ -338,3 +338,57 @@ class Exchanges(ObjectList):
                 exchange.interface.slug: exchange
             })
         return result
+
+    def instruments(self):
+        result = Instruments()
+        for exchange in self:
+            try:
+                result += exchange.instruments
+            except NotImplementedError:
+                pass
+        return result
+
+    def pairs(self):
+        result = Pairs()
+        for exchange in self:
+            try:
+                result += exchange.pairs
+            except NotImplementedError:
+                pass
+        return result
+
+    def markets(self):
+        result = Markets()
+        for exchange in self:
+            try:
+                result += exchange.markets
+            except NotImplementedError:
+                pass
+        return result
+
+    def spot_markets(self):
+        result = Markets()
+        for exchange in self:
+            try:
+                result += exchange.spot_markets
+            except NotImplementedError:
+                pass
+        return result
+
+    def margin_markets(self):
+        result = Markets()
+        for exchange in self:
+            try:
+                result += exchange.margin_markets
+            except NotImplementedError:
+                pass
+        return result
+
+    def funding_markets(self):
+        result = Markets()
+        for exchange in self:
+            try:
+                result += exchange.funding_markets
+            except NotImplementedError:
+                pass
+        return result
