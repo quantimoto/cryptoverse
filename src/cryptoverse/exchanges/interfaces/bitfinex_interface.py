@@ -1,3 +1,5 @@
+import math
+
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
@@ -710,44 +712,51 @@ class BitfinexInterface(ExchangeInterface):
             }
             order_list.append(order)
 
-        response = self.rest_client.order_new_multi(order_list)
-
+        max_orders = 10
         result = list()
-        for entry in response['order_ids']:
-            pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
-            if ' ' in entry['type']:
-                context = 'spot'
-                type_ = entry['type'].split(' ')[1]
-            else:
-                context = 'margin'
-                type_ = entry['type']
+        for i in range(math.ceil(len(order_list) / max_orders)):
+            begin = i * max_orders
+            end = begin + max_orders
+            response = self.rest_client.order_new_multi(order_list[begin:end])
+            # todo: get confirmation from bitfinex that you can only post 10 orders at a time
 
-            order = {
-                'id': entry['id'],
-                'hidden': entry['is_hidden'],
-                'active': entry['is_live'],
-                'amount': entry['original_amount'],
-                'price': entry['price'],
-                'side': entry['side'],
-                'pair': pair,
-                'timestamp': entry['timestamp'],
-                'type': type_,
-                'context': context,
-                'cancelled': entry['is_cancelled'],
-                'metadata': {
-                    'was_forced': entry['was_forced'],
-                    'avg_execution_price': entry['avg_execution_price'],
-                    'cid': entry['cid'],
-                    'cid_date': entry['cid_date'],
-                    'exchange': entry['exchange'],
-                    'executed_amount': entry['executed_amount'],
-                    'gid': entry['gid'],
-                    'oco_order': entry['oco_order'],
-                    'remaining_amount': entry['remaining_amount'],
-                    'src': entry['src'],
+            # from termcolor import cprint
+            # cprint(response, 'yellow')
+            for entry in response['order_ids']:
+                pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
+                if ' ' in entry['type']:
+                    context = 'spot'
+                    type_ = entry['type'].split(' ')[1]
+                else:
+                    context = 'margin'
+                    type_ = entry['type']
+
+                order = {
+                    'id': entry['id'],
+                    'hidden': entry['is_hidden'],
+                    'active': entry['is_live'],
+                    'amount': entry['original_amount'],
+                    'price': entry['price'],
+                    'side': entry['side'],
+                    'pair': pair,
+                    'timestamp': entry['timestamp'],
+                    'type': type_,
+                    'context': context,
+                    'cancelled': entry['is_cancelled'],
+                    'metadata': {
+                        'was_forced': entry['was_forced'],
+                        'avg_execution_price': entry['avg_execution_price'],
+                        'cid': entry['cid'],
+                        'cid_date': entry['cid_date'],
+                        'exchange': entry['exchange'],
+                        'executed_amount': entry['executed_amount'],
+                        'gid': entry['gid'],
+                        'oco_order': entry['oco_order'],
+                        'remaining_amount': entry['remaining_amount'],
+                        'src': entry['src'],
+                    }
                 }
-            }
-            result.append(order)
+                result.append(order)
 
         return result
 
