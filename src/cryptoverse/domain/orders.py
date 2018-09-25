@@ -1195,6 +1195,65 @@ class Orders(ObjectList):
 
         return self
 
+    def collapse(self):
+        result = Orders()
+        for exchange in self.get_unique_values('exchange'):
+            for market in self.find(exchange=exchange).get_unique_values('market'):
+                for side in ['buy', 'sell']:
+                    orders_for_side = self.find(market=market, side=side)
+                    if orders_for_side:
+                        result.append_order(
+                            exchange=exchange,
+                            market=market,
+                            side=side,
+                            input=orders_for_side.get_sum('input'),
+                            output=orders_for_side.get_sum('output'),
+                        )
+        return result
+
+    def inputs(self):
+        collapsed = self.collapse()
+
+        result = dict()
+        for order in collapsed:
+            instrument = order.input_instrument.as_str()
+            if instrument not in result:
+                result[instrument] = float()
+            result[instrument] += order.input
+
+        return result
+
+    def outputs(self):
+        collapsed = self.collapse()
+
+        result = dict()
+        for order in collapsed:
+            instrument = order.output_instrument.as_str()
+            if instrument not in result:
+                result[instrument] = float()
+            result[instrument] += order.output
+
+        return result
+
+    def totals(self):
+        result = dict()
+        for key, value in self.inputs().items():
+            if key not in result:
+                result[key] = float()
+            result[key] -= value
+        for key, value in self.outputs().items():
+            if key not in result:
+                result[key] = float()
+            result[key] += value
+
+        return result
+
+    def results(self):
+        from cryptoverse import Accounts
+        accounts = Accounts(self.get_unique_values('account'))
+        balances = accounts.wallets().balances
+        return self.find(is_executed=True).totals()
+
 
 class OrderChain(Orders):
     pass
