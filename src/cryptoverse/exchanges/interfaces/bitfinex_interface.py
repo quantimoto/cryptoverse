@@ -530,6 +530,7 @@ class BitfinexInterface(ExchangeInterface):
         result = list()
         for entry in response:
             trade = {
+                'pair': pair,
                 'amount': float(entry['amount']),
                 'fees': max(float(entry['fee_amount']), -float(entry['fee_amount'])),
                 'fee_instrument': 'USD',
