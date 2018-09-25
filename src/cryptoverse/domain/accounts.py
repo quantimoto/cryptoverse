@@ -387,3 +387,24 @@ class Accounts(ObjectList):
             account_key = '{}_{}'.format(exchange_slug, credentials_label)
             result.update({account_key: account})
         return result
+
+    def orders(self):
+        result = Orders()
+        for account in self:
+            try:
+                result += account.orders()
+            except NotImplementedError:
+                pass
+        return result
+
+    def wallets(self):
+        result = Wallets()
+        for account in self:
+            try:
+                result += account.wallets()
+            except NotImplementedError:
+                pass
+        return result
+
+    def portfolio(self):
+        return self.wallets().balances.collapse()
