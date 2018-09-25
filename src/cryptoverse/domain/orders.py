@@ -2,15 +2,13 @@ from time import sleep
 
 from termcolor import colored
 
-from .instruments import Instrument
-from .markets import Market
+from .instruments import Instrument, Instruments
+from .markets import Market, Markets
 from .object_list import ObjectList
-from .pairs import Pair
-from ..utilities import add_as_decimals as add
-from ..utilities import divide_as_decimals as divide
-from ..utilities import multiply_as_decimals as multiply
-from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys, side_colored
-from ..utilities import subtract_as_decimals as subtract
+from .pairs import Pair, Pairs
+from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys, side_colored, \
+    add_as_decimals as add, divide_as_decimals as divide, multiply_as_decimals as multiply, \
+    subtract_as_decimals as subtract
 
 
 class Order(object):
@@ -889,6 +887,12 @@ class Order(object):
 
     @property
     def output(self):
+        if self.is_executed and self.trades is not None:
+            if self.side == 'buy':
+                return subtract(self.trades.get_sum('amount'), self.trades.get_sum('fees'))
+            elif self.side == 'sell':
+                return subtract(self.trades.get_sum('total'), self.trades.get_sum('fees'))
+
         return self._get_argument('output')
 
     @output.setter
@@ -975,6 +979,10 @@ class Order(object):
     def output_instrument(self, value):
         self.update_arguments(output_instrument=value)
 
+    @property
+    def instruments(self):
+        return self.pair.instruments
+
     def place(self):
         if self.account is not None:
             return self.account.place(self)
@@ -1051,10 +1059,6 @@ class Order(object):
         return self.id is not None
 
     @property
-    def is_status_unknown(self):
-        return self.id is not None and not self.active and not self.is_cancelled and not self.trades
-
-    @property
     def is_unfilled(self):
         return self.executed_amount == 0.0
 
@@ -1066,7 +1070,8 @@ class Order(object):
 
     @property
     def is_filled(self):
-        return self.amount == self.executed_amount
+        if self.executed_amount is not None and self.amount is not None:
+            return self.executed_amount >= self.amount
 
     @property
     def is_active(self):
@@ -1078,13 +1083,17 @@ class Order(object):
 
     @property
     def is_executed(self):
-        return not self.is_cancelled and not self.is_active and (self.is_partially_filled or self.is_filled)
+        return self.is_placed and not self.is_active and not self.is_cancelled
+
+    @property
+    def has_trades(self):
+        if self.trades is not None and len(self.trades) > 0:
+            return True
+        return False
 
     @property
     def status(self):
-        if self.is_status_unknown:
-            return 'unknown'
-        elif self.is_executed:
+        if self.is_executed:
             return 'executed'
         elif self.is_cancelled:
             return 'cancelled'
@@ -1114,11 +1123,31 @@ class Order(object):
 
 class Orders(ObjectList):
 
-    def trades(self):
-        raise NotImplemented
+    @property
+    def instruments(self):
+        result = Instruments()
+        for pair in self.get_unique_values('pair'):
+            for instrument in pair.instruments:
+                if instrument not in result:
+                    result.append(instrument)
+        return result
 
-    def totals(self):
-        raise NotImplemented
+    @property
+    def pairs(self):
+        return Pairs(self.get_unique_values('pair'))
+
+    @property
+    def markets(self):
+        return Markets(self.get_unique_values('market'))
+
+    @property
+    def trades(self):
+        from cryptoverse.domain import Trades
+        result = Trades()
+        for entry in self:
+            if entry.trades is not None:
+                result += entry.trades
+        return result
 
     def results(self):
         raise NotImplemented
