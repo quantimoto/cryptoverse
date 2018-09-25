@@ -523,9 +523,9 @@ class BitfinexInterface(ExchangeInterface):
     def get_account_past_orders(self):
         raise NotImplementedError
 
-    def get_account_trades(self, pair, limit=100):
+    def get_account_trades(self, pair, limit=100, begin=None, end=None):
         symbol = '{}{}'.format(*pair.split('/'))
-        response = self.rest_client.mytrades(symbol=symbol, limit_trades=limit)
+        response = self.rest_client.mytrades(symbol=symbol, limit_trades=limit, timestamp=begin, until=end)
 
         result = list()
         for entry in response:
