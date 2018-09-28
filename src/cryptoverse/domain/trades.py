@@ -16,19 +16,8 @@ class Trade(object):
     pair = None
     order_id = None
 
-    def __init__(self, amount=None, price=None, side=None, id_=None, fees=None, fee_instrument=None, timestamp=None,
-                 account=None, exchange=None, pair=None, order_id=None):
-        self.amount = amount
-        self.price = price
-        self.side = side
-        self.id = id_
-        self.fees = fees
-        self.fee_instrument = fee_instrument
-        self.timestamp = timestamp
-        self.account = account
-        self.exchange = exchange
-        self.pair = pair
-        self.order_id = order_id
+    def __init__(self, **kwargs):
+        self.update_arguments(kwargs)
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -54,6 +43,30 @@ class Trade(object):
             'order_id': self.order_id,
         }
         return result
+
+    def update_arguments(self, kwargs):
+        if 'amount' in kwargs:
+            self.amount = kwargs['amount']
+        if 'price' in kwargs:
+            self.price = kwargs['price']
+        if 'side' in kwargs:
+            self.side = kwargs['side']
+        if 'id' in kwargs:
+            self.id = kwargs['id']
+        if 'fees' in kwargs:
+            self.fees = kwargs['fees']
+        if 'fee_instrument' in kwargs:
+            self.fee_instrument = kwargs['fee_instrument']
+        if 'timestamp' in kwargs:
+            self.timestamp = kwargs['timestamp']
+        if 'account' in kwargs:
+            self.account = kwargs['account']
+        if 'exchange' in kwargs:
+            self.exchange = kwargs['exchange']
+        if 'pair' in kwargs:
+            self.pair = kwargs['pair']
+        if 'order_id' in kwargs:
+            self.order_id = kwargs['order_id']
 
     @classmethod
     def from_dict(cls, dict_obj):
