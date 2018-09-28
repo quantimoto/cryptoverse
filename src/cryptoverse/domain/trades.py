@@ -100,7 +100,7 @@ class Trade(object):
 
     @property
     def fee_percentage(self):
-        return multiply(divide(self.fees, self.gross) * 100)
+        return multiply(divide(self.fees, self.gross), 100)
 
 
 class Trades(ObjectList):
