@@ -30,7 +30,7 @@ class Memoize(object):
                 if timestamp < time.time() - self.expires:
                     response = None
                 else:
-                    logger.debug('Returning stored response for : {} {} {}'.format(func, args, kwargs))
+                    logger.debug('Returning stored response for: {}({} {})'.format(func, args, kwargs))
 
             if response is None:
                 response = func(*args, **kwargs)
