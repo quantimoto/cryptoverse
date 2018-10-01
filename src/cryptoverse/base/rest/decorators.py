@@ -70,7 +70,10 @@ class Memoize(object):
                 self.store[key_hash][now] = response
 
                 # Store response to disk
-                cache = {now: response}
+                if hasattr(response, 'decoded_response'):
+                    cache = {now: response.decoded_response}
+                else:
+                    cache = {now: response}
                 json.dump(cache, open(filepath, 'w'))
 
             return response
