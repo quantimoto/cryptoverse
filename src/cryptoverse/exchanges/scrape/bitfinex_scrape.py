@@ -1,6 +1,6 @@
 import logging
 
-from ...base.rest.decorators import Memoize, Retry, RateLimit
+from ...base.rest.decorators import Memoize, Retry
 from ...base.scrape import ScrapeClient
 
 logger = logging.getLogger(__name__)
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class BitfinexScrape(ScrapeClient):
 
-    @Memoize(expires=60 * 60 * 24)
+    @Memoize(expires=60 * 60 * 24, persistent=True, instance_bound=False)
     @Retry(IndexError, wait=60)
     def fees(self):
         soup = self.get_soup('https://www.bitfinex.com/fees')
