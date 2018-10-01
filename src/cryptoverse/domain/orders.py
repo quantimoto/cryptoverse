@@ -6,9 +6,9 @@ from .instruments import Instrument, Instruments
 from .markets import Market, Markets
 from .object_list import ObjectList
 from .pairs import Pair, Pairs
-from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys, side_colored, \
-    add_as_decimals as add, divide_as_decimals as divide, multiply_as_decimals as multiply, \
+from ..utilities import add_as_decimals as add, divide_as_decimals as divide, multiply_as_decimals as multiply, \
     subtract_as_decimals as subtract
+from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys, side_colored
 
 
 class Order(object):
