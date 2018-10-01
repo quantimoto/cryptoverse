@@ -54,7 +54,7 @@ class Memoize(object):
                 if float(timestamp) > now - self.expires:
                     response = stored_response
                     logger.debug('Returning stored response from memory for: {}'.format(key))
-            else:
+            elif cache:
                 timestamp = max(cache.keys())
                 stored_response = cache[timestamp]
                 if float(timestamp) > now - self.expires:
