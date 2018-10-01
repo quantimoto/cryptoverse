@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class BitfinexScrape(ScrapeClient):
 
-    @Memoize(expires=60 * 60 * 24, persistent=True, instance_bound=False)
+    @Memoize(expires=3600, persistent=True, instance_bound=False)
     @Retry(IndexError, wait=60)
     def fees(self):
         soup = self.get_soup('https://www.bitfinex.com/fees')
