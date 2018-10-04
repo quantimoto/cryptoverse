@@ -91,6 +91,8 @@ class BitfinexREST(RESTClient):
         elif type(result_from_json) is dict and 'message' in result_from_json and \
                 result_from_json['message'] == 'Ratelimit':
             raise ExchangeRateLimitException
+        elif type(result_from_json) is list and 'error' in result_from_json and 11010 in result_from_json:
+            raise ExchangeRateLimitException
         elif type(result_from_json) is list and 'error' in result_from_json:
             raise ExchangeException(result.json())
 
@@ -487,7 +489,7 @@ class BitfinexREST(RESTClient):
         return response
 
     @Memoize(expires=60. / 20)  # Documentation states: 20 req/min
-    @RateLimit(calls=20, period=60, sleep=False, min_delay=1)
+    @RateLimit(calls=19, period=60, sleep=False, min_delay=1)
     def balances(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
         """
