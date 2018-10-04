@@ -1149,9 +1149,6 @@ class Orders(ObjectList):
                 result += entry.trades
         return result
 
-    def results(self):
-        raise NotImplemented
-
     def avg_price(self):
         raise NotImplemented
 
@@ -1249,9 +1246,6 @@ class Orders(ObjectList):
         return result
 
     def results(self):
-        from cryptoverse import Accounts
-        accounts = Accounts(self.get_unique_values('account'))
-        balances = accounts.wallets().balances
         return self.find(is_executed=True).totals()
 
 
