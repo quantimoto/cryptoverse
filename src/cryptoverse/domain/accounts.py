@@ -1,3 +1,5 @@
+import time
+
 from .balances import Balance, Balances
 from .credentials import Credentials
 from .lends import Lends, Lend
@@ -10,8 +12,10 @@ from .wallets import ExchangeWallet, Wallets
 
 
 class Account(object):
-    _exchange = None
+    exchange = None
+    _authenticated_exchange = None
     label = None
+    credentials = None
 
     def __init__(self, exchange=None, credentials=None, label=None):
         self.exchange = exchange
@@ -40,32 +44,20 @@ class Account(object):
         return hash((self.exchange, self.credentials))
 
     @property
-    def exchange(self):
-        return self._exchange
+    def exchange_auth(self):
+        if self._authenticated_exchange is None:
+            self._authenticated_exchange = self.exchange.copy()
+        if self.credentials is not None and self._authenticated_exchange.rest_client.credentials is None:
+            self._authenticated_exchange.rest_client.credentials = self.credentials
 
-    @exchange.setter
-    def exchange(self, value):
-        if value is not None:
-            self._exchange = value.copy()
-
-    @property
-    def credentials(self):
-        if self.exchange:
-            return self.exchange.interface.rest_client.credentials
-        else:
-            return None
-
-    @credentials.setter
-    def credentials(self, value):
-        if self.exchange is not None and value is not None:
-            self.exchange.interface.rest_client.credentials = value
+        return self._authenticated_exchange
 
     def fees(self):
-        return self.exchange.interface.get_account_fees()
+        return self.exchange.interface.get_account_fees(credentials=self.credentials)
 
     def orders(self):
         from .trades import Trades
-        response = self.exchange.interface.get_account_active_orders()
+        response = self.exchange.interface.get_account_active_orders(credentials=self.credentials)
 
         result = Orders()
         for entry in response:
@@ -102,7 +94,7 @@ class Account(object):
         else:
             raise ValueError("Invalid value for 'market' supplied: {}".format(market))
 
-        response = self.exchange.interface.get_account_trades(pair=pair_str, limit=limit)
+        response = self.exchange.interface.get_account_trades(pair=pair_str, limit=limit, credentials=self.credentials)
 
         result = Trades()
         for entry in response:
@@ -115,10 +107,10 @@ class Account(object):
         return result
 
     def positions(self, market=None):
-        return self.exchange.interface.get_account_positions(market=market)
+        return self.exchange.interface.get_account_positions(market=market, credentials=self.credentials)
 
     def offers(self):
-        response = self.exchange.interface.get_account_offers()
+        response = self.exchange.interface.get_account_offers(credentials=self.credentials)
 
         result = Offers()
         for entry in response:
@@ -152,7 +144,8 @@ class Account(object):
         else:
             raise ValueError("Invalid value for 'market' supplied: {}".format(market))
 
-        response = self.exchange.interface.get_account_lends(instrument=instrument_str, limit=limit)
+        response = self.exchange.interface.get_account_lends(instrument=instrument_str, limit=limit,
+                                                             credentials=self.credentials)
 
         result = Lends()
         for entry in response:
@@ -165,7 +158,8 @@ class Account(object):
         return result
 
     def wallets(self, label=None):
-        response = self.exchange.interface.get_account_wallets()
+        response = self.exchange.interface.get_account_wallets(credentials=self.credentials)
+
         result = Wallets()
         for kw, entries in response.items():
             wallet = ExchangeWallet(
@@ -191,10 +185,10 @@ class Account(object):
             return result[label]
 
     def deposits(self):
-        return self.exchange.interface.get_account_deposits()
+        return self.exchange.interface.get_account_deposits(credentials=self.credentials)
 
     def withdrawals(self):
-        return self.exchange.interface.get_account_withdrawals()
+        return self.exchange.interface.get_account_withdrawals(credentials=self.credentials)
 
     def create_order(self, *args, **kwargs):
         kwargs['account'] = self
@@ -226,6 +220,7 @@ class Account(object):
                 context=obj.context,
                 type_=obj.type,
                 hidden=obj.hidden,
+                credentials=self.credentials,
             )
             obj.update_arguments(**response)
 
@@ -240,19 +235,20 @@ class Account(object):
                 annual_rate=obj.annual_rate,
                 period=obj.period,
                 side=obj.side,
+                credentials=self.credentials,
             )
             obj.update_arguments(**response)
 
         elif type(obj) is Offers:
-            response = self.exchange.interface.place_multiple_offers(obj)
+            response = self.exchange.interface.place_multiple_offers(obj, credentials=self.credentials)
             return response
 
         return obj
 
     def update(self, obj):
 
-        if type(obj) is Order:
-            response = self.exchange.interface.update_single_order(order_id=obj.id)
+        if type(obj) is Order and obj.is_placed:
+            response = self.exchange.interface.update_single_order(order_id=obj.id, credentials=self.credentials)
             obj.update_arguments(**response)
 
             trades = self.trades(market=obj.market, limit=100)
@@ -263,14 +259,15 @@ class Account(object):
             return response
 
         elif type(obj) is Offer:
-            response = self.exchange.interface.update_single_offer(obj.id)
+            response = self.exchange.interface.update_single_offer(obj.id, credentials=self.credentials)
             obj.update_arguments(**response)
 
             lends = self.lends(market=obj.market, limit=100)
             obj.lends = lends.find(offer_id=obj.id)
 
         elif type(obj) is Offers:
-            response = self.exchange.interface.update_multiple_offers(obj.get_values('id'))
+            response = self.exchange.interface.update_multiple_offers(obj.get_values('id'),
+                                                                      credentials=self.credentials)
             return response
 
         return obj
@@ -278,25 +275,32 @@ class Account(object):
     def cancel(self, obj):
 
         if type(obj) is Order:
-            response = self.exchange.interface.cancel_single_order(obj.id)
+            response = self.exchange.interface.cancel_single_order(obj.id, credentials=self.credentials)
             obj.update_arguments(**response)
             if not obj.is_cancelled:
                 while not obj.is_cancelled:
                     obj = self.update(obj)
 
         elif type(obj) is Orders:
-            response = self.exchange.interface.cancel_multiple_orders(obj.get_values('id'))
+            orders_to_cancel = obj.find(is_placed=True, is_active=True, is_cancelled=False)
+            order_ids = orders_to_cancel.get_values('id')
+            response = self.exchange.interface.cancel_multiple_orders(order_ids=order_ids, credentials=self.credentials)
+            if len(response) > 0:
+                while orders_to_cancel.find(is_cancelled=False):
+                    orders_to_cancel.update()
+                    time.sleep(2)
             return response
 
         elif type(obj) is Offer:
-            response = self.exchange.interface.cancel_single_offer(obj.id)
+            response = self.exchange.interface.cancel_single_offer(obj.id, credentials=self.credentials)
             obj.update_arguments(**response)
             if not obj.is_cancelled:
                 while not obj.is_cancelled:
                     obj = self.update(obj)
 
         elif type(obj) is Offers:
-            response = self.exchange.interface.cancel_multiple_offers(obj.get_values('id'))
+            response = self.exchange.interface.cancel_multiple_offers(obj.get_values('id'),
+                                                                      credentials=self.credentials)
             return response
 
         return obj
@@ -304,7 +308,7 @@ class Account(object):
     def replace(self, old_obj, new_obj):
 
         if type(old_obj) is Order and type(new_obj) is Order:
-            response = self.exchange_auth.interface.replace_single_order(
+            response = self.exchange.interface.replace_single_order(
                 order_id=old_obj.id,
                 pair=new_obj.pair.as_str(),
                 amount=new_obj.amount,
@@ -313,6 +317,7 @@ class Account(object):
                 context=new_obj.context,
                 type_=new_obj.type,
                 hidden=new_obj.hidden,
+                credentials=self.credentials,
             )
             new_obj.update_arguments(**response)
             old_obj.update()
