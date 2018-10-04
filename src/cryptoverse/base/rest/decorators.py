@@ -106,8 +106,9 @@ class RateLimit(object):
             else:
                 if self.counter >= self.calls:
                     elapsed_time = now - self.first_call
-                    logger.info('{} calls within {} seconds.'.format(self.counter, elapsed_time), 'yellow')
                     delay = self.period - elapsed_time
+                    if delay > 0:
+                        logger.info('{} calls within {} seconds.'.format(self.counter, elapsed_time))
                     self.counter = 0
                     self.first_call = None
 
