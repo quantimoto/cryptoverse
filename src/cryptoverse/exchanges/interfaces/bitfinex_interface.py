@@ -266,7 +266,7 @@ class BitfinexInterface(ExchangeInterface):
 
             if market is not None:
                 ticker = {
-                    'market': market,  # todo: market missing in results
+                    'market': market,
                     'bid': float(entry[1]),
                     'ask': float(entry[3]),
                     'high': float(entry[9]),

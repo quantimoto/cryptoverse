@@ -117,7 +117,7 @@ class RESTClient(object):
             timeout=self._timeout,
             allow_redirects=False,
             verify=True,
-        )  # todo: logger for request
+        )
 
         return response
 

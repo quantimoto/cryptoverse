@@ -134,7 +134,7 @@ class Balances(ObjectList):
                 exchange_markets = markets.find(exchange=exchange)
                 tickers += exchange.tickers(exchange_markets)
 
-        values = dict()  # todo: this overwrites data when calculating values for multiple accounts
+        values = dict()
         for entry in self:
             if entry.instrument.code not in values and entry.amount != 0:
                 values[entry.instrument.code] = 0
