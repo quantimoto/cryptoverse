@@ -33,48 +33,48 @@ class Memoize(object):
                 func.__module__,
                 func.__name__,
                 ', '.join([x for x in [args_str, kwargs_str] if x]),
-            ).encode('UTF-8')
+            )
 
             h = hashlib.sha1()
-            h.update(key)
+            h.update(key.encode('UTF-8'))
             key_hash = h.hexdigest()
-
-            filepath = os.path.join(tempfile.gettempdir(), 'cryptoverse_{}'.format(key_hash))
-
-            try:
-                cache = json.load(open(filepath, 'r'))
-            except FileNotFoundError:
-                cache = dict()
 
             response = None
             now = time.time()
             if key_hash in self.store.keys():
                 timestamp = max(self.store[key_hash].keys())
                 stored_response = self.store[key_hash][timestamp]
-                if float(timestamp) > now - self.expires:
+                if float(timestamp) >= now - self.expires:
                     response = stored_response
-                    logger.debug('Returning stored response from memory for: {}'.format(key))
-            elif cache:
-                timestamp = max(cache.keys())
-                stored_response = cache[timestamp]
-                if float(timestamp) > now - self.expires:
-                    response = stored_response
-                    logger.debug('Returning stored response from disk for: {}'.format(key))
+                    logger.info('Returning stored response from memory for: {} {}'.format(key_hash, key))
+            elif self.persistent:
+                filepath = os.path.join(tempfile.gettempdir(), 'cryptoverse_{}'.format(key_hash))
+                if os.path.isfile(filepath):
+                    cache = json.load(open(filepath, 'r'))
+                    timestamp = max(cache.keys())
+                    stored_response = cache[timestamp]
+                    if float(timestamp) >= now - self.expires:
+                        response = stored_response
+                        logger.info('Returning stored response from disk for: {} {}'.format(key_hash, key))
 
             if response is None:
                 now = time.time()
+                logger.info('Getting response from function for: {} {}'.format(key_hash, key))
                 response = func(*args, **kwargs)
 
                 # Store response in memory
                 self.store[key_hash] = dict()
                 self.store[key_hash][now] = response
 
-                # Store response to disk
-                if hasattr(response, 'decoded_response'):
-                    cache = {now: response.decoded_response}
-                else:
-                    cache = {now: response}
-                json.dump(cache, open(filepath, 'w'))
+                if self.persistent:
+                    # Store response to disk
+                    if hasattr(response, 'decoded_response'):
+                        cache = {now: response.decoded_response}
+                    else:
+                        cache = {now: response}
+
+                    filepath = os.path.join(tempfile.gettempdir(), 'cryptoverse_{}'.format(key_hash))
+                    json.dump(cache, open(filepath, 'w'))
 
             return response
 
@@ -82,30 +82,58 @@ class Memoize(object):
 
 
 class RateLimit(object):
-    def __init__(self, calls=60, period=60):
+    def __init__(self, calls=60, period=60, sleep=False, min_delay=0):
         self.calls = max(1, min(sys.maxsize, floor(calls)))
         self.period = max(1, max(period, -period))
-        self.delay = float(self.period) / float(self.calls)
+        self.sleep = sleep
+
+        self.min_delay = max(min_delay, -min_delay)
+        self.sleep_time = float(self.period) / float(self.calls)
+        self.first_call = None
         self.last_call = None
+        self.counter = 0
 
     def __call__(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             now = time.time()
 
-            if self.last_call is None:
-                remaining = 0
+            delay = 0
+            if self.sleep is True:
+                if self.last_call is not None:
+                    elapsed_time = now - self.last_call
+                    delay = self.sleep_time - elapsed_time
             else:
-                elapsed = now - self.last_call
-                remaining = self.delay - elapsed
+                if self.counter >= self.calls:
+                    elapsed_time = now - self.first_call
+                    logger.info('{} calls within {} seconds.'.format(self.counter, elapsed_time), 'yellow')
+                    delay = self.period - elapsed_time
+                    self.counter = 0
+                    self.first_call = None
 
-            if remaining > 0:
-                logger.debug('Sleeping for {} seconds to respect ratelimit for: {}'.format(remaining, func))
-                time.sleep(remaining)
+            if delay - self.min_delay > 0:
+                logger.info(
+                    'Sleeping for {:.3f} seconds to respect ratelimit for: {}.{}({})'.format(
+                        delay,
+                        func.__module__,
+                        func.__name__,
+                        ', '.join([x for x in [
+                            ', '.join(['{!r}'.format(arg) for arg in args]),
+                            ', '.join(['{}={!r}'.format(kw, arg) for kw, arg in kwargs.items()])
+                        ] if x]),
+                    )
+                )
+
+            delay = max(delay, self.min_delay)
+            time.sleep(delay)
+
+            self.first_call = self.first_call or time.time()
 
             response = func(*args, **kwargs)
 
             self.last_call = time.time()
+            self.counter += 1
+
             return response
 
         return wrapper
@@ -127,7 +155,7 @@ class Retry(object):
                 try:
                     response = func(*args, **kwargs)
                     successful = True
-                except self.exception as e:
+                except self.exception:
                     counter += 1
                     logger.warning(
                         '{} - {}: {}.{}({})'.format(
