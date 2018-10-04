@@ -85,91 +85,91 @@ class ExchangeInterface(object):
     def get_market_candles(self, period, pair, limit=100):
         raise NotImplementedError
 
-    def get_account_fees(self):
+    def get_account_fees(self, credentials=None):
         raise NotImplementedError
 
-    def get_account_wallets(self):
+    def get_account_wallets(self, credentials=None):
         raise NotImplementedError
 
-    def get_account_active_orders(self):
+    def get_account_active_orders(self, credentials=None):
         raise NotImplementedError
 
-    def get_account_order_history(self):
+    def get_account_order_history(self, credentials=None):
         raise NotImplementedError
 
-    def get_account_trades(self, pair, limit):
+    def get_account_trades(self, pair, limit, credentials=None):
         raise NotImplementedError
 
-    def get_account_trades_for_order(self, order_id):
+    def get_account_trades_for_order(self, order_id, credentials=None):
         raise NotImplementedError
 
-    def get_account_positions(self):
+    def get_account_positions(self, credentials=None):
         raise NotImplementedError
 
-    def get_account_offers(self):
+    def get_account_offers(self, credentials=None):
         raise NotImplementedError
 
-    def get_account_lends(self, instrument, limit=100):
+    def get_account_lends(self, instrument, limit=100, credentials=None):
         raise NotImplementedError
 
-    def get_account_deposits(self, *args, **kwargs):
+    def get_account_deposits(self, *args, credentials=None, **kwargs):
         raise NotImplementedError
 
-    def get_account_withdrawals(self, *args, **kwargs):
+    def get_account_withdrawals(self, *args, credentials=None, **kwargs):
         raise NotImplementedError
 
     def place_single_order(self, pair, amount, price, side, context='spot', type_='limit', hidden=False,
-                           post_only=None):
+                           post_only=None, credentials=None):
         raise NotImplementedError
 
-    def place_multiple_orders(self, orders):
+    def place_multiple_orders(self, orders, credentials=None):
         raise NotImplementedError
 
     def replace_single_order(self, order_id, pair, amount, price, side, context='spot', type_='limit', hidden=False,
-                             post_only=None):
+                             post_only=None, credentials=None):
         raise NotImplementedError
 
-    def replace_multiple_orders(self, *args, **kwargs):
+    def replace_multiple_orders(self, *args, credentials=None, **kwargs):
         raise NotImplementedError
 
-    def update_single_order(self, order_id):
+    def update_single_order(self, order_id, credentials=None):
         raise NotImplementedError
 
-    def update_multiple_orders(self, order_ids):
+    def update_multiple_orders(self, order_ids, credentials=None):
         raise NotImplementedError
 
-    def cancel_single_order(self, order_id):
+    def cancel_single_order(self, order_id, credentials=None):
         raise NotImplementedError
 
-    def cancel_multiple_orders(self, order_ids):
+    def cancel_multiple_orders(self, order_ids, credentials=None):
         raise NotImplementedError
 
-    def cancel_all_orders(self):
+    def cancel_all_orders(self, credentials=None):
         raise NotImplementedError
 
-    def place_single_offer(self, instrument, amount, annual_rate, period, side):
+    def place_single_offer(self, instrument, amount, annual_rate, period, side, credentials=None):
         raise NotImplementedError
 
-    def place_multiple_offers(self, offers):
+    def place_multiple_offers(self, offers, credentials=None):
         raise NotImplementedError
 
-    def replace_single_offer(self, *args, **kwargs):
+    def replace_single_offer(self, *args, credentials=None, **kwargs):
         raise NotImplementedError
 
-    def replace_multiple_offers(self, *args, **kwargs):
+    def replace_multiple_offers(self, *args, credentials=None, **kwargs):
         raise NotImplementedError
 
-    def update_single_offer(self, offer_id):
+    def update_single_offer(self, offer_id, credentials=None):
         raise NotImplementedError
 
-    def update_multiple_offers(self, offer_ids):
+    def update_multiple_offers(self, offer_ids, credentials=None):
         raise NotImplementedError
 
-    def cancel_single_offer(self, offer_id):
+    def cancel_single_offer(self, offer_id, credentials=None):
         raise NotImplementedError
 
-    def cancel_multiple_offers(self, offer_ids):
+    def cancel_multiple_offers(self, offer_ids, credentials=None):
         raise NotImplementedError
 
-    def cancel_all_offers(self):
+    def cancel_all_offers(self, credentials=None):
         raise NotImplementedError
