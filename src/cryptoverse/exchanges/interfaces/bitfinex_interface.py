@@ -1158,8 +1158,8 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def cancel_multiple_offers(self, offer_ids):
+    def cancel_multiple_offers(self, offer_ids, credentials=None):
         raise NotImplementedError
 
-    def cancel_all_offers(self):
+    def cancel_all_offers(self, credentials=None):
         raise NotImplementedError
