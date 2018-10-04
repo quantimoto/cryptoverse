@@ -475,5 +475,5 @@ class Accounts(ObjectList):
                 pass
         return result
 
-    def portfolio(self):
+    def portfolio(self):  # todo: this should return a Portfolio object
         return self.wallets().balances.collapse()
