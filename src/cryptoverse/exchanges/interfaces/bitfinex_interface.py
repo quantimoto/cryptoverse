@@ -519,7 +519,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_past_orders(self, credentials=None):
+    def get_account_order_history(self, credentials=None):
         raise NotImplementedError
 
     def get_account_trades(self, pair, limit=100, begin=None, end=None, credentials=None):
