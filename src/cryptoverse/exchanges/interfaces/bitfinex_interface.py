@@ -524,7 +524,8 @@ class BitfinexInterface(ExchangeInterface):
 
     def get_account_trades(self, pair, limit=100, begin=None, end=None, credentials=None):
         symbol = '{}{}'.format(*pair.split('/'))
-        response = self.rest_client.mytrades(symbol=symbol, limit_trades=limit, timestamp=begin, until=end, credentials=credentials)
+        response = self.rest_client.mytrades(symbol=symbol, limit_trades=limit, timestamp=begin, until=end,
+                                             credentials=credentials)
 
         result = list()
         for entry in response:
