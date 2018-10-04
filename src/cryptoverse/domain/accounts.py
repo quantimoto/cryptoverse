@@ -212,6 +212,9 @@ class Account(object):
     def place(self, obj):
 
         if type(obj) is Order:
+            if obj.account is not None and obj.account != self:
+                raise ValueError('Order is associated with a different account: {}'.format(obj.account))
+
             response = self.exchange.interface.place_single_order(
                 pair=obj.pair.as_str(),
                 amount=obj.amount,
@@ -225,8 +228,30 @@ class Account(object):
             obj.update_arguments(**response)
 
         elif type(obj) is Orders:
-            response = self.exchange.interface.place_multiple_orders(obj)
-            return response
+            orders_to_place = obj.find(is_placed=False, is_cancelled=False, is_active=False)
+            orders = list()
+            for entry in orders_to_place:
+                if type(entry) is Order:
+                    if entry.account is not None and entry.account != self:
+                        raise ValueError('Order is associated with a different account: {}'.format(entry.account))
+
+                    order = {
+                        'pair': entry.pair.as_str(),
+                        'amount': entry.amount,
+                        'price': entry.price,
+                        'side': entry.side,
+                        'context': entry.context,
+                        'type': entry.type,
+                    }
+                    orders.append(order)
+
+            if orders:
+                response = self.exchange.interface.place_multiple_orders(orders, credentials=self.credentials)
+
+                for i in range(len(response)):
+                    entry = response[i]
+                    order = orders_to_place[i]
+                    order.update_arguments(**entry)
 
         elif type(obj) is Offer:
             response = self.exchange.interface.place_single_offer(
@@ -255,8 +280,47 @@ class Account(object):
             obj.trades = trades.find(order_id=obj.id)
 
         elif type(obj) is Orders:
-            response = self.exchange.interface.update_multiple_orders(obj.get_values('id'))
-            return response
+            orders_to_update = obj.find(is_placed=True)
+            orders_list = list()
+            for entry in orders_to_update:
+                if type(entry) is Order:
+                    if entry.account is not None and entry.account != self:
+                        raise ValueError('Order is associated with a different account: {}'.format(entry.account))
+
+                    order = {
+                        'id': entry.id,
+                    }
+                    orders_list.append(order)
+
+            if orders_list:
+                response = self.exchange.interface.update_multiple_orders(orders=orders_list,
+                                                                          credentials=self.credentials)
+
+                for entry in response:
+                    orders_to_update.get(id=entry['id']).update_arguments(**entry)
+
+                from cryptoverse.domain import Trade, Trades
+                for market in orders_to_update.get_unique_values('market'):
+                    orders_for_market = orders_to_update.find(market=market)
+                    smallest_timestamp = min(orders_for_market.get_unique_values('timestamp'))
+                    biggest_timestamp = time.time()
+                    response = self.exchange.interface.get_account_trades(pair=market.pair.as_str(), limit=None,
+                                                                          begin=smallest_timestamp,
+                                                                          end=biggest_timestamp,
+                                                                          credentials=self.credentials)
+
+                    for entry in response:
+                        if 'order_id' in entry:
+                            order = orders_for_market.get(id=entry['order_id'])
+                            if order:
+                                if order.trades is None:
+                                    order.trades = Trades()
+                                if entry['order_id'] in order.trades.get_unique_values('order_id'):
+                                    trade = order.trades.get(order_id=entry['order_id'])
+                                    trade.update_arguments(entry)
+                                else:
+                                    trade = Trade.from_dict(entry)
+                                    order.trades.append(trade)
 
         elif type(obj) is Offer:
             response = self.exchange.interface.update_single_offer(obj.id, credentials=self.credentials)
