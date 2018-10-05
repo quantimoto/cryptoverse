@@ -231,7 +231,7 @@ class BitfinexREST(RESTClient):
         return response
 
     @Memoize(expires=60. / 20)
-    @RateLimit(calls=15, period=60, sleep=False,)  # Documentation states: 20 req/min
+    @RateLimit(calls=15, period=60, sleep=False)  # Documentation states: 20 req/min
     def trades(self, symbol, timestamp=None, limit_trades=50):
         # https://docs.bitfinex.com/v1/reference#rest-public-trades
         """
@@ -288,7 +288,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 5)
+    @Memoize(expires=60 * 5)
     @RateLimit(calls=5, period=60, sleep=True)  # Documentation states: 5 req/min
     def symbols(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbols
@@ -308,7 +308,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 5)
+    @Memoize(expires=60 * 5)
     @RateLimit(calls=5, period=60, sleep=True)  # Documentation states: 5 req/min
     def symbols_details(self):
         # https://docs.bitfinex.com/v1/reference#rest-public-symbol-details
