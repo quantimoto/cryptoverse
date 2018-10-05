@@ -16,7 +16,9 @@ class RequestObj:
     _data = None
     _headers = None
 
-    def __init__(self, method=None, host=None, path=None, params=None, data=None, headers=None, scheme='https'):
+    data_as_json = None
+
+    def __init__(self, method=None, host=None, path=None, params=None, data=None, headers=None, scheme='https', data_as_json=False):
         self.method = method
         self.host = host
         self.path = path
@@ -24,6 +26,7 @@ class RequestObj:
         self.data = data
         self.headers = headers
         self.scheme = scheme
+        self.data_as_json = data_as_json
 
     def __repr__(self):
         s = list()
@@ -42,6 +45,7 @@ class RequestObj:
             'params': self.params,
             'data': self.data,
             'header': self.headers,
+            'data_as_json': self.data_as_json,
         }
         return dict_obj
 
@@ -55,6 +59,7 @@ class RequestObj:
             data=dict_obj['data'],
             headers=dict_obj['headers'],
             scheme=dict_obj['scheme'],
+            data_as_json=dict_obj['data_as_json'],
         )
 
     @staticmethod
@@ -87,11 +92,19 @@ class RequestObj:
 
     @property
     def data(self):
+        if self.data_as_json is True:
+            return None
         return self.sanitize_dict(self._data).copy()
 
     @data.setter
     def data(self, value):
         self._data = value
+
+    @property
+    def json(self):
+        if self.data_as_json is not True:
+            return None
+        return self.sanitize_dict(self._data).copy()
 
     @property
     def headers(self):

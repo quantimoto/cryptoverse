@@ -39,28 +39,43 @@ class BitfinexREST(RESTClient):
         :param credentials: Credentials object that contains the key and secret, required to sign the request.
         """
 
-        payload = request_obj.data
-        payload.update({
-            'nonce': self.nonce(),
-            'request': '/{}'.format(request_obj.path),
-        })
+        if 'v1' in request_obj.path:
+            payload = request_obj.data
+            payload.update({
+                'nonce': self.nonce(),
+                'request': '/{}'.format(request_obj.path),
+            })
 
-        encoded_payload = base64.standard_b64encode(json.dumps(payload).encode('utf-8'))
-        message = encoded_payload
+            encoded_payload = base64.standard_b64encode(json.dumps(payload).encode('utf-8'))
+            message = encoded_payload
 
-        h = hmac.new(
-            key=credentials.secret.encode('utf-8'),
-            msg=message,
-            digestmod=hashlib.sha384,
-        )
-        signature = h.hexdigest()
+            h = hmac.new(
+                key=credentials.secret.encode('utf-8'),
+                msg=message,
+                digestmod=hashlib.sha384,
+            )
+            signature = h.hexdigest()
 
-        headers = {
-            'X-BFX-APIKEY': credentials.key,
-            'X-BFX-PAYLOAD': encoded_payload,
-            'X-BFX-SIGNATURE': signature,
-        }
-        request_obj.headers = headers
+            headers = {
+                'X-BFX-APIKEY': credentials.key,
+                'X-BFX-PAYLOAD': encoded_payload,
+                'X-BFX-SIGNATURE': signature,
+            }
+            request_obj.headers = headers
+        elif 'v2' in request_obj.path:
+            nonce = self.nonce()
+            signature = '/api/{}{}{}'.format(request_obj.path, nonce, json.dumps(request_obj.data))
+            h = hmac.new(credentials.secret.encode('utf-8'), signature.encode('utf-8'), hashlib.sha384)
+            signature = h.hexdigest()
+
+            headers = {
+                'bfx-nonce': nonce,
+                'bfx-apikey': credentials.key,
+                'bfx-signature': signature,
+                'content-type': 'application/json'
+            }
+            request_obj.headers = headers
+            # request_obj.data_as_json = True
 
         return request_obj
 
