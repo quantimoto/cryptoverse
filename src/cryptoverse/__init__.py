@@ -3,7 +3,10 @@ import logging
 from .domain import Accounts, Exchanges
 from .exchanges import Bitfinex, Bl3p, Kraken, Poloniex
 
-logging.basicConfig()
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+)
 
 exchanges = Exchanges()
 accounts = Accounts()

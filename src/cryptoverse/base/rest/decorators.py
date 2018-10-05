@@ -159,8 +159,7 @@ class Retry(object):
                 except self.exception:
                     counter += 1
                     logger.warning(
-                        '{} - {}: {}.{}({})'.format(
-                            time.time(),
+                        '{}: {}.{}({})'.format(
                             self.exception.__name__,
                             func.__module__,
                             func.__name__,
