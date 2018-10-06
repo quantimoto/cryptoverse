@@ -91,7 +91,7 @@ class BitfinexREST(RESTClient):
             result_from_json = json.loads(result.text)
         except JSONDecodeError:
             if result.text == '':
-                raise ExchangeInvalidResponseException
+                raise ExchangeInvalidResponseException(result.text)
             else:
                 print(result.text)
                 raise ExchangeDecodeException
@@ -332,7 +332,7 @@ class BitfinexREST(RESTClient):
     # V1 Authenticated Endpoints
     #
 
-    @Memoize(expires=60. / 1)
+    @Memoize(expires=60. * 5)
     @RateLimit(calls=4, period=60, sleep=False, min_delay=1)
     def account_infos(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-account-info
