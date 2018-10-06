@@ -276,8 +276,16 @@ class Account(object):
             response = self.exchange.interface.update_single_order(order_id=obj.id, credentials=self.credentials)
             obj.update_arguments(**response)
 
-            trades = self.trades(market=obj.market, limit=100)
-            obj.trades = trades.find(order_id=obj.id)
+            response = self.exchange.interface.get_account_trades_for_order(pair=obj.pair.as_str(), order_id=obj.id,
+                                                                            credentials=self.credentials)
+
+            from .trades import Trades, Trade
+            obj.trades = Trades()
+            for entry in response:
+                entry['account'] = self
+                entry['exchange'] = self.exchange
+                trade = Trade.from_dict(entry)
+                obj.trades.append(trade)
 
         elif type(obj) is Orders:
             orders_to_update = obj.find(is_placed=True)

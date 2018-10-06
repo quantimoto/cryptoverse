@@ -544,8 +544,48 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_trades_for_order(self, order_id, credentials=None):
-        raise NotImplementedError
+    def get_account_trades_for_order(self, pair, order_id, credentials=None):
+        symbol = 't{}{}'.format(*pair.split('/'))
+        response = self.rest_client.auth_order_trades(symbol=symbol, order_id=order_id, credentials=credentials)
+
+        trades = list()
+        for entry in response:
+            trade = {
+                'id': str(entry[0]),
+                'pair': '{}/{}'.format(entry[1][1:4], entry[1][4:]),
+                'timestamp': float(entry[2]) / 1000,
+                'order_id': str(entry[3]),
+                'amount': float(entry[4]),
+                'side': 'buy' if entry[4] > 0 else 'sell',
+                'price': float(entry[5]),
+                'maker': True if entry[8] == 1 else False,
+                'type': 'market' if entry[8] > 0 else 'limit',
+                'fee': max(float(entry[9]), -float(entry[9])),
+                'fee_instrument': entry[10],
+            }
+
+            trades.append(trade)
+
+        if not trades:
+            symbol = '{}{}'.format(*pair.split('/'))
+            response = self.rest_client.mytrades(symbol=symbol, limit_trades=1000, credentials=credentials)
+
+            for entry in response:
+                if str(entry['order_id']) == str(order_id):
+                    trade = {
+                        'pair': pair,
+                        'amount': float(entry['amount']),
+                        'fees': max(float(entry['fee_amount']), -float(entry['fee_amount'])),
+                        'fee_instrument': 'USD',
+                        'order_id': str(entry['order_id']),
+                        'price': float(entry['price']),
+                        'id_': str(entry['tid']),
+                        'timestamp': float(entry['timestamp']),
+                        'side': str(entry['type']).lower(),
+                    }
+                    trades.append(trade)
+
+        return trades
 
     def get_account_positions(self, credentials=None):
         raise NotImplementedError

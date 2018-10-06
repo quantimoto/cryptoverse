@@ -100,7 +100,7 @@ class ExchangeInterface(object):
     def get_account_trades(self, pair, limit, credentials=None):
         raise NotImplementedError
 
-    def get_account_trades_for_order(self, order_id, credentials=None):
+    def get_account_trades_for_order(self, pair, order_id, credentials=None):
         raise NotImplementedError
 
     def get_account_positions(self, credentials=None):
