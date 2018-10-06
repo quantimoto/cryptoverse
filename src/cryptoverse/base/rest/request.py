@@ -18,7 +18,8 @@ class RequestObj:
 
     data_as_json = None
 
-    def __init__(self, method=None, host=None, path=None, params=None, data=None, headers=None, scheme='https', data_as_json=False):
+    def __init__(self, method=None, host=None, path=None, params=None, data=None, headers=None, scheme='https',
+                 data_as_json=False):
         self.method = method
         self.host = host
         self.path = path
