@@ -863,8 +863,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 45)
-    @RateLimit(calls=45, period=60, sleep=False, min_delay=1)
+    @Memoize(expires=60. / 35)
+    @RateLimit(calls=35, period=60)
     def order_status(self, order_id, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-order-status
         """
