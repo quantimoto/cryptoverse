@@ -2552,7 +2552,7 @@ class BitfinexREST(RESTClient):
 
     @Memoize(expires=60. / 45)
     @RateLimit(calls=45, period=60, sleep=False, min_delay=1)
-    def auth_settings_read(self, keys):
+    def auth_settings_read(self, keys, credentials=None):
         # https://docs.bitfinex.com/v2/reference#user-settings-read
         """
         User Settings Read
@@ -2562,10 +2562,11 @@ class BitfinexREST(RESTClient):
         :param keys: Array of keys requested. Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
         :return:
         """
+
         raise NotImplementedError
 
     @RateLimit(calls=45, period=60, sleep=False, min_delay=1)
-    def auth_settings_set(self, settings):
+    def auth_settings_set(self, settings, credentials=None):
         # https://docs.bitfinex.com/v2/reference#user-settings-write
         """
         User Settings Write
@@ -2575,10 +2576,11 @@ class BitfinexREST(RESTClient):
         :param settings: Object of keys and values to be set. Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
         :return:
         """
+
         raise NotImplementedError
 
     @RateLimit(calls=45, period=60, sleep=False, min_delay=1)
-    def auth_settings_del(self, settings):
+    def auth_settings_del(self, settings, credentials=None):
         # https://docs.bitfinex.com/v2/reference#user-settings-delete
         """
         User Settings Delete
@@ -2588,6 +2590,7 @@ class BitfinexREST(RESTClient):
         :param settings: Object of keys to be deleted followed by value 1. Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
         :return:
         """
+
         raise NotImplementedError
 
     @RateLimit(calls=45, period=60)
