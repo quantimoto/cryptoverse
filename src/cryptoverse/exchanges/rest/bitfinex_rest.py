@@ -2565,3 +2565,29 @@ class BitfinexREST(RESTClient):
     def auth_settings_del(self, *args, **kwargs):
         # https://docs.bitfinex.com/v2/reference#user-settings-delete
         raise NotImplementedError
+
+    @RateLimit(calls=45, period=60)
+    def auth_info_user(self, credentials=None):
+        # https://docs.bitfinex.com/v2/reference#rest-auth-user
+        """
+        User Info
+
+        Get account information
+
+        :return:
+        """
+
+        credentials = credentials or self.credentials
+        if credentials is None:
+            raise MissingCredentialsException
+
+        response = self.request(
+            method='POST',
+            path='v{version}/auth/r/info/user',
+            path_params={
+                'version': 2,
+            },
+            credentials=credentials,
+        )
+
+        return response
