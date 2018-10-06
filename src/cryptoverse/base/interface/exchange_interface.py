@@ -112,6 +112,9 @@ class ExchangeInterface(object):
     def get_account_lends(self, instrument, limit=100, credentials=None):
         raise NotImplementedError
 
+    def get_account_lends_for_offer(self, instrument, offer_id, credentials=None):
+        raise NotImplementedError
+
     def get_account_deposits(self, *args, credentials=None, **kwargs):
         raise NotImplementedError
 
