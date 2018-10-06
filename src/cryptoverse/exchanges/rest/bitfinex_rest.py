@@ -2589,7 +2589,8 @@ class BitfinexREST(RESTClient):
 
         Delete user settings
 
-        :param settings: Object of keys to be deleted followed by value 1. Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
+        :param settings: Object of keys to be deleted followed by value 1.
+            Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
         :param dict credentials: dictionary containing authentication information like key and secret
         :return:
         """
