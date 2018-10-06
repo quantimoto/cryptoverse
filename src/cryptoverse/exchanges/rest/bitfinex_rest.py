@@ -2560,6 +2560,7 @@ class BitfinexREST(RESTClient):
         Read user settings
 
         :param keys: Array of keys requested. Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
+        :param dict credentials: dictionary containing authentication information like key and secret
         :return:
         """
 
@@ -2574,6 +2575,7 @@ class BitfinexREST(RESTClient):
         Write user settings
 
         :param settings: Object of keys and values to be set. Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
+        :param dict credentials: dictionary containing authentication information like key and secret
         :return:
         """
 
@@ -2588,6 +2590,7 @@ class BitfinexREST(RESTClient):
         Delete user settings
 
         :param settings: Object of keys to be deleted followed by value 1. Must follow regex pattern /^api:[A-Za-z0-9_-]*$/
+        :param dict credentials: dictionary containing authentication information like key and secret
         :return:
         """
 
