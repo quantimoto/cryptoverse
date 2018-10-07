@@ -28,6 +28,18 @@ class Instrument(object):
     def __hash__(self):
         return hash((self.code, self.name))
 
+    def __ge__(self, other):
+        return self.as_str().__ge__(other.as_str())
+
+    def __gt__(self, other):
+        return self.as_str().__gt__(other.as_str())
+
+    def __le__(self, other):
+        return self.as_str().__le__(other.as_str())
+
+    def __lt__(self, other):
+        return self.as_str().__lt__(other.as_str())
+
     def as_str(self):
         return self.code
 

@@ -90,3 +90,8 @@ class ObjectList(list):
 
     def __hash__(self):
         return hash(tuple(self))
+
+    def sorted_by(self, key, reverse=False):
+        return type(self)(sorted(self,
+                                 key=lambda entry: getattr(entry, key, None) or entry[key],
+                                 reverse=reverse))

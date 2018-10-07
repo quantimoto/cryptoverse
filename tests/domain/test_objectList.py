@@ -79,3 +79,33 @@ class TestObjectList(TestCase):
         self.assertEqual(i, ['BTC', 'LTC', 'USD', 'EUR', 'ETH', 'BTC'])
         r = i.get_unique()
         self.assertEqual(r, ['BTC', 'LTC', 'USD', 'EUR', 'ETH'])
+
+    def test_sorted_by(self):
+        self.assertEqual(Instruments([Instrument('BTC'),
+                                      Instrument('BTC'),
+                                      Instrument('ETH'),
+                                      Instrument('EUR'),
+                                      Instrument('LTC'),
+                                      Instrument('USD')]), i.sorted_by(key='code', reverse=False))
+        self.assertEqual(Instruments([Instrument('USD'),
+                                      Instrument('LTC'),
+                                      Instrument('EUR'),
+                                      Instrument('ETH'),
+                                      Instrument('BTC'),
+                                      Instrument('BTC')]), i.sorted_by(key='code', reverse=True))
+        self.assertEqual(Instruments([Pair('BTC/USD'),
+                                      Pair('BTC/EUR'),
+                                      Pair('ETH/USD'),
+                                      Pair('LTC/USD')]), p.sorted_by(key='base', reverse=False))
+        self.assertEqual(Instruments([Pair('LTC/USD'),
+                                      Pair('ETH/USD'),
+                                      Pair('BTC/USD'),
+                                      Pair('BTC/EUR')]), p.sorted_by(key='base', reverse=True))
+        self.assertEqual(Instruments([Pair('BTC/EUR'),
+                                      Pair('BTC/USD'),
+                                      Pair('LTC/USD'),
+                                      Pair('ETH/USD')]), p.sorted_by(key='quote', reverse=False))
+        self.assertEqual(Instruments([Pair('BTC/USD'),
+                                      Pair('LTC/USD'),
+                                      Pair('ETH/USD'),
+                                      Pair('BTC/EUR')]), p.sorted_by(key='quote', reverse=True))
