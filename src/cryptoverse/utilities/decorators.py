@@ -8,8 +8,8 @@ import time
 from functools import wraps
 from math import floor
 
-from cryptoverse.exceptions import ExchangeMaxRetryException
-from .response import ResponseObj
+from cryptoverse.exceptions import MaxRetryException
+from cryptoverse.base.rest.response import ResponseObj
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +174,7 @@ class Retry(object):
                         )
                     )
                     if self.max_tries is not None and self.max_tries == counter:
-                        raise ExchangeMaxRetryException
+                        raise MaxRetryException
                     time.sleep(self.wait)
 
             return response

@@ -21,7 +21,7 @@ class ExchangeUnavailableException(BaseException):
     pass
 
 
-class ExchangeMaxRetryException(BaseException):
+class MaxRetryException(BaseException):
     pass
 
 

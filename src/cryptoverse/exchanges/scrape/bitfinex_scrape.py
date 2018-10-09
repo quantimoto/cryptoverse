@@ -1,6 +1,6 @@
 import logging
 
-from ...base.rest.decorators import Memoize, Retry
+from cryptoverse.utilities.decorators import Memoize, Retry
 from ...base.scrape import ScrapeClient
 
 logger = logging.getLogger(__name__)
