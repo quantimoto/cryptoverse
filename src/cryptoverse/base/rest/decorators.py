@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Memoize(object):
-    def __init__(self, expires, persistent=False, instance_bound=True):
+    def __init__(self, expires=None, persistent=False, instance_bound=True):
         self.expires = expires
         self.store = dict()
         self.persistent = persistent
@@ -41,21 +41,25 @@ class Memoize(object):
 
             response = None
             now = time.time()
-            if key_hash in self.store.keys():
-                timestamp = max(self.store[key_hash].keys())
-                stored_response = self.store[key_hash][timestamp]
-                if float(timestamp) >= now - self.expires:
-                    response = stored_response
-                    logger.info('Returning stored response from memory for: {} {}'.format(key_hash, key))
-            elif self.persistent:
-                filepath = os.path.join(tempfile.gettempdir(), 'cryptoverse_{}'.format(key_hash))
-                if os.path.isfile(filepath):
-                    cache = json.load(open(filepath, 'r'))
-                    timestamp = max(cache.keys())
-                    stored_response = cache[timestamp]
+            if self.expires is not None:
+                if key_hash in self.store.keys():
+                    timestamp = max(self.store[key_hash].keys())
+                    stored_response = self.store[key_hash][timestamp]
                     if float(timestamp) >= now - self.expires:
                         response = stored_response
-                        logger.info('Returning stored response from disk for: {} {}'.format(key_hash, key))
+                        logger.info('Returning stored response from memory for: {} {}'.format(key_hash, key))
+                elif self.persistent:
+                    filepath = os.path.join(tempfile.gettempdir(), 'cryptoverse_{}'.format(key_hash))
+                    if os.path.isfile(filepath):
+                        cache = json.load(open(filepath, 'r'))
+                        timestamp = max(cache.keys())
+                        stored_response = cache[timestamp]
+                        if float(timestamp) >= now - self.expires:
+                            response = stored_response
+                            logger.info('Returning stored response from disk for: {} {}'.format(key_hash, key))
+            elif key_hash in self.store.keys():
+                timestamp = max(self.store[key_hash].keys())
+                response = self.store[key_hash][timestamp]
 
             if response is None:
                 now = time.time()
