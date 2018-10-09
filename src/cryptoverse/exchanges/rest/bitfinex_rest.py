@@ -503,8 +503,8 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=60. / 20)  # Documentation states: 20 req/min
-    @RateLimit(calls=19, period=60)
+    @Memoize(expires=3)  # Cache shouldn't be kept to long for this endpoint.
+    @RateLimit(calls=15, period=60)  # Documentation states: 20 req/min
     def balances(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
         """
