@@ -160,10 +160,18 @@ def subtract_as_decimals(a, b):
 
 
 def sum_as_decimals(entries):
-    value = Decimal()
-    for entry in entries:
-        value = add_as_decimals(value, entry)
-    return value
+    """
+    >>> ab = [3.3, 2.2]
+    >>> sum(ab)
+    1.0999999999999996
+    >>> sum_as_decimals(ab)
+    1.1
+    """
+
+    total = float()
+    for value in entries:
+        total = add_as_decimals(total, value)
+    return total
 
 
 def side_colored(value, side):
