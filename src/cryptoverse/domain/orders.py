@@ -1092,6 +1092,10 @@ class Order(object):
         return False
 
     @property
+    def has_executed_amount(self):
+        return self.is_filled or self.is_partially_filled
+
+    @property
     def status(self):
         if self.is_executed:
             return 'executed'
