@@ -1225,18 +1225,20 @@ class Orders(ObjectList):
 
     def collapse(self):
         result = Orders()
-        for exchange in self.get_unique_values('exchange'):
-            for market in self.find(exchange=exchange).get_unique_values('market'):
-                for side in ['buy', 'sell']:
-                    orders_for_side = self.find(market=market, side=side)
-                    if orders_for_side:
-                        result.append_order(
-                            exchange=exchange,
-                            market=market,
-                            side=side,
-                            input=orders_for_side.get_sum('input'),
-                            output=orders_for_side.get_sum('output'),
-                        )
+        for account in self.get_unique_values('account'):
+            for exchange in self.get_unique_values('exchange'):
+                for market in self.find(exchange=exchange).get_unique_values('market'):
+                    for side in ['buy', 'sell']:
+                        orders_for_side = self.find(market=market, side=side)
+                        if orders_for_side:
+                            result.append_order(
+                                account=account,
+                                exchange=exchange,
+                                market=market,
+                                side=side,
+                                input=orders_for_side.get_sum('input'),
+                                output=orders_for_side.get_sum('output'),
+                            )
         return result
 
     def inputs(self):
