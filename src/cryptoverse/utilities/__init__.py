@@ -116,6 +116,7 @@ def multiply_as_decimals(a, b):
     >>> multiply_as_decimals(a, b)
     2.42
     """
+
     return float(Decimal(str(float(a))) * Decimal(str(float(b))))
 
 
@@ -128,6 +129,7 @@ def divide_as_decimals(a, b):
     >>> multiply_as_decimals(a, b)
     1.1
     """
+
     return float(Decimal(str(float(a))) / Decimal(str(float(b))))
 
 
@@ -140,6 +142,7 @@ def add_as_decimals(a, b):
     >>> multiply_as_decimals(a, b)
     3.3
     """
+
     return float(Decimal(str(float(a))) + Decimal(str(float(b))))
 
 
@@ -152,6 +155,7 @@ def subtract_as_decimals(a, b):
     >>> subtract_as_decimals(a, b)
     1.1
     """
+
     return float(Decimal(str(float(a))) - Decimal(str(float(b))))
 
 
