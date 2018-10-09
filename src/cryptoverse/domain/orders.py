@@ -1123,6 +1123,33 @@ class Order(object):
 
 class Orders(ObjectList):
 
+    def __init__(self, *args, **kwargs):
+        obj_list = list()
+        if len(args) == 1 and type(args[0]) is list:
+            obj_list = args[0]
+        elif not args and not kwargs:
+            pass
+        else:
+            listable_keywords = Order._arg_types.keys()
+            value_lists = dict()
+            for kw in listable_keywords:
+                if kw in kwargs and type(kwargs[kw]) is list:
+                    value_lists.update({kw: kwargs[kw]})
+            lists_len = [len(values) for kw, values in value_lists.items()]
+
+            iterations = sum(lists_len) / float(len(lists_len))
+            if lists_len[0] == iterations:
+                iterations = int(iterations)
+                for i in range(iterations):
+                    order_kwargs = kwargs.copy()
+                    for kw, values in value_lists.items():
+                        order_kwargs[kw] = values[i]
+                    obj_list.append(Order(*args, **order_kwargs))
+            else:
+                raise ValueError("List lengths must match")
+
+        super(self.__class__, self).__init__(obj_list)
+
     @property
     def instruments(self):
         result = Instruments()
