@@ -1,4 +1,5 @@
 from .accounts import Account, Accounts
+from .amounts import Amount, Amounts
 from .balances import Balance, Balances
 from .constants import BUY, SELL
 from .credentials import Credentials
