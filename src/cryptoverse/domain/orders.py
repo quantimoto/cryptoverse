@@ -2,6 +2,7 @@ from time import sleep
 
 from termcolor import colored
 
+from .amounts import Amounts, Amount
 from .instruments import Instrument, Instruments
 from .markets import Market, Markets
 from .object_list import ObjectList
@@ -1249,7 +1250,7 @@ class Orders(ObjectList):
             instrument = order.input_instrument.as_str()
             if instrument not in result:
                 result[instrument] = float()
-            result[instrument] += order.input
+            result[instrument] = add(result[instrument], order.input)
 
         return result
 
@@ -1261,7 +1262,7 @@ class Orders(ObjectList):
             instrument = order.output_instrument.as_str()
             if instrument not in result:
                 result[instrument] = float()
-            result[instrument] += order.output
+            result[instrument] = add(result[instrument], order.output)
 
         return result
 
@@ -1270,13 +1271,17 @@ class Orders(ObjectList):
         for key, value in self.inputs().items():
             if key not in result:
                 result[key] = float()
-            result[key] -= value
+            result[key] = subtract(result[key], value)
         for key, value in self.outputs().items():
             if key not in result:
                 result[key] = float()
-            result[key] += value
+            result[key] = add(result[key], value)
 
-        return result
+        amounts = Amounts()
+        for key, value in result.items():
+            amounts.append(Amount(value=value, instrument=key))
+
+        return amounts
 
     def results(self):
         return self.find(is_executed=True).totals()
