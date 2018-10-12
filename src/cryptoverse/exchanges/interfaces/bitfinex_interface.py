@@ -3,7 +3,7 @@ import math
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
-from ...utilities import multiply_as_decimals as multiply
+from ...utilities import multiply_as_decimals as multiply, subtract_as_decimals as subtract
 
 
 class BitfinexInterface(ExchangeInterface):
@@ -736,6 +736,10 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def place_multiple_orders(self, orders, credentials=None):
+        response = self.get_account_wallets(credentials=credentials)
+
+        available_balances = dict()
+
         order_list = list()
         for entry in orders:
             if entry['context'] == 'spot':
@@ -747,15 +751,35 @@ class BitfinexInterface(ExchangeInterface):
             else:
                 context = None
 
-            order = {
-                'symbol': '{}{}'.format(*entry['pair'].split('/')),
-                'amount': str(entry['amount']),
-                'price': str(entry['price']),
-                'exchange': 'bitfinex',
-                'side': entry['side'],
-                'type': '{} {}'.format(context, entry['type']),
-            }
-            order_list.append(order)
+            instruments = entry['pair'].split('/')
+            input_instrument = instruments[0] if entry['side'] == 'sell' else instruments[1]
+            if entry['context'] == 'spot':
+                if input_instrument not in available_balances:
+                    available_balance = [e['available'] for e in response[entry['context']] if
+                                         e['instrument']['code'] == input_instrument]
+                    available_balance = float(available_balance[0]) if available_balance else float()
+                    available_balances[input_instrument] = available_balance
+
+            if available_balances[input_instrument] and available_balances[input_instrument] > 0:
+                order = {  # todo: can we add postonly here?
+                    'symbol': '{}{}'.format(*entry['pair'].split('/')),
+                    'amount': str(entry['amount']),
+                    'price': str(entry['price']),
+                    'exchange': 'bitfinex',
+                    'side': entry['side'],
+                    'type': '{} {}'.format(context, entry['type']),
+                }
+                remaining = subtract(
+                    available_balances[input_instrument],
+                    order['amount'] if order['side'] == 'sell' else order['total']
+                )
+                if remaining > 0:
+                    order_list.append(order)
+                    available_balances[input_instrument] = subtract(
+                        available_balances[input_instrument],
+                        order['amount'] if order['side'] == 'sell' else order['total']
+                    )
+
 
         max_orders = 10
         result = list()
@@ -765,8 +789,6 @@ class BitfinexInterface(ExchangeInterface):
             response = self.rest_client.order_new_multi(order_list[begin:end], credentials=credentials)
             # todo: get confirmation from bitfinex that you can only post 10 orders at a time
 
-            # from termcolor import cprint
-            # cprint(response, 'yellow')
             for entry in response['order_ids']:
                 pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())
                 if ' ' in entry['type']:
