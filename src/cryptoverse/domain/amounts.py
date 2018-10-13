@@ -14,4 +14,11 @@ class Amount:
 
 
 class Amounts(ObjectList):
-    pass
+
+    def __getitem__(self, item):
+        if type(item) is int:
+            return super(self.__class__, self).__getitem__(item)
+        elif type(item) is str:
+            for entry in self:
+                if entry.instrument == item:
+                    return entry
