@@ -6,8 +6,8 @@ from json.decoder import JSONDecodeError
 
 from requests.exceptions import ReadTimeout, ConnectionError
 
-from ...base.rest import RESTClient
 from cryptoverse.utilities.decorators import RateLimit, Memoize, Retry, formatter
+from ...base.rest import RESTClient
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeRateLimitException, \
     ExchangeException, ExchangeUnavailableException, ExchangeInvalidResponseException
 
