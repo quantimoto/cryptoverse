@@ -323,8 +323,8 @@ class Account(object):
                             if order:
                                 if order.trades is None:
                                     order.trades = Trades()
-                                if entry['id_'] in order.trades.get_unique_values('id'):
-                                    trade = order.trades.get(id=entry['id_'])
+                                if entry['id'] in order.trades.get_unique_values('id'):
+                                    trade = order.trades.get(id=entry['id'])
                                     trade.update_arguments(entry)
                                 else:
                                     trade = Trade.from_dict(entry)

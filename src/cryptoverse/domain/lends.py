@@ -15,19 +15,8 @@ class Lend(object):
     pair = None
     offer_id = None
 
-    def __init__(self, amount=None, daily_rate=None, annual_rate=None, period=None, id_=None, timestamp=None, side=None,
-                 account=None, exchange=None, instrument=None, offer_id=None):
-        self.amount = amount
-        self.daily_rate = daily_rate
-        self.annual_rate = annual_rate
-        self.period = period
-        self.id = id_
-        self.timestamp = timestamp
-        self.side = side
-        self.account = account
-        self.exchange = exchange
-        self.instrument = instrument
-        self.offer_id = offer_id
+    def __init__(self, **kwargs):
+        self.update_arguments(kwargs)
 
     def __repr__(self):
         class_name = self.__class__.__name__
@@ -44,6 +33,30 @@ class Lend(object):
     @classmethod
     def from_dict(cls, dict_obj):
         return cls(**dict_obj)
+
+    def update_arguments(self, kwargs):
+        if 'amount' in kwargs:
+            self.amount = kwargs['amount']
+        if 'daily_rate' in kwargs:
+            self.daily_rate = kwargs['daily_rate']
+        if 'annual_rate' in kwargs:
+            self.annual_rate = kwargs['annual_rate']
+        if 'period' in kwargs:
+            self.period = kwargs['period']
+        if 'id' in kwargs:
+            self.id = kwargs['id']
+        if 'timestamp' in kwargs:
+            self.timestamp = kwargs['timestamp']
+        if 'side' in kwargs:
+            self.side = kwargs['side']
+        if 'account' in kwargs:
+            self.account = kwargs['account']
+        if 'exchange' in kwargs:
+            self.exchange = kwargs['exchange']
+        if 'pair' in kwargs:
+            self.pair = kwargs['pair']
+        if 'offer_id' in kwargs:
+            self.offer_id = kwargs['offer_id']
 
 
 class Lends(ObjectList):

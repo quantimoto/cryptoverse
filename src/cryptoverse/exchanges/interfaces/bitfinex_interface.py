@@ -329,7 +329,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
                 'side': str(entry['type']),
-                'id_': str(entry['tid']),
+                'id': str(entry['tid']),
                 'timestamp': float(entry['timestamp']) * 0.001,
             }
             result.append(trade)
@@ -381,7 +381,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': max(float(entry[2]), -float(entry[2])),
                 'daily_rate': float(entry[3]) * 100,
                 'period': int(entry[4]),
-                'id_': str(entry[0]),
+                'id': str(entry[0]),
                 'timestamp': float(entry[1]) * 0.001,
                 'side': 'sell' if float(entry[2]) > 0.0 else 'buy',
             }
@@ -536,7 +536,7 @@ class BitfinexInterface(ExchangeInterface):
                 'fee_instrument': 'USD',
                 'order_id': str(entry['order_id']),
                 'price': float(entry['price']),
-                'id_': str(entry['tid']),
+                'id': str(entry['tid']),
                 'timestamp': float(entry['timestamp']),
                 'side': str(entry['type']).lower(),
             }
@@ -579,7 +579,7 @@ class BitfinexInterface(ExchangeInterface):
                         'fee_instrument': 'USD',
                         'order_id': str(entry['order_id']),
                         'price': float(entry['price']),
-                        'id_': str(entry['tid']),
+                        'id': str(entry['tid']),
                         'timestamp': float(entry['timestamp']),
                         'side': str(entry['type']).lower(),
                     }
@@ -625,7 +625,7 @@ class BitfinexInterface(ExchangeInterface):
                 'daily_rate': multiply(float(entry['rate']), 100),
                 'timestamp': float(entry['timestamp']),
                 'side': str(entry['type']).lower(),
-                'id_': str(entry['tid']),
+                'id': str(entry['tid']),
                 'offer_id': str(entry['offer_id']),
             }
             result.append(lend)
