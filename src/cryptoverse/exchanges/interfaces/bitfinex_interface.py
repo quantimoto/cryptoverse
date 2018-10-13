@@ -780,14 +780,13 @@ class BitfinexInterface(ExchangeInterface):
                         order['amount'] if order['side'] == 'sell' else order['total']
                     )
 
-
         max_orders = 10
         result = list()
         for i in range(math.ceil(len(order_list) / max_orders)):
             begin = i * max_orders
             end = begin + max_orders
             response = self.rest_client.order_new_multi(order_list[begin:end], credentials=credentials)
-            # todo: get confirmation from bitfinex that you can only post 10 orders at a time
+            # todo: confirm with bitfinex that you can only post 10 orders at a time
 
             for entry in response['order_ids']:
                 pair = '{}/{}'.format(entry['symbol'][:3].upper(), entry['symbol'][3:].upper())

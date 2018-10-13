@@ -310,6 +310,7 @@ class Account(object):
                 from cryptoverse.domain import Trade, Trades
                 for market in orders_to_update.get_unique_values('market'):
                     orders_for_market = orders_to_update.find(market=market)
+
                     smallest_timestamp = min(orders_for_market.get_unique_values('timestamp'))
                     biggest_timestamp = time.time()
                     response = self.exchange.interface.get_account_trades(pair=market.pair.as_str(), limit=None,
