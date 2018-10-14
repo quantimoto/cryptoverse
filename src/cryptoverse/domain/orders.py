@@ -1200,7 +1200,7 @@ class Orders(ObjectList):
                 orders_for_account.place()
         elif len(accounts) == 1:
             account = accounts.first
-            account.place(self)
+            account.place(self.find(is_draft=True))
 
         return self
 
@@ -1212,7 +1212,7 @@ class Orders(ObjectList):
                 orders_for_account.update()
         elif len(accounts) == 1:
             account = accounts.first
-            account.update(self)
+            account.update(self.find(is_placed=True))
 
         return self
 
@@ -1224,7 +1224,7 @@ class Orders(ObjectList):
                 orders_for_account.cancel()
         elif len(accounts) == 1:
             account = accounts.first
-            account.cancel(self)
+            account.cancel(self.find(is_active=True))
 
         return self
 
