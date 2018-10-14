@@ -1247,27 +1247,17 @@ class Orders(ObjectList):
         return result
 
     def inputs(self):
-        collapsed = self.collapse()
-
         result = dict()
-        for order in collapsed:
-            instrument = order.input_instrument.as_str()
-            if instrument not in result:
-                result[instrument] = float()
-            result[instrument] = add(result[instrument], order.input)
-
+        for instrument in self.get_unique_values('input_instrument'):
+            order_selection = self.find(input_instrument=instrument)
+            result[instrument.as_str()] = order_selection.get_sum('input')
         return result
 
     def outputs(self):
-        collapsed = self.collapse()
-
         result = dict()
-        for order in collapsed:
-            instrument = order.output_instrument.as_str()
-            if instrument not in result:
-                result[instrument] = float()
-            result[instrument] = add(result[instrument], order.output)
-
+        for instrument in self.get_unique_values('output_instrument'):
+            order_selection = self.find(output_instrument=instrument)
+            result[instrument.as_str()] = order_selection.get_sum('output')
         return result
 
     def totals(self):
