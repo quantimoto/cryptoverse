@@ -22,3 +22,7 @@ class Amounts(ObjectList):
             for entry in self:
                 if entry.instrument == item:
                     return entry
+
+    @property
+    def instruments(self):
+        return self.get_unique_values('instrument')
