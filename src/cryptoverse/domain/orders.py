@@ -1233,16 +1233,16 @@ class Orders(ObjectList):
         for account in self.get_unique_values('account'):
             for exchange in self.get_unique_values('exchange'):
                 for market in self.find(exchange=exchange).get_unique_values('market'):
-                    for side in ['buy', 'sell']:
-                        orders_for_side = self.find(market=market, side=side)
-                        if orders_for_side:
+                    for side in self.find(exchange=exchange).get_unique_values('side'):
+                        selected_orders = self.find(market=market, side=side, exchange=exchange, account=account)
+                        if selected_orders:
                             result.append_order(
                                 account=account,
                                 exchange=exchange,
                                 market=market,
                                 side=side,
-                                input=orders_for_side.get_sum('input'),
-                                output=orders_for_side.get_sum('output'),
+                                input=selected_orders.get_sum('input'),
+                                output=selected_orders.get_sum('output'),
                             )
         return result
 
