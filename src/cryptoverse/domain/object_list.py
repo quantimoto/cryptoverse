@@ -68,6 +68,12 @@ class ObjectList(list):
     def get_sum(self, key):
         return sum_(self.get_values(key))
 
+    def get_min(self, key):
+        return min(self.get_values(key))
+
+    def get_max(self, key):
+        return max(self.get_values(key))
+
     def get_average(self, key):
         return divide(self.get_sum(key), len(self))
 
