@@ -1134,6 +1134,10 @@ class Orders(ObjectList):
             obj_list = args[0]
         elif not args and not kwargs:
             pass
+        elif args and type(args[0]) is Order:
+            for arg in args:
+                if type(arg) is Order:
+                    obj_list.append(arg)
         else:
             listable_keywords = Order._arg_types.keys()
             value_lists = dict()

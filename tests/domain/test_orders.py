@@ -27,3 +27,11 @@ class TestOrders(TestCase):
         self.assertEqual(10, orders[0].price)
         self.assertEqual(20, orders[1].price)
         self.assertEqual(30, orders[2].price)
+
+        order1 = Order(amount=1, price=2, side='buy')
+        order2 = Order(amount=3, price=4, side='sell')
+        orders = Orders(order1, order2)
+        self.assertIsInstance(orders, Orders)
+        self.assertEqual(2, len(orders))
+        self.assertEqual(order1, orders.first)
+        self.assertEqual(order2, orders.last)
