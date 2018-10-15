@@ -1231,10 +1231,10 @@ class Orders(ObjectList):
     def collapse(self):
         result = Orders()
         for account in self.get_unique_values('account'):
-            for exchange in self.get_unique_values('exchange'):
-                for market in self.find(exchange=exchange).get_unique_values('market'):
-                    for side in self.find(exchange=exchange).get_unique_values('side'):
-                        selected_orders = self.find(market=market, side=side, exchange=exchange, account=account)
+            for exchange in self.find(account=account).get_unique_values('exchange'):
+                for market in self.find(account=account, exchange=exchange).get_unique_values('market'):
+                    for side in self.find(account=account, exchange=exchange).get_unique_values('side'):
+                        selected_orders = self.find(account=account, exchange=exchange, market=market, side=side)
                         if selected_orders:
                             result.append_order(
                                 account=account,
