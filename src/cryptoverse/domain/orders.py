@@ -667,22 +667,23 @@ class Order(object):
     @classmethod
     def _collect_external_data(cls, kwargs):
         results = dict()
-        if 'account' in kwargs and kwargs['account'] is not None:
-            fees = kwargs['account'].fees()
-        elif 'exchange' in kwargs and kwargs['exchange'] is not None:
-            fees = kwargs['exchange'].fees()
-        else:
-            fees = None
-
-        if fees is not None and 'pair' in kwargs and kwargs['pair'] is not None:
-            pair_str = kwargs['pair'].as_str()
-            if pair_str not in fees['orders']:
-                raise ValueError("pair not found in fee information: {}".format(kwargs['pair']))
-
-            if 'type' in kwargs and kwargs['type'] == 'market' or 'hidden' in kwargs and kwargs['hidden'] is True:
-                kwargs['fee_percentage'] = fees['orders'][pair_str]['taker']
+        if 'fees' not in kwargs and 'fee_percentage' in kwargs:
+            if 'account' in kwargs and kwargs['account'] is not None:
+                fees = kwargs['account'].fees()
+            elif 'exchange' in kwargs and kwargs['exchange'] is not None:
+                fees = kwargs['exchange'].fees()
             else:
-                kwargs['fee_percentage'] = fees['orders'][pair_str]['maker']
+                fees = None
+
+            if fees is not None and 'pair' in kwargs and kwargs['pair'] is not None:
+                pair_str = kwargs['pair'].as_str()
+                if pair_str not in fees['orders']:
+                    raise ValueError("pair not found in fee information: {}".format(kwargs['pair']))
+
+                if 'type' in kwargs and kwargs['type'] == 'market' or 'hidden' in kwargs and kwargs['hidden'] is True:
+                    kwargs['fee_percentage'] = fees['orders'][pair_str]['taker']
+                else:
+                    kwargs['fee_percentage'] = fees['orders'][pair_str]['maker']
 
         return results
 
