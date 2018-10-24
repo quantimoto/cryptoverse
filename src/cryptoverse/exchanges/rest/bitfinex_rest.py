@@ -328,6 +328,25 @@ class BitfinexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=60 / 4)
+    @RateLimit(calls=4, period=60)
+    def movement_volume(self, symbol='tether'):
+        # https://twitter.com/bitfinex/status/1054842716243312640
+        """
+        The sum of USDt deposits/withdrawals to/from Bitfinex
+        """
+
+        response = self.request(
+            method='GET',
+            path='v{version}/movement_volume/{symbol}',
+            path_params={
+                'version': 1,
+                'symbol': symbol,
+            },
+        )
+
+        return response
+
     #
     # V1 Authenticated Endpoints
     #
