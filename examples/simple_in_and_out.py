@@ -43,9 +43,3 @@ my_sell_order.sleep_while_active()
 
 # %% Now that both trades have completed we can send a notification
 # notify('Trade completed. P&L +1%.')  # todo: implement notifications
-
-
-# %% Using method chaining, you could do the exact same trade from one line of code:
-cryptoverse.accounts['bitfinex_account1'].create_order('BTC/USD', 'sell', input='100%', price='ask') \
-    .place().sleep_while_active().followup(output='+1%').place()
-# very useful for typing simple strategies quickly from the interactive console
