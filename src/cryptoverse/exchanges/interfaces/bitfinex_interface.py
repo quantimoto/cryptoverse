@@ -965,7 +965,7 @@ class BitfinexInterface(ExchangeInterface):
 
         result = {
             'amount': float(response['original_amount']),
-            'price': float(response['price']),
+            'price': float(response['price'] or response['avg_execution_price']),
             'side': str(response['side']),
             'id': str(response['id']),
             'timestamp': float(response['timestamp']),
@@ -976,6 +976,7 @@ class BitfinexInterface(ExchangeInterface):
             'active': response['is_live'],
             'cancelled': response['is_cancelled'],
             'metadata': {
+                'price': response['price'],
                 'avg_execution_price': response['avg_execution_price'],
                 'cid': response['cid'],
                 'cid_date': response['cid_date'],
