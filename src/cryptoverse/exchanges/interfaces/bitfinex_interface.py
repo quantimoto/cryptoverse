@@ -560,7 +560,7 @@ class BitfinexInterface(ExchangeInterface):
                 'price': float(entry[5]),
                 'maker': True if entry[8] == 1 else False,
                 'type': 'market' if entry[8] > 0 else 'limit',
-                'fee': max(float(entry[9]), -float(entry[9])),
+                'fees': max(float(entry[9]), -float(entry[9])),
                 'fee_instrument': entry[10],
             }
 
