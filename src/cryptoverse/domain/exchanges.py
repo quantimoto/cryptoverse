@@ -37,6 +37,12 @@ class Exchange(object):
     def __hash__(self):
         return hash(self.interface)
 
+    def __getstate__(self):
+        return dict()
+
+    def __setstate__(self, state):
+        pass
+
     def set_interface(self, value=None):
         if value is not None:
             self.interface = value
