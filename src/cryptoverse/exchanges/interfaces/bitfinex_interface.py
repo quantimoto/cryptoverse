@@ -555,7 +555,7 @@ class BitfinexInterface(ExchangeInterface):
                 'pair': '{}/{}'.format(entry[1][1:4], entry[1][4:]),
                 'timestamp': float(entry[2]) / 1000,
                 'order_id': str(entry[3]),
-                'amount': float(entry[4]),
+                'amount': max(float(entry[4]), -float(entry[4])),
                 'side': 'buy' if entry[4] > 0 else 'sell',
                 'price': float(entry[5]),
                 'maker': True if entry[8] == 1 else False,
