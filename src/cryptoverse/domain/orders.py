@@ -332,9 +332,9 @@ class Order(object):
             elif kwargs['net'] is not None and kwargs['fees'] is not None:
                 value = add(kwargs['net'], kwargs['fees'])
 
-            # gross = net / (1 - (fee_percentage * 0.01))
+            # gross = net / (1 - fee_percentage)
             elif kwargs['net'] is not None and kwargs['fee_percentage'] is not None:
-                value = divide(kwargs['net'], subtract(1, multiply(kwargs['fee_percentage'], 0.01)))
+                value = divide(kwargs['net'], subtract(1, kwargs['fee_percentage']))
 
             else:
                 value = None
@@ -347,9 +347,9 @@ class Order(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
-            # fees = gross * fee_percentage * 0.01
+            # fees = gross * fee_percentage
             elif kwargs['gross'] is not None and kwargs['fee_percentage'] is not None:
-                value = multiply(multiply(kwargs['gross'], kwargs['fee_percentage']), 0.01)
+                value = multiply(kwargs['gross'], kwargs['fee_percentage'])
 
             # fees = gross - net
             elif kwargs['gross'] is not None and kwargs['net'] is not None:
@@ -366,9 +366,9 @@ class Order(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
-            # fee_percentage = fees / gross / 0.01
+            # fee_percentage = fees / gross
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
-                value = divide(divide(kwargs['fees'], kwargs['gross']), 0.01)
+                value = divide(kwargs['fees'], kwargs['gross'])
 
             # get fee_percentage for hidden limit order from market fees
             elif kwargs['market'] is not None and kwargs['market'].fees['maker'] is not None \
@@ -667,7 +667,7 @@ class Order(object):
     @classmethod
     def _collect_external_data(cls, kwargs):
         results = dict()
-        if 'fees' not in kwargs and 'fee_percentage' in kwargs:
+        if 'fees' not in kwargs and 'fee_percentage' not in kwargs:
             if 'account' in kwargs and kwargs['account'] is not None:
                 fees = kwargs['account'].fees()
             elif 'exchange' in kwargs and kwargs['exchange'] is not None:

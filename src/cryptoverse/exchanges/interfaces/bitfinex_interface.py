@@ -125,15 +125,16 @@ class BitfinexInterface(ExchangeInterface):
                 'total': {'precision': 8},
             }
             order_fees = {
-                'maker': float(fees['Order Execution'][0]['Maker fees'].rstrip('%')),
-                'taker': float(fees['Order Execution'][0]['Taker fees'].rstrip('%')),
+                'maker': multiply(float(fees['Order Execution'][0]['Maker fees'].rstrip('%')), 0.01),
+                'taker': multiply(float(fees['Order Execution'][0]['Taker fees'].rstrip('%')), 0.01),
             }
             offer_limits = {
-                'period': {'min': 2.0, 'max': 30.0},
+                'duration': {'min': 2, 'max': 30, 'precision': 0},
+                'daily_rate': {'max': 0.07, 'min': 1e-17, 'precision': 17},
             }
             offer_fees = {
-                'normal': float(fees['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')),
-                'hidden': float(fees['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
+                'normal': multiply(float(fees['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')), 0.01),
+                'hidden': multiply(float(fees['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')), 0.01),
             }
             spot_market = {
                 'context': 'spot',
@@ -182,8 +183,8 @@ class BitfinexInterface(ExchangeInterface):
         for pair in self.get_all_pairs():
             pair_str = '{}/{}'.format(pair['base']['code'], pair['quote']['code'])
             result['orders'][pair_str] = {
-                'maker': float(response['Order Execution'][0]['Maker fees'].rstrip('%')),
-                'taker': float(response['Order Execution'][0]['Taker fees'].rstrip('%')),
+                'maker': multiply(float(response['Order Execution'][0]['Maker fees'].rstrip('%')), 0.01),
+                'taker': multiply(float(response['Order Execution'][0]['Taker fees'].rstrip('%')), 0.01),
             }
 
         for instrument_code in [i['code'] for i in self.get_all_instruments()]:
@@ -203,8 +204,8 @@ class BitfinexInterface(ExchangeInterface):
 
         for instrument_code in [i['code'] for i in self.get_funding_instruments()]:
             result['offers'][instrument_code] = {
-                'normal': float(response['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')),
-                'hidden': float(response['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')),
+                'normal': multiply(float(response['Margin Funding'][0]['Fee'].split(' ')[0].rstrip('%')), 0.01),
+                'hidden': multiply(float(response['Margin Funding'][1]['Fee'].split(' ')[0].rstrip('%')), 0.01),
             }
 
         return result
@@ -433,8 +434,8 @@ class BitfinexInterface(ExchangeInterface):
             for entry in account_infos[0]['fees']:
                 if entry['pairs'] == pair['base']['code']:
                     result['orders'][pair_str] = {
-                        'maker': float(entry['maker_fees']),
-                        'taker': float(entry['taker_fees']),
+                        'maker': multiply(float(entry['maker_fees']), 0.01),
+                        'taker': multiply(float(entry['taker_fees']), 0.01),
                     }
 
         result['deposits'] = public_fee_information['deposits']
@@ -623,7 +624,7 @@ class BitfinexInterface(ExchangeInterface):
             lend = {
                 'amount': float(entry['amount']),
                 'period': float(entry['period']),
-                'daily_rate': multiply(float(entry['rate']), 100),
+                'daily_rate': float(entry['rate']),
                 'timestamp': float(entry['timestamp']),
                 'side': str(entry['type']).lower(),
                 'id': str(entry['tid']),

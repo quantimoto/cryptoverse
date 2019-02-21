@@ -17,7 +17,7 @@ class Offer(object):
         'instrument': Instrument,
         'market': Market,
         'side': str,
-        'period': int,
+        'duration': int,
         'amount': float,
         'daily_rate': float,
         'monthly_rate': float,
@@ -250,9 +250,9 @@ class Offer(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
-            # fees = gross * fee_percentage * 0.01
+            # fees = gross * fee_percentage
             elif kwargs['gross'] is not None and kwargs['fee_percentage'] is not None:
-                value = multiply(multiply(kwargs['gross'], kwargs['fee_percentage']), 0.01)
+                value = multiply(kwargs['gross'], kwargs['fee_percentage'])
 
             # fees = gross - net
             elif kwargs['gross'] is not None and kwargs['net'] is not None:
@@ -269,17 +269,17 @@ class Offer(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
-            # gross = amount * daily_rate * 0.01 * period
-            elif kwargs['amount'] is not None and kwargs['daily_rate'] is not None and kwargs['period'] is not None:
-                value = multiply(multiply(multiply(kwargs['amount'], kwargs['daily_rate']), 0.01), kwargs['period'])
+            # gross = amount * daily_rate * duration
+            elif kwargs['amount'] is not None and kwargs['daily_rate'] is not None and kwargs['duration'] is not None:
+                value = multiply(multiply(kwargs['amount'], kwargs['daily_rate']), kwargs['duration'])
 
             # gross = net + fees
             elif kwargs['net'] is not None and kwargs['fees'] is not None:
                 value = add(kwargs['net'], kwargs['fees'])
 
-            # gross = net / (1 - (fee_percentage * 0.01))
+            # gross = net / (1 - fee_percentage)
             elif kwargs['net'] is not None and kwargs['fee_percentage'] is not None:
-                value = divide(kwargs['net'], subtract(1, multiply(kwargs['fee_percentage'], 0.01)))
+                value = divide(kwargs['net'], subtract(1, kwargs['fee_percentage']))
 
             else:
                 value = None
@@ -307,9 +307,9 @@ class Offer(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
-            # fee_percentage = fees / gross / 0.01
+            # fee_percentage = fees / gross
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
-                value = divide(divide(kwargs['fees'], kwargs['gross']), 0.01)
+                value = divide(kwargs['fees'], kwargs['gross'])
 
             # get fee_percentage for normal offer from market fees
             elif kwargs['market'] is not None and kwargs['market'].fees['normal'] is not None \
@@ -337,8 +337,8 @@ class Offer(object):
 
             return value
 
-        def get_period(kwargs):
-            key = 'period'
+        def get_duration(kwargs):
+            key = 'duration'
 
             if kwargs[key] is not None:
                 value = kwargs[key]
@@ -412,7 +412,7 @@ class Offer(object):
                 kwargs['net'] = get_net(kwargs)
                 kwargs['fee_percentage'] = get_fee_percentage(kwargs)
                 kwargs['side'] = get_side(kwargs)
-                kwargs['period'] = get_period(kwargs)
+                kwargs['duration'] = get_duration(kwargs)
                 kwargs['instrument'] = get_instrument(kwargs)
                 kwargs['market'] = get_market(kwargs)
                 kwargs['exchange'] = get_exchange(kwargs)
@@ -519,7 +519,7 @@ class Offer(object):
             combined_arguments.update(self._derived_arguments)
 
         result = dict()
-        for key in ['instrument', 'side', 'amount', 'annual_rate', 'fee_percentage']:
+        for key in ['instrument', 'side', 'amount', 'annual_rate', 'fee_percentage', 'duration']:
             result[key] = combined_arguments.get(key)
         return result
 
@@ -566,8 +566,8 @@ class Offer(object):
         self.update_arguments(side=value)
 
     @property
-    def period(self):
-        key = 'period'
+    def duration(self):
+        key = 'duration'
         if key in self._supplied_arguments:
             return self._supplied_arguments[key]
         elif key in self._derived_arguments:
@@ -575,9 +575,9 @@ class Offer(object):
         else:
             return None
 
-    @period.setter
-    def period(self, value):
-        self.update_arguments(period=value)
+    @duration.setter
+    def duration(self, value):
+        self.update_arguments(duration=value)
 
     @property
     def amount(self):
