@@ -1,5 +1,6 @@
 import math
 
+from cryptoverse.exceptions import ExchangeInvalidOrderException
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
@@ -671,7 +672,13 @@ class BitfinexInterface(ExchangeInterface):
             credentials=credentials,
         )
 
-        pair = '{}/{}'.format(response['symbol'][:3].upper(), response['symbol'][3:].upper())
+        try:
+            pair = '{}/{}'.format(response['symbol'][:3].upper(), response['symbol'][3:].upper())
+        except KeyError:
+            error_message = None
+            if 'message' in response.keys():
+                error_message = response['message']
+            raise ExchangeInvalidOrderException(error_message)
 
         if response['type'] == 'market':
             context = 'margin'

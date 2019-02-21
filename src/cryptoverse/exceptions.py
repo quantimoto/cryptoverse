@@ -27,3 +27,7 @@ class MaxRetryException(BaseException):
 
 class ExchangeInvalidResponseException(BaseException):
     pass
+
+
+class ExchangeInvalidOrderException(BaseException):
+    pass
