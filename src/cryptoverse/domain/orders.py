@@ -13,7 +13,7 @@ from ..utilities import round_significant, strip_none, remove_keys, strip_empty,
 
 
 class Order(object):
-    _arg_types = {
+    arg_types = {
         'pair': Pair,
         'market': Market,
         'side': str,
@@ -118,8 +118,8 @@ class Order(object):
         result = dict()
 
         for kw, arg in kwargs.items():
-            if kw in cls._arg_types.keys():
-                arg_type_obj = cls._arg_types[kw]
+            if kw in cls.arg_types.keys():
+                arg_type_obj = cls.arg_types[kw]
                 if type(arg) is not arg_type_obj and arg is not None and arg_type_obj is not None:
                     # Try forcing the correct object type
                     try:
@@ -194,7 +194,7 @@ class Order(object):
     @classmethod
     def _derive_missing_kwargs(cls, supplied_kwargs):
         new_kwargs = supplied_kwargs.copy()
-        for kw in cls._arg_types:
+        for kw in cls.arg_types:
             if kw not in new_kwargs:
                 new_kwargs[kw] = None
 
@@ -1140,7 +1140,7 @@ class Orders(ObjectList):
                 if type(arg) is Order:
                     obj_list.append(arg)
         else:
-            listable_keywords = Order._arg_types.keys()
+            listable_keywords = Order.arg_types.keys()
             value_lists = dict()
             for kw in listable_keywords:
                 if kw in kwargs and type(kwargs[kw]) is list:
