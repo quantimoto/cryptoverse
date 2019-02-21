@@ -15,9 +15,9 @@ class BitfinexInterface(ExchangeInterface):
         self.scrape_client = BitfinexScrape()
 
     def get_spot_instruments(self):
-        response = self.get_all_markets()
+        response = self.get_spot_markets()
         result = list()
-        for entry in response['spot']:
+        for entry in response:
             if entry['symbol']['base'] not in result:
                 result.append(entry['symbol']['base'])
             if entry['symbol']['quote'] not in result:
@@ -26,9 +26,9 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_margin_instruments(self):
-        response = self.get_all_markets()
+        response = self.get_margin_markets()
         result = list()
-        for entry in response['margin']:
+        for entry in response:
             if entry['symbol']['base'] not in result:
                 result.append(entry['symbol']['base'])
             if entry['symbol']['quote'] not in result:
@@ -37,9 +37,9 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_funding_instruments(self):
-        response = self.get_all_markets()
+        response = self.get_funding_markets()
         result = list()
-        for entry in response['funding']:
+        for entry in response:
             if entry['symbol'] not in result:
                 result.append(entry['symbol'])
 
@@ -65,16 +65,16 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_spot_pairs(self):
-        response = self.get_all_markets()
+        response = self.get_spot_markets()
         result = list()
-        for entry in response['spot']:
+        for entry in response:
             result.append(entry['symbol'])
         return result
 
     def get_margin_pairs(self):
-        response = self.get_all_markets()
+        response = self.get_margin_markets()
         result = list()
-        for entry in response['margin']:
+        for entry in response:
             result.append(entry['symbol'])
         return result
 
@@ -215,6 +215,7 @@ class BitfinexInterface(ExchangeInterface):
             symbol = '{}{}'.format(*symbol.split('/'))
         else:
             symbol = None
+
         if symbol is not None:
             response = self.rest_client.pubticker(symbol=symbol)
             result = {
