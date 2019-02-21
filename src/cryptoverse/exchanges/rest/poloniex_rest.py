@@ -466,7 +466,8 @@ class PoloniexREST(RESTClient):
 
         return response
 
-    def buy(self, currency_pair, rate, amount, fill_or_kill=None, immediate_or_cancel=None, post_only=None, credentials=None):
+    def buy(self, currency_pair, rate, amount, fill_or_kill=None, immediate_or_cancel=None, post_only=None,
+            credentials=None):
         """
         Places a limit buy order in a given market. Required POST parameters are "currencyPair", "rate", and "amount".
         If successful, the method will return the order number.
@@ -511,7 +512,8 @@ class PoloniexREST(RESTClient):
 
         return response
 
-    def sell(self, currency_pair, rate, amount, fill_or_kill=None, immediate_or_cancel=None, post_only=None, credentials=None):
+    def sell(self, currency_pair, rate, amount, fill_or_kill=None, immediate_or_cancel=None, post_only=None,
+             credentials=None):
         """
         Places a sell order in a given market. Required POST parameters are "currencyPair", "rate", and "amount". If
         successful, the method will return the order number.
