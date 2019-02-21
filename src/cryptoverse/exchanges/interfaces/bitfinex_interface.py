@@ -780,13 +780,13 @@ class BitfinexInterface(ExchangeInterface):
                 }
                 remaining = subtract(
                     available_balances[input_instrument],
-                    order['amount'] if order['side'] == 'sell' else order['total']
+                    order['amount'] if order['side'] == 'sell' else multiply(order['amount'], order['price'])
                 )
                 if remaining > 0:
                     order_list.append(order)
                     available_balances[input_instrument] = subtract(
                         available_balances[input_instrument],
-                        order['amount'] if order['side'] == 'sell' else order['total']
+                        order['amount'] if order['side'] == 'sell' else multiply(order['amount'], order['price'])
                     )
 
         max_orders = 10
