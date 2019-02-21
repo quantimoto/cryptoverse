@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 
 from requests import ReadTimeout, ConnectionError
 
-from cryptoverse.utilities.decorators import formatter, Retry
+from cryptoverse.utilities.decorators import formatter, Retry, RateLimit, Memoize
 from ...base.rest import RESTClient
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException
 
@@ -58,6 +58,7 @@ class PoloniexREST(RESTClient):
 
     @Retry(ReadTimeout, wait=60)
     @Retry(ConnectionError, wait=60)
+    @RateLimit(calls=6, period=1)  # Documentation states: 6 req/sec
     @formatter
     def request(self, *args, **kwargs):
         result = super(self.__class__, self).request(*args, **kwargs)
@@ -74,6 +75,7 @@ class PoloniexREST(RESTClient):
     # Public Endpoints
     #
 
+    @Memoize(expires=1)
     def return_ticker(self):
         """
         Retrieves summary information for each currency pair listed on the exchange.
@@ -89,6 +91,7 @@ class PoloniexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=1)
     def return_24_volume(self):
         """
         Returns the 24-hour volume for all markets as well as totals for primary currencies.
@@ -107,6 +110,7 @@ class PoloniexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=1)
     def return_order_book(self, currency_pair='all', depth=50):
         """
         Returns the order book for a given market, as well as a sequence number used by websockets for synchronization
@@ -126,7 +130,8 @@ class PoloniexREST(RESTClient):
 
         return response
 
-    def return_trade_history(self, currency_pair, start=None, end=None):
+    @Memoize(expires=1)
+    def return_trade_history_public(self, currency_pair, start=None, end=None):
         """
         Returns the past 200 trades for a given market, or up to 50,000 trades between a range specified in UNIX
         timestamps by the "start" and "end" GET parameters.
@@ -145,6 +150,7 @@ class PoloniexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=1)
     def return_chart_data(self, currency_pair, period=None, start=None, end=None):
         """
         Returns candlestick chart data. Required GET parameters are "currencyPair", "period" (candlestick period in
@@ -171,6 +177,7 @@ class PoloniexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=1)
     def return_currencies(self):
         """
         Returns information about currencies.
@@ -186,6 +193,7 @@ class PoloniexREST(RESTClient):
 
         return response
 
+    @Memoize(expires=1)
     def return_loan_orders(self, currency=None):
         """
         Returns the list of loan offers and demands for a given currency, specified by the "currency" GET
