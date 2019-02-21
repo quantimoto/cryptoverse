@@ -143,25 +143,39 @@ class Offer(object):
         kwargs.update(cls._derive_missing_kwargs(prepare_kwargs))
 
         result = dict()
-        # if 'price' in kwargs and type(kwargs['price']) is str:
-        #     ticker_key = kwargs['price'].lower()
-        #     if ticker_key in ['bid', 'ask', 'last', 'mid']:
-        #         if 'market' in kwargs:
-        #             market = kwargs['market']
-        #             result['price'] = market.ticker[ticker_key]
-        #         else:
-        #             result['price'] = None
-        #
-        # if 'input' in kwargs and 'account' in kwargs and 'pair' in kwargs and 'side' in kwargs:
-        #     arg = kwargs['input']
-        #     if type(kwargs['input']) is str and arg[-1:] == '%':
-        #         account = kwargs['account']
-        #         pair = kwargs['pair']
-        #         side = kwargs['side']
-        #         multiplier = float(arg[:-1]) * 0.01
-        #         input_instrument = pair.get_input_instrument(side)
-        #         instrument_balance = account.wallets()['exchange'].get_by_instrument(input_instrument).first().amount
-        #         result['input'] = instrument_balance * multiplier
+        if 'daily_rate' in kwargs and type(kwargs['daily_rate']) is str:
+            ticker_key = kwargs['daily_rate'].lower()
+            if ticker_key in ['bid', 'ask', 'last']:
+                if 'market' in kwargs:
+                    market = kwargs['market']
+                    result['daily_rate'] = market.ticker()[ticker_key]
+                else:
+                    result['daily_rate'] = None
+
+        if 'amount' in kwargs and 'account' in kwargs and 'instrument' in kwargs:
+            arg = kwargs['amount']
+            if type(arg) is str and arg[-1:] == '%':
+                if 'side' in kwargs and kwargs['side'] == 'sell':
+                    account = kwargs['account']
+                    multiplier = multiply(arg[:-1], 0.01)
+                    input_instrument = kwargs['instrument']
+                    balance = account.wallets()['funding'].balances.get(instrument=input_instrument)
+                    if balance:
+                        result['amount'] = multiply(balance.amount, multiplier)
+                    else:
+                        result['amount'] = None
+                elif 'side' in kwargs and kwargs['side'] == 'buy':
+                    # account = kwargs['account']
+                    # multiplier = multiply(arg[:-1], 0.01)
+                    # instrument = kwargs['instrument']
+                    # loanable_amount = maximum amount allowed to demand a loan for
+                    # if demandable_amount:
+                    #     result['amount'] = demandable_amount
+                    # else:
+                    #     result['amount'] = None
+                    raise NotImplementedError
+                else:
+                    result['amount'] = None
 
         return result
 
