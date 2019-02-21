@@ -181,3 +181,24 @@ def side_colored(value, side):
         return colored(value, 'red')
     else:
         return value
+
+
+def range_steps(a, b, max_steps=None):
+    low = min(a, b)
+    high = max(a, b)
+    distance = subtract_as_decimals(high, low)
+
+    result = list()
+    if max_steps > 1:
+        step = divide_as_decimals(distance, subtract_as_decimals(max_steps, 1))
+
+        for i in range(max_steps):
+            value = add_as_decimals(low, multiply_as_decimals(i, step))
+            result.append(value)
+    elif max_steps == 1:
+        value = divide_as_decimals(add_as_decimals(a, b), 2)
+        result.append(value)
+
+    if a > b:
+        result.reverse()
+    return result
