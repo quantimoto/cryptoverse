@@ -186,7 +186,7 @@ class Order(object):
                 if balance:
                     instrument_balance = balance.amount
                 else:
-                    instrument_balance = 0.0
+                    instrument_balance = None
                 result['input'] = multiply(instrument_balance, multiplier)
 
         return result
