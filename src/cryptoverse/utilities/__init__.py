@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from termcolor import colored
 
+from .storage import Storage
+
 
 def strip_none(data):
     if isinstance(data, dict):
