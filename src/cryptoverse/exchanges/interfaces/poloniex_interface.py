@@ -173,7 +173,7 @@ class PoloniexInterface(ExchangeInterface):
 
         return result
 
-    @Memoize(expires=3600)
+    @Memoize(expires=3600)  # Retrieving available funding markets has to be done by brute-force. It takes a long time.
     def get_funding_markets(self):
         currencies = self.rest_client.return_currencies()
 
