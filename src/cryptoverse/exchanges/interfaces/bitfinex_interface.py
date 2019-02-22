@@ -212,21 +212,43 @@ class BitfinexInterface(ExchangeInterface):
 
     def get_ticker(self, symbol):
         if type(symbol) is str and '/' in symbol:
-            symbol = '{}{}'.format(*symbol.split('/'))
-        else:
-            symbol = None
+            exchange_symbol = 't{}{}'.format(*symbol.split('/'))
 
-        if symbol is not None:
-            response = self.rest_client.pubticker(symbol=symbol)
-            result = {
-                'ask': float(response['ask']),
-                'bid': float(response['bid']),
-                'high': float(response['high']),
-                'low': float(response['low']),
-                'last': float(response['last_price']),
-                'volume': float(response['volume']),
-                'timestamp': float(response['timestamp']),
-            }
+        elif type(symbol) is str \
+            and symbol in [e['code'] for e in self.get_funding_instruments()]:
+                exchange_symbol = 'f{}'.format(symbol)
+        else:
+            exchange_symbol = None
+
+        if exchange_symbol is not None:
+            response = self.rest_client.ticker(symbol=exchange_symbol)
+            if exchange_symbol[0] == 't':
+                market = {
+                    'base': {'code': symbol.split('/')[0]},
+                    'quote': {'code': symbol.split('/')[1]},
+                }
+                result = {
+                    'market': market,
+                    'bid': float(response[0]),
+                    'ask': float(response[2]),
+                    'last': float(response[6]),
+                    'high': float(response[8]),
+                    'low': float(response[9]),
+                    'volume': float(response[7]),
+                    'timestamp': time.time(),
+                }
+            elif exchange_symbol[0] == 'f':
+                market = {'code': symbol}
+                result = {
+                    'market': market,
+                    'bid': float(response[1]),
+                    'ask': float(response[4]),
+                    'last': float(response[9]),
+                    'high': float(response[11]),
+                    'low': float(response[12]),
+                    'volume': float(response[10]),
+                    'timestamp': time.time(),
+                }
             return result
 
     def get_tickers(self, *symbols):
@@ -262,20 +284,28 @@ class BitfinexInterface(ExchangeInterface):
                     'base': {'code': entry[0][1:4]},
                     'quote': {'code': entry[0][4:7]}
                 }
-            elif entry[0][0] == 'f':
-                market = {'code': entry[0][1:]}
-            else:
-                market = None
-
-            if market is not None:
                 ticker = {
                     'market': market,
                     'bid': float(entry[1]),
                     'ask': float(entry[3]),
+                    'last': float(entry[7]),
                     'high': float(entry[9]),
                     'low': float(entry[10]),
-                    'last': float(entry[7]),
                     'volume': float(entry[8]),
+                    'timestamp': time.time(),
+                }
+                result.append(ticker)
+            elif entry[0][0] == 'f':
+                market = {'code': entry[0][1:]}
+                ticker = {
+                    'market': market,
+                    'bid': float(entry[2]),
+                    'ask': float(entry[5]),
+                    'last': float(entry[10]),
+                    'high': float(entry[12]),
+                    'low': float(entry[13]),
+                    'volume': float(entry[11]),
+                    'timestamp': time.time(),
                 }
                 result.append(ticker)
 
