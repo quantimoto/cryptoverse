@@ -2426,7 +2426,7 @@ class BitfinexREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='v{version}/auth/r/stats/perf:1D/hist',
+            path='v{version}/auth/r/alerts',
             path_params={
                 'version': 2,
             },
