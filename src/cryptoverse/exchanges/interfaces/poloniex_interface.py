@@ -264,6 +264,7 @@ class PoloniexInterface(ExchangeInterface):
     def get_ticker(self, symbol):
         response = self.get_tickers(symbol)
 
+        base_code, quote_code = None, None
         if '/' in symbol:
             base_code = symbol.split('/')[0]
             quote_code = symbol.split('/')[1]
@@ -271,7 +272,8 @@ class PoloniexInterface(ExchangeInterface):
         result = None
         for entry in response:
             if 'base' in entry['market'] and 'quote' in entry['market'] \
-                    and entry['market']['base']['code'] == base_code and entry['market']['quote']['code'] == quote_code:
+                    and entry['market']['base']['code'] == base_code \
+                    and entry['market']['quote']['code'] == quote_code:
                 result = entry
                 break
             elif entry['market']['code'] == symbol:
