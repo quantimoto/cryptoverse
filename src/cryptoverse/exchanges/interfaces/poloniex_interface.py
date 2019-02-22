@@ -240,29 +240,6 @@ class PoloniexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_fees(self, credentials=None):
-        result = {
-            'orders': dict(),
-            'deposits': dict(),
-            'withdrawals': dict(),
-            'offers': dict(),
-        }
-        public_fee_information = self.get_fees()
-
-        account_fee_info = self.rest_client.return_fee_info(credentials=credentials)
-
-        for pair in public_fee_information['orders']:
-            result['orders'][pair] = {
-                'maker': float(account_fee_info['makerFee']),
-                'taker': float(account_fee_info['takerFee']),
-            }
-
-        result['deposits'] = public_fee_information['deposits']
-        result['withdrawals'] = public_fee_information['withdrawals']
-        result['offers'] = public_fee_information['offers']
-
-        return result
-
     def get_ticker(self, symbol):
         response = self.get_tickers(symbol)
 
@@ -433,6 +410,42 @@ class PoloniexInterface(ExchangeInterface):
 
         return result
 
+    def get_market_offers(self, instrument, limit=100):
+        response = self.rest_client.return_loan_orders(
+            currency=instrument,
+            limit=limit,
+        )
+
+        result = {
+            'bids': list(),
+            'asks': list(),
+        }
+
+        for entry in response['offers']:
+            offer = {
+                'amount': float(entry['amount']),
+                'daily_rate': float(entry['rate']),
+                'duration': float(entry['rangeMin']),
+                'side': 'sell',
+            }
+            result['asks'].append(offer)
+
+        for entry in response['demands']:
+            offer = {
+                'amount': float(entry['amount']),
+                'daily_rate': float(entry['rate']),
+                'duration': float(entry['rangeMin']),
+                'side': 'buy',
+            }
+
+            if offer['daily_rate'] < result['asks'][0]['daily_rate']:
+                # Because of a bug at poloniex, the demand book is untrustworthy.
+                # https://twitter.com/brutesque/status/1098660728620371969
+                # We need to manually check that demand rates don't exceed offer rates.
+                result['bids'].append(offer)
+
+        return result
+
     def get_market_candles(self, pair, period, limit=100):  # todo: add start and end
         if '/' in pair:
             symbol = '{}_{}'.format(*list(pair.split('/').__reversed__()))
@@ -476,3 +489,26 @@ class PoloniexInterface(ExchangeInterface):
             if len(result) == limit + 1:
                 return result[1:]
             return result
+
+    def get_account_fees(self, credentials=None):
+        result = {
+            'orders': dict(),
+            'deposits': dict(),
+            'withdrawals': dict(),
+            'offers': dict(),
+        }
+        public_fee_information = self.get_fees()
+
+        account_fee_info = self.rest_client.return_fee_info(credentials=credentials)
+
+        for pair in public_fee_information['orders']:
+            result['orders'][pair] = {
+                'maker': float(account_fee_info['makerFee']),
+                'taker': float(account_fee_info['takerFee']),
+            }
+
+        result['deposits'] = public_fee_information['deposits']
+        result['withdrawals'] = public_fee_information['withdrawals']
+        result['offers'] = public_fee_information['offers']
+
+        return result
