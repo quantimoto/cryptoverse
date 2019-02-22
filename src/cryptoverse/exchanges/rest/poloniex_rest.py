@@ -917,7 +917,8 @@ class PoloniexREST(RESTClient):
         :param int currency: Denotes the currency for this loan offer.
         :param int amount: The total amount of currency offered.
         :param int duration: The maximum duration of this loan in days. (from 2 to 60, inclusive)
-        :param int auto_renew: Denotes if this offer should be reinstated with the same settings after having been taken.
+        :param int auto_renew: Denotes if this offer should be reinstated with the same settings after having been
+        taken.
         :param int lending_rate:
         :param dict credentials: dictionary containing authentication information like key and secret
         """
