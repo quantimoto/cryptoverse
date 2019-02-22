@@ -1,3 +1,5 @@
+import time
+
 from cryptoverse.utilities.decorators import Memoize
 from ..rest import PoloniexREST
 from ...base.interface import ExchangeInterface
@@ -376,3 +378,101 @@ class PoloniexInterface(ExchangeInterface):
 
     def get_all_tickers(self):
         return self.get_tickers('all')
+
+    def get_market_orders(self, pair, limit=100):
+        symbol = '{}_{}'.format(*list(pair.split('/').__reversed__()))
+        response = self.rest_client.return_order_book(
+            currency_pair=symbol,
+            depth=limit,
+        )
+
+        result = {
+            'bids': list(),
+            'asks': list(),
+        }
+
+        for entry in response['bids']:
+            order = {
+                'amount': float(entry[1]),
+                'price': float(entry[0]),
+                'side': 'buy',
+                'pair': pair,
+                'type': 'limit',
+            }
+            result['bids'].append(order)
+
+        for entry in response['asks']:
+            order = {
+                'amount': float(entry[1]),
+                'price': float(entry[0]),
+                'side': 'sell',
+                'pair': pair,
+                'type': 'limit',
+            }
+            result['asks'].append(order)
+
+        return result
+
+    def get_market_trades(self, pair, limit=100):
+        symbol = '{}_{}'.format(*list(pair.split('/').__reversed__()))
+        response = self.rest_client.return_trade_history_public(
+            currency_pair=symbol,
+            limit=limit,
+        )
+
+        result = list()
+        for entry in response:
+            trade = {
+                'amount': entry['amount'],
+                'price': entry['rate'],
+                'side': entry['type'],
+                'id': entry['tradeID'],
+                'timestamp': entry['date'],
+            }
+            result.append(trade)
+
+        return result
+
+    def get_market_candles(self, pair, period, limit=100):  # todo: add start and end
+        if '/' in pair:
+            symbol = '{}_{}'.format(*list(pair.split('/').__reversed__()))
+        else:
+            symbol = None
+
+        allowed_periods = {
+            '5m': 300,
+            '15m': 900,
+            '30m': 1800,
+            '2h': 7200,
+            '4h': 14400,
+            '1D': 86400,
+        }
+        if period not in allowed_periods.keys():
+            raise ValueError("'period' argument must be one of: {}".format(list(allowed_periods.keys())))
+
+        end = int(time.time())
+        start = end - (allowed_periods[period] * limit)
+
+        if symbol is not None:
+            response = self.rest_client.return_chart_data(
+                currency_pair=symbol,
+                period=allowed_periods[period],
+                start=start,
+                end=end,
+            )
+
+            result = list()
+            for entry in response:
+                candle = {
+                    'timestamp': int(entry['date']),
+                    'open': float(entry['open']),
+                    'close': float(entry['close']),
+                    'high': float(entry['high']),
+                    'low': float(entry['low']),
+                    'volume': float(entry['volume']),
+                }
+                result.append(candle)
+
+            if len(result) == limit + 1:
+                return result[1:]
+            return result

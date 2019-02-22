@@ -421,11 +421,28 @@ class BitfinexInterface(ExchangeInterface):
             result.append(lend)
         return result
 
-    def get_market_candles(self, period, pair, limit=100):
+    def get_market_candles(self, pair, period, limit=100):  # todo: add start and end
         if '/' in pair:
             symbol = 't{}{}'.format(*pair.split('/'))
         else:
             symbol = None
+
+        allowed_periods = {
+            '1m': '1m',
+            '5m': '5m',
+            '15m': '15m',
+            '30m': '30m',
+            '1h': '1h',
+            '3h': '3h',
+            '6h': '6h',
+            '12h': '12h',
+            '1D': '1D',
+            '7D': '7D',
+            '14D': '14D',
+            '1M': '1M',
+        }
+        if period not in allowed_periods.keys():
+            raise ValueError("'period' argument must be one of: {}".format(list(allowed_periods.keys())))
 
         if symbol is not None:
             response = self.rest_client.candles(
@@ -433,11 +450,13 @@ class BitfinexInterface(ExchangeInterface):
                 symbol=symbol,
                 section='hist',
                 limit=limit,
+                sort=-1,
             )
+
             result = list()
             for entry in response:
                 candle = {
-                    'timestamp': float(entry[0]) * 0.001,
+                    'timestamp': int(entry[0] * 0.001),
                     'open': float(entry[1]),
                     'close': float(entry[2]),
                     'high': float(entry[3]),
@@ -446,7 +465,7 @@ class BitfinexInterface(ExchangeInterface):
                 }
                 result.append(candle)
 
-            return result
+            return list(result.__reversed__())
 
     def get_account_fees(self, credentials=None):
         result = {
