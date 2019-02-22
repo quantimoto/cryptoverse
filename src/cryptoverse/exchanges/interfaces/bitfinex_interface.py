@@ -215,9 +215,8 @@ class BitfinexInterface(ExchangeInterface):
         if type(symbol) is str and '/' in symbol:
             exchange_symbol = 't{}{}'.format(*symbol.split('/'))
 
-        elif type(symbol) is str \
-            and symbol in [e['code'] for e in self.get_funding_instruments()]:
-                exchange_symbol = 'f{}'.format(symbol)
+        elif type(symbol) is str and symbol in [e['code'] for e in self.get_funding_instruments()]:
+            exchange_symbol = 'f{}'.format(symbol)
         else:
             exchange_symbol = None
 
