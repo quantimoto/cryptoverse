@@ -6,7 +6,7 @@ class Lend(object):
     amount = None
     daily_rate = None
     annual_rate = None
-    period = None
+    duration = None
     id = None
     timestamp = None
     side = None
@@ -21,7 +21,7 @@ class Lend(object):
     def __repr__(self):
         class_name = self.__class__.__name__
         attrs = list()
-        for kw in ['amount', 'daily_rate', 'period', 'side', 'instrument']:
+        for kw in ['amount', 'daily_rate', 'duration', 'side', 'instrument']:
             arg = self.__dict__[kw]
             if kw == 'side':
                 attrs.append(side_colored('{}={!r}'.format(kw, arg), arg))
@@ -41,8 +41,8 @@ class Lend(object):
             self.daily_rate = kwargs['daily_rate']
         if 'annual_rate' in kwargs:
             self.annual_rate = kwargs['annual_rate']
-        if 'period' in kwargs:
-            self.period = kwargs['period']
+        if 'duration' in kwargs:
+            self.duration = kwargs['duration']
         if 'id' in kwargs:
             self.id = kwargs['id']
         if 'timestamp' in kwargs:

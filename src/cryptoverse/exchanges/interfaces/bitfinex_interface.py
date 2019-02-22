@@ -380,11 +380,12 @@ class BitfinexInterface(ExchangeInterface):
             'bids': list(),
             'asks': list(),
         }
+
         for entry in response['bids']:
             offer = {
                 'amount': float(entry['amount']),
                 'annual_rate': float(entry['rate']),
-                'period': int(entry['period']),
+                'duration': int(entry['period']),
                 'side': 'buy',
                 'timestamp': float(entry['timestamp']),
             }
@@ -394,7 +395,7 @@ class BitfinexInterface(ExchangeInterface):
             offer = {
                 'amount': float(entry['amount']),
                 'annual_rate': float(entry['rate']),
-                'period': int(entry['period']),
+                'duration': int(entry['period']),
                 'side': 'sell',
                 'timestamp': float(entry['timestamp']),
             }
@@ -413,7 +414,7 @@ class BitfinexInterface(ExchangeInterface):
             lend = {
                 'amount': max(float(entry[2]), -float(entry[2])),
                 'daily_rate': float(entry[3]) * 100,
-                'period': int(entry[4]),
+                'duration': int(entry[4]),
                 'id': str(entry[0]),
                 'timestamp': float(entry[1]) * 0.001,
                 'side': 'sell' if float(entry[2]) > 0.0 else 'buy',
@@ -652,7 +653,7 @@ class BitfinexInterface(ExchangeInterface):
                 'instrument': str(entry['currency']),
                 'side': 'sell' if entry['direction'] == 'lend' else 'buy',
                 'id': str(entry['id']),
-                'period': entry['period'],
+                'duration': entry['period'],
                 'annual_rate': float(entry['rate']),
                 'timestamp': float(entry['timestamp']),
                 'active': entry['is_live'],
@@ -673,7 +674,7 @@ class BitfinexInterface(ExchangeInterface):
         for entry in response:
             lend = {
                 'amount': float(entry['amount']),
-                'period': float(entry['period']),
+                'duration': float(entry['period']),
                 'daily_rate': float(entry['rate']),
                 'timestamp': float(entry['timestamp']),
                 'side': str(entry['type']).lower(),
@@ -1199,12 +1200,12 @@ class BitfinexInterface(ExchangeInterface):
         response = self.rest_client.order_cancel_all(credentials=credentials)
         return response
 
-    def place_single_offer(self, instrument, amount, annual_rate, period, side, credentials=None):
+    def place_single_offer(self, instrument, amount, annual_rate, duration, side, credentials=None):
         response = self.rest_client.offer_new(
             currency=instrument,
             amount=amount,
             rate=annual_rate,
-            period=period,
+            period=duration,
             direction='lend' if side == 'sell' else 'loan',
             credentials=credentials,
         )
@@ -1214,7 +1215,7 @@ class BitfinexInterface(ExchangeInterface):
             'side': 'sell' if response['direction'] == 'lend' else 'buy',
             'amount': response['original_amount'],
             'annual_rate': response['rate'],
-            'period': response['period'],
+            'duration': response['period'],
             'id': response['id'],
             'active': response['is_live'],
             'timestamp': response['timestamp'],
@@ -1245,7 +1246,7 @@ class BitfinexInterface(ExchangeInterface):
             'instrument': str(response['currency']),
             'side': 'sell' if response['direction'] == 'lend' else 'buy',
             'id': str(response['id']),
-            'period': float(response['period']),
+            'duration': float(response['period']),
             'annual_rate': float(response['rate']),
             'timestamp': float(response['timestamp']),
             'active': response['is_live'],
@@ -1269,7 +1270,7 @@ class BitfinexInterface(ExchangeInterface):
             'instrument': str(response['currency']),
             'side': 'sell' if response['direction'] == 'lend' else 'buy',
             'id': str(response['id']),
-            'period': float(response['period']),
+            'duration': float(response['period']),
             'annual_rate': float(response['rate']),
             'timestamp': float(response['timestamp']),
             'active': response['is_live'],
