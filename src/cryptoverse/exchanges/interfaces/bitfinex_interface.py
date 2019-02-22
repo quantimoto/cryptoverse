@@ -1,4 +1,5 @@
 import math
+import time
 
 from cryptoverse.exceptions import ExchangeInvalidOrderException
 from ..rest import BitfinexREST
