@@ -8,7 +8,7 @@ from requests import ReadTimeout, ConnectionError
 
 from cryptoverse.utilities.decorators import formatter, Retry, RateLimit, Memoize
 from ...base.rest import RESTClient
-from ...exceptions import MissingCredentialsException, ExchangeDecodeException
+from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeException
 
 
 class PoloniexREST(RESTClient):
@@ -64,10 +64,13 @@ class PoloniexREST(RESTClient):
         result = super(self.__class__, self).request(*args, **kwargs)
 
         try:
-            json.loads(result.text)
+            result_from_json = json.loads(result.text)
         except JSONDecodeError:
             print(result.text)
             raise ExchangeDecodeException
+
+        if type(result_from_json) is dict and 'error' in result_from_json:
+            raise ExchangeException(result_from_json)
 
         return result
 
