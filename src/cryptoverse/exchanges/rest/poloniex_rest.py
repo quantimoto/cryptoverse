@@ -134,7 +134,7 @@ class PoloniexREST(RESTClient):
         return response
 
     @Memoize(expires=1)
-    def return_trade_history_public(self, currency_pair, start=None, end=None):
+    def return_trade_history_public(self, currency_pair, start=None, end=None, limit=None):
         """
         Returns the past 200 trades for a given market, or up to 50,000 trades between a range specified in UNIX
         timestamps by the "start" and "end" GET parameters.
@@ -148,6 +148,7 @@ class PoloniexREST(RESTClient):
                 'currencyPair': currency_pair,
                 'start': start,
                 'end': end,
+                'limit': limit,
             },
         )
 
@@ -197,7 +198,7 @@ class PoloniexREST(RESTClient):
         return response
 
     @Memoize(expires=1)
-    def return_loan_orders(self, currency=None):
+    def return_loan_orders(self, currency=None, limit=None):
         """
         Returns the list of loan offers and demands for a given currency, specified by the "currency" GET
         parameter.
@@ -209,6 +210,7 @@ class PoloniexREST(RESTClient):
             query_params={
                 'command': 'returnLoanOrders',
                 'currency': currency,
+                'limit': limit,
             },
         )
 
