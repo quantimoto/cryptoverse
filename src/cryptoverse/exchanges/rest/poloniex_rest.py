@@ -33,11 +33,11 @@ class PoloniexREST(RESTClient):
         :param credentials: Credentials object that contains the key and secret, required to sign the request.
         """
         payload = request_obj.data
-        payload.update({
+        request_obj.data.update({
             'nonce': self.nonce(),
         })
 
-        encoded_payload = urlencode(payload).encode('utf-8')
+        encoded_payload = urlencode(request_obj.data).encode('utf-8')
         message = encoded_payload
 
         h = hmac.new(
@@ -47,12 +47,10 @@ class PoloniexREST(RESTClient):
         )
         signature = h.hexdigest()
 
-        headers = {
+        request_obj.headers = {
             'Key': credentials.key,
             'Sign': signature,
         }
-        request_obj.headers = headers
-        request_obj.data = payload
 
         return request_obj
 
