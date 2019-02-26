@@ -56,12 +56,12 @@ class BitfinexREST(RESTClient):
             )
             signature = h.hexdigest()
 
-            headers = {
+            request_obj.headers = {
                 'X-BFX-APIKEY': credentials.key,
                 'X-BFX-PAYLOAD': encoded_payload,
                 'X-BFX-SIGNATURE': signature,
             }
-            request_obj.headers = headers
+
         elif 'v2' in request_obj.path:
             nonce = self.nonce()
 
@@ -78,9 +78,9 @@ class BitfinexREST(RESTClient):
                 'bfx-nonce': nonce,
                 'bfx-apikey': credentials.key,
                 'bfx-signature': signature,
-                'content-type': 'application/json'
             }
             request_obj.headers = headers
+            request_obj.data_as_json = True
 
         return request_obj
 

@@ -113,7 +113,7 @@ class RESTClient(object):
             url=request_obj.url,
             params=request_obj.params,
             data=request_obj.data,
-            json=request_obj.data,
+            json=request_obj.json,
             headers=request_obj.headers,
             timeout=self._timeout,
             allow_redirects=False,
