@@ -82,30 +82,30 @@ class RequestObj:
 
     @property
     def params(self):
-        return self.sanitize_dict(self._params).copy()
+        return self._params
 
     @params.setter
     def params(self, value):
         if not value and type(value) is not dict:
             self._params = dict()
         else:
-            self._params = value
+            self._params = self.sanitize_dict(value)
 
     @property
     def data(self):
         if self.data_as_json is True:
             return None
-        return self.sanitize_dict(self._data).copy()
+        return self._data
 
     @data.setter
     def data(self, value):
-        self._data = value
+        self._data = self.sanitize_dict(value)
 
     @property
     def json(self):
         if self.data_as_json is not True:
             return None
-        return self.sanitize_dict(self._data).copy()
+        return self._data
 
     @property
     def headers(self):
