@@ -41,15 +41,17 @@ class RESTClient(object):
     def __hash__(self):
         return hash((self.scheme, self.host))
 
-    def _create_request(self, path, method, credentials, path_params, query_params, data):
+    def _create_request(self, path, method, credentials, path_params, query_params, data, host):
         # Insert path parameters into path
         if path_params is not None:
             path = path.format(**path_params)
 
+        host = host or self.host
+
         # Create object containing request arguments
         request_obj = RequestObj(
             method=method,
-            host=self.host,
+            host=host,
             path=path,
             params=query_params,
             data=data,
@@ -62,7 +64,7 @@ class RESTClient(object):
 
         return request_obj
 
-    def request(self, path, method='GET', credentials=None, path_params=None, query_params=None, data=None):
+    def request(self, path, method='GET', credentials=None, path_params=None, query_params=None, data=None, host=None):
         """
         Send a query to the api host
 
@@ -72,6 +74,7 @@ class RESTClient(object):
         :param dict path_params: a dictionary containing values required to construct url path.
         :param dict query_params: Any parameters that should be added to the query url.
         :param dict data: Any form data that should be added to the request.
+        :param dict host: host to connect to. Will default to self.host
         :return: ResponseObj containing the response data from the host as well as formatted data.
 
         :Example:
@@ -100,6 +103,7 @@ class RESTClient(object):
             path_params=path_params,
             query_params=query_params,
             data=data,
+            host=host,
         )
         logger.debug("Sending request: {}".format(request_obj))
         response = self._send_request(request_obj)

@@ -110,9 +110,9 @@ class BitfinexREST(RESTClient):
                 raise ExchangeException(result_from_json)
         elif type(result_from_json) is dict and 'message' in result_from_json and \
                 result_from_json['message'] == 'Ratelimit':
-            raise ExchangeRateLimitException
+            raise ExchangeRateLimitException(result_from_json)
         elif type(result_from_json) is list and 'error' in result_from_json and 11010 in result_from_json:
-            raise ExchangeRateLimitException
+            raise ExchangeRateLimitException(result_from_json)
         elif type(result_from_json) is list and 'error' in result_from_json:
             raise ExchangeException(result.json())
         elif type(result_from_json) is dict and len(result_from_json) == 1 and 'message' in result_from_json:
@@ -1594,6 +1594,7 @@ class BitfinexREST(RESTClient):
             path_params={
                 'version': 2,
             },
+            host='api-pub.bitfinex.com'
         )
 
         return response
@@ -1622,6 +1623,7 @@ class BitfinexREST(RESTClient):
             query_params={
                 'symbols': symbols,
             },
+            host='api-pub.bitfinex.com'
         )
 
         return response
@@ -1649,6 +1651,7 @@ class BitfinexREST(RESTClient):
                 'version': 2,
                 'symbol': symbol,
             },
+            host='api-pub.bitfinex.com'
         )
 
         return response
@@ -1683,6 +1686,7 @@ class BitfinexREST(RESTClient):
                 'end': end,
                 'sort': sort,
             },
+            host='api-pub.bitfinex.com'
         )
 
         return response
@@ -1715,6 +1719,7 @@ class BitfinexREST(RESTClient):
             query_params={
                 'len': len_,
             },
+            host='api-pub.bitfinex.com'
         )
 
         return response
@@ -1751,6 +1756,7 @@ class BitfinexREST(RESTClient):
             query_params={
                 'sort': sort,
             },
+            host='api-pub.bitfinex.com'
         )
 
         return response
@@ -1790,6 +1796,7 @@ class BitfinexREST(RESTClient):
                 'end': end,
                 'sort': sort,
             },
+            host='api-pub.bitfinex.com'
         )
 
         return response
