@@ -5,6 +5,7 @@ from .exchanges import Bitfinex, Bl3p, Kraken, Poloniex
 
 logging.basicConfig(
     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+    # level=logging.INFO,
 )
 
 exchanges = Exchanges()
