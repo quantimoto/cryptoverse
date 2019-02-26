@@ -117,6 +117,7 @@ class BitfinexREST(RESTClient):
             raise ExchangeException(result.json())
         elif type(result_from_json) is dict and len(result_from_json) == 1 and 'message' in result_from_json:
             raise ExchangeException(result_from_json['message'])
+
         return result
 
     #
