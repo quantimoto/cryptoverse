@@ -31,3 +31,6 @@ class ExchangeInvalidResponseException(BaseException):
 
 class ExchangeInvalidOrderException(BaseException):
     pass
+
+class ExchangeFunctionalityNotAvailableException(BaseException):
+    pass
