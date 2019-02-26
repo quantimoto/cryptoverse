@@ -1,10 +1,16 @@
-import base64
 import hashlib
 import hmac
+import json
+import time
+from base64 import b64encode, b64decode
+from json import JSONDecodeError
 from urllib.parse import urlencode
 
+from requests import ReadTimeout
+
+from cryptoverse.utilities.decorators import formatter, RateLimit, Retry
 from ...base.rest import RESTClient
-from ...exceptions import MissingCredentialsException
+from ...exceptions import MissingCredentialsException, ExchangeDecodeException
 
 
 class Bl3pREST(RESTClient):
@@ -18,12 +24,19 @@ class Bl3pREST(RESTClient):
     executed in this obj.
     """
 
-    address = 'https://api.bl3p.eu'
-    uri_template = '/{version}/{endpoint}'
+    host = 'api.bl3p.eu'
 
     credentials = None
 
     # Authentication methods
+
+    @staticmethod
+    def nonce():
+        """
+        Returns a nonce
+        Used in authentication
+        """
+        return str(int(time.time() * 1000000))
 
     def sign(self, request_obj, credentials):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/base.md#23-authentication-and-authorization
@@ -34,34 +47,45 @@ class Bl3pREST(RESTClient):
         :param credentials: Credentials object that contains the key and secret, required to sign the request.
         """
 
-        payload = request_obj.get_data().copy()
+        request_obj.data.update({
+            'nonce': self.nonce(),
+        })
 
-        encoded_payload = urlencode(payload)
-        message = '%s%c%s' % (request_obj.get_uri(), 0x00, encoded_payload)
+        encoded_payload = urlencode(request_obj.data)
+        message = '{:s}{:c}{:s}'.format(request_obj.path[2:], 0x00, encoded_payload)
 
         h = hmac.new(
-            key=base64.b64decode(credentials['secret']),
-            msg=message,
+            key=b64decode(credentials.secret),
+            msg=message.encode(),
             digestmod=hashlib.sha512,
         )
         signature = h.digest()
 
-        headers = {
-            'Rest-Key': credentials['key'],
-            'Rest-Sign': base64.b64encode(signature),
+        request_obj.headers = {
+            'Rest-Key': credentials.key,
+            'Rest-Sign': b64encode(signature).decode(),
         }
-        request_obj.set_headers(headers)
 
         return request_obj
 
-    # @rate_limit(600, 600)  # https://github.com/BitonicNL/bl3p-api/blob/master/docs/base.md#24---capacity
-    # def query(self, *args, **kwargs):
-    #     super(self.__class__, self).query(*args, **kwargs)
+    @Retry(ReadTimeout, wait=60)
+    @Retry(ConnectionError, wait=60)
+    @formatter
+    def request(self, *args, **kwargs):
+        result = super(self.__class__, self).request(*args, **kwargs)
+
+        try:
+            json.loads(result.text)
+        except JSONDecodeError:
+            print(result.text)
+            raise ExchangeDecodeException
+        return result
 
     #
     # V1 Public Endpoints
     #
 
+    @RateLimit(calls=600, period=600)  # documentation states: 600 req / 10 min
     def ticker(self, market):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#21---ticker
         """
@@ -73,7 +97,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='GET',
-            path='{market}/{callname}',
+            path='{version}/{market}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -83,6 +107,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=600)  # documentation states: 600 req / 10 min
     def orderbook(self, market):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#22---orderbook
         """
@@ -94,7 +119,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='GET',
-            path='{market}/{callname}',
+            path='{version}/{market}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -104,6 +129,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=600)  # documentation states: 600 req / 10 min
     def trades(self, market):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#23---last-1000-trades
         """
@@ -115,7 +141,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='GET',
-            path='{market}/{callname}',
+            path='{version}/{market}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -129,6 +155,7 @@ class Bl3pREST(RESTClient):
     # V1 Authenticated Endpoints
     #
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def order_add(self, market, type_, amount_int, price_int, amount_funds_int, fee_currency, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#21---create-an-order
         """
@@ -136,9 +163,14 @@ class Bl3pREST(RESTClient):
 
         :param str market: Market that the call will be applied to.
         :param str type_: 'bid', 'ask'
-        :param int amount_int: Amount BTC, amount LTC (*1e8)
-        :param int price_int: Limit price in EUR (*1e5)
-        :param int amount_funds_int: Maximal EUR amount to spend (*1e5)
+        :param int amount_int: (Optional) Amount BTC, amount LTC (*1e8). When omitted, amount_funds_int is required.
+        Also note that this field and the amount_funds_int field cannot both be set when the price field is also set.
+        When the price field is not set this field can be set when amount_funds_int is also set.
+        :param int price_int: (Optional) Limit price in EUR (*1e5). When omitted, order will be executed as a market
+        order.
+        :param int amount_funds_int: (Optional) Maximal EUR amount to spend (*1e5). When omitted, amount_int is
+        required. Also note that this field and the amount_int field cannot both be set when the price field is also
+        set. When the price field is not set this field can be set when amount_int is also set.
         :param str fee_currency: Currency the fee is accounted in. Can be: 'EUR' or 'BTC'
         :param credentials: dictionary containing authentication information like key and secret
         :return:
@@ -150,7 +182,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -170,6 +202,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def order_cancel(self, market, order_id, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#22---cancel-an-order
         """
@@ -186,7 +219,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -202,6 +235,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def order_result(self, market, order_id, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#23---get-a-specific-order
         """
@@ -219,7 +253,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -235,6 +269,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=30, period=300)  # documentation states: 30 req / 5 min
     def depth_full(self, market, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#24---get-the-whole-orderbook
         """
@@ -251,7 +286,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -264,7 +299,8 @@ class Bl3pREST(RESTClient):
 
         return response
 
-    def wallet_history(self, currency, page=1, date_from=None, date_to=None, type_=None, recs_per_page=50,
+    @RateLimit(calls=300, period=300)  # documentation states: 300 req / 5 min
+    def wallet_history(self, currency, page=None, date_from=None, date_to=None, type_=None, recs_per_page=None,
                        credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#31---get-your-transaction-history
         """
@@ -289,7 +325,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -310,6 +346,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def new_deposit_address(self, currency, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
         """
@@ -326,7 +363,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}',
+            path='{version}/{market}/{namespace}/{callname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -341,6 +378,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def deposit_address(self, currency, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#33---get-the-last-deposit-address
         """
@@ -357,7 +395,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{call_name}',
+            path='{version}/{market}/{namespace}/{callname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -372,6 +410,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def withdraw(self, currency, amount_int, account_id=None, account_name=None, address=None, extra_fee=None,
                  credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#34---create-a-withdrawal
@@ -395,7 +434,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -415,6 +454,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def info(self, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
         """
@@ -430,7 +470,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}',
+            path='{version}/{market}/{namespace}/{callname}',
             path_params={
                 'version': 1,
                 'market': 'GENMKT',
@@ -442,6 +482,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def orders(self, market, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#36-get-active-orders
         """
@@ -458,7 +499,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}',
+            path='{version}/{market}/{namespace}/{callname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -470,6 +511,7 @@ class Bl3pREST(RESTClient):
 
         return response
 
+    @RateLimit(calls=600, period=300)  # documentation states: 600 req / 5 min
     def orders_history(self, market, page=1, date_from=None, date_to=None, recs_per_page=100, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#37-get-order-history
         """
@@ -492,7 +534,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
@@ -511,7 +553,8 @@ class Bl3pREST(RESTClient):
 
         return response
 
-    def trades_fetch(self, market, trade_id, credentials=None):
+    @RateLimit(calls=100, period=300)  # documentation states: 100 req / 5 min
+    def trades_fetch(self, market, trade_id=None, credentials=None):
         # https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#38---fetch-all-trades-on-bl3p
         """
         Fetch all trades on Bl3p
@@ -529,7 +572,7 @@ class Bl3pREST(RESTClient):
 
         response = self.request(
             method='POST',
-            path='{market}/{namespace}/{callname}/{subcallname}',
+            path='{version}/{market}/{namespace}/{callname}/{subcallname}',
             path_params={
                 'version': 1,
                 'market': market,
