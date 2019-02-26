@@ -64,8 +64,14 @@ class BitfinexREST(RESTClient):
             request_obj.headers = headers
         elif 'v2' in request_obj.path:
             nonce = self.nonce()
-            signature = '/api/{}{}{}'.format(request_obj.path, nonce, json.dumps(request_obj.data))
-            h = hmac.new(credentials.secret.encode('utf-8'), signature.encode('utf-8'), hashlib.sha384)
+
+            message = '/api/{}{}{}'.format(request_obj.path, nonce, json.dumps(request_obj.data))
+
+            h = hmac.new(
+                key=credentials.secret.encode('utf-8'),
+                msg=message.encode('utf-8'),
+                digestmod=hashlib.sha384,
+            )
             signature = h.hexdigest()
 
             headers = {
@@ -75,7 +81,6 @@ class BitfinexREST(RESTClient):
                 'content-type': 'application/json'
             }
             request_obj.headers = headers
-            # request_obj.data_as_json = True
 
         return request_obj
 
@@ -85,7 +90,7 @@ class BitfinexREST(RESTClient):
     @Retry(ExchangeRateLimitException, wait=20)
     @formatter
     def request(self, *args, **kwargs):
-        result = super(BitfinexREST, self).request(*args, **kwargs)
+        result = super(self.__class__, self).request(*args, **kwargs)
 
         try:
             result_from_json = json.loads(result.text)
@@ -110,7 +115,8 @@ class BitfinexREST(RESTClient):
             raise ExchangeRateLimitException
         elif type(result_from_json) is list and 'error' in result_from_json:
             raise ExchangeException(result.json())
-
+        elif type(result_from_json) is dict and len(result_from_json) == 1 and 'message' in result_from_json :
+            raise ExchangeException(result_from_json['message'])
         return result
 
     #
@@ -522,7 +528,7 @@ class BitfinexREST(RESTClient):
 
         return response
 
-    @Memoize(expires=3)  # Cache shouldn't be kept to long for this endpoint.
+    # @Memoize(expires=50. / 15)  # Cache should be kept short for this endpoint.
     @RateLimit(calls=15, period=60)  # Documentation states: 20 req/min
     def balances(self, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
@@ -699,7 +705,7 @@ class BitfinexREST(RESTClient):
             data={
                 'symbol': symbol,
                 'amount': str(float(amount)),
-                'price': str(float(price)),
+                'price': '{:.15f}'.format(float(price)).rstrip('0'),
                 'side': side,
                 'type': type_,
                 'exchange': exchange,
