@@ -41,7 +41,7 @@ class TestOrder(TestCase):
 
         kwargs = {'side': 'buy'}
         self.assertEqual(Order._sanitize_kwargs(kwargs), {'side': 'buy'})
-        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['side'], Order._arg_types['side'])
+        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['side'], Order.arg_types['side'])
 
         kwargs = {'foo': 'bar'}
         self.assertRaises(TypeError, Order._sanitize_kwargs, kwargs)
@@ -52,13 +52,13 @@ class TestOrder(TestCase):
         kwargs = {'fee_instrument': 'USD'}
         from cryptoverse.domain import Instrument
         self.assertEqual(Order._sanitize_kwargs(kwargs), {'fee_instrument': Instrument(code='USD')})
-        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['fee_instrument'], Order._arg_types['fee_instrument'])
+        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['fee_instrument'], Order.arg_types['fee_instrument'])
 
         kwargs = {'pair': 'BTC/USD'}
         from cryptoverse.domain import Pair
         self.assertEqual(Order._sanitize_kwargs(kwargs),
                          {'pair': Pair(base=Instrument(code='BTC'), quote=Instrument(code='USD'))})
-        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['pair'], Order._arg_types['pair'])
+        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['pair'], Order.arg_types['pair'])
 
         kwargs = {'side': 'BuY'}
         self.assertEqual(Order._sanitize_kwargs(kwargs), {'side': 'buy'})
@@ -99,9 +99,9 @@ class TestOrder(TestCase):
 
         kwargs = {'amount': 1, 'price': '2', 'timestamp': 1234567890}
         self.assertEqual(Order._sanitize_kwargs(kwargs), {'amount': 1.0, 'price': 2.0, 'timestamp': 1234567890.0})
-        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['amount'], Order._arg_types['amount'])
-        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['price'], Order._arg_types['price'])
-        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['timestamp'], Order._arg_types['timestamp'])
+        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['amount'], Order.arg_types['amount'])
+        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['price'], Order.arg_types['price'])
+        self.assertIsInstance(Order._sanitize_kwargs(kwargs)['timestamp'], Order.arg_types['timestamp'])
 
     def test__replace_shortcuts(self):
         kwargs = {'account': None, 'exchange': None, 'pair': 'BTC/USD', 'side': 'buy', 'price': 'bid'}
@@ -155,18 +155,18 @@ class TestOrder(TestCase):
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['gross'], 2000.0)
         kwargs = {'net': 1998, 'fees': 2}
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['gross'], 2000.0)
-        kwargs = {'net': 1998, 'fee_percentage': 0.1}
+        kwargs = {'net': 1998, 'fee_percentage': 0.001}
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['gross'], 2000.0)
 
         # fees
-        kwargs = {'gross': 2000, 'fee_percentage': 0.1}
+        kwargs = {'gross': 2000, 'fee_percentage': 0.001}
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['fees'], 2)
         kwargs = {'gross': 2000, 'net': 1998}
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['fees'], 2)
 
         # fee_percentage
         kwargs = {'fees': 2, 'gross': 2000}
-        self.assertEqual(Order._derive_missing_kwargs(kwargs)['fee_percentage'], 0.1)
+        self.assertEqual(Order._derive_missing_kwargs(kwargs)['fee_percentage'], 0.001)
 
         # net
         kwargs = {'output': 1998}
@@ -211,11 +211,11 @@ class TestOrder(TestCase):
         self.assertEqual(Order._derive_missing_kwargs(kwargs)['output_instrument'], 'USD')
 
         # General testing
-        kwargs = {'pair': Pair('BTC', 'USD'), 'side': 'buy', 'amount': 2.0, 'price': 1000.0, 'fee_percentage': 0.1}
+        kwargs = {'pair': Pair('BTC', 'USD'), 'side': 'buy', 'amount': 2.0, 'price': 1000.0, 'fee_percentage': 0.001}
         self.assertEqual({'amount': 2.0,
                           'context': 'spot',
                           'fee_instrument': Instrument(code='BTC'),
-                          'fee_percentage': 0.1,
+                          'fee_percentage': 0.001,
                           'fees': 0.002,
                           'gross': 2.,
                           'hidden': False,
@@ -277,15 +277,15 @@ class TestOrder(TestCase):
         self.assertEqual("Order(status='draft', pair=Pair('BTC/USD'), [32mside='buy'[0m, amount=None, price=None, "
                          "context='spot', type='limit', fee_percentage=None)",
                          repr(order))
-        order = Order('BTC/USD', 'buy', fee_percentage=0.1)
+        order = Order('BTC/USD', 'buy', fee_percentage=0.001)
         self.assertEqual("Order(status='draft', pair=Pair('BTC/USD'), [32mside='buy'[0m, amount=None, price=None, "
-                         "context='spot', type='limit', fee_percentage=0.1)",
+                         "context='spot', type='limit', fee_percentage=0.001)",
                          repr(order))
-        order = Order('BTC/USD', 'buy', fee_percentage=0.1, input=2000)
+        order = Order('BTC/USD', 'buy', fee_percentage=0.001, input=2000)
         self.assertEqual("Order(status='draft', pair=Pair('BTC/USD'), [32mside='buy'[0m, amount=None, price=None, "
-                         "context='spot', type='limit', fee_percentage=0.1)",
+                         "context='spot', type='limit', fee_percentage=0.001)",
                          repr(order))
-        order = Order('BTC/USD', 'buy', fee_percentage=0.1, input=2000, price=1000)
+        order = Order('BTC/USD', 'buy', fee_percentage=0.001, input=2000, price=1000)
         self.assertEqual("Order(status='draft', pair=Pair('BTC/USD'), [32mside='buy'[0m, amount=2.0, price=1000.0, "
-                         "context='spot', type='limit', fee_percentage=0.1)",
+                         "context='spot', type='limit', fee_percentage=0.001)",
                          repr(order))
