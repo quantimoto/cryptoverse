@@ -358,6 +358,7 @@ class BitfinexInterface(ExchangeInterface):
             symbol=symbol,
             limit_trades=limit,
         )
+
         result = list()
         for entry in response:
             trade = {
@@ -575,7 +576,7 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_account_order_history(self, credentials=None):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def get_account_trades(self, pair, limit=100, begin=None, end=None, credentials=None):
         symbol = '{}{}'.format(*pair.split('/'))
@@ -643,7 +644,7 @@ class BitfinexInterface(ExchangeInterface):
         return trades
 
     def get_account_positions(self, credentials=None):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def get_account_offers(self, credentials=None):
         response = self.rest_client.offers(credentials=credentials)
@@ -688,13 +689,13 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def get_account_lends_for_offer(self, instrument, offer_id, credentials=None):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def get_account_deposits(self, *args, credentials=None, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def get_account_withdrawals(self, *args, credentials=None, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def place_single_order(self, pair, amount, price, side, context='spot', type_='limit', hidden=False,
                            post_only=None, credentials=None):
@@ -983,7 +984,7 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def replace_multiple_orders(self, *args, credentials=None, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def update_single_order(self, order_id, credentials=None):
         response = self.rest_client.order_status(order_id=int(order_id), credentials=credentials)
@@ -1232,13 +1233,13 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def place_multiple_offers(self, offers, credentials=None):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def replace_single_offer(self, *args, credentials=None, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def replace_multiple_offers(self, *args, credentials=None, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def update_single_offer(self, offer_id, credentials=None):
         response = self.rest_client.offer_status(offer_id=int(offer_id), credentials=credentials)
@@ -1262,7 +1263,7 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def update_multiple_offers(self, offer_ids, credentials=None):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def cancel_single_offer(self, offer_id, credentials=None):
         response = self.rest_client.offer_cancel(offer_id=int(offer_id), credentials=credentials)
@@ -1286,7 +1287,7 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def cancel_multiple_offers(self, offer_ids, credentials=None):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
 
     def cancel_all_offers(self, credentials=None):
-        raise NotImplementedError
+        raise NotImplementedError  # todo: implement
