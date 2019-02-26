@@ -249,6 +249,8 @@ class BitfinexInterface(ExchangeInterface):
                     'volume': float(response[10]),
                     'timestamp': time.time(),
                 }
+            else:
+                result = None
             return result
 
     def get_tickers(self, *symbols):
