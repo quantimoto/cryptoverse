@@ -118,7 +118,7 @@ class Bl3pInterface(ExchangeInterface):
 
         return markets
 
-    def get_fees(self):
+    def get_fees(self):  # todo: implement method for order fee calculation, since bl3p has 2 fee-parts
         result = {
             'orders': dict(),
             'deposits': dict(),
@@ -158,7 +158,7 @@ class Bl3pInterface(ExchangeInterface):
 
         if exchange_symbol is not None:
             response = self.rest_client.ticker(market=exchange_symbol)
-            print(response)
+
             market = {
                 'base': {'code': symbol.split('/')[0]},
                 'quote': {'code': symbol.split('/')[1]},
