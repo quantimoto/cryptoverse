@@ -1,7 +1,7 @@
 #### *** This repository is currently in planning stage. ***
 
 # cryptoverse
-Cryptocurrency focused quantitative finance tools.
+Console interface for cryptocurrency-focused financial automation.
 
 
 ## Install
