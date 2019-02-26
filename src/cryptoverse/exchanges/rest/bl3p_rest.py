@@ -10,7 +10,7 @@ from requests import ReadTimeout
 
 from cryptoverse.utilities.decorators import formatter, RateLimit, Retry
 from ...base.rest import RESTClient
-from ...exceptions import MissingCredentialsException, ExchangeDecodeException
+from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeException
 
 
 class Bl3pREST(RESTClient):
@@ -75,10 +75,18 @@ class Bl3pREST(RESTClient):
         result = super(self.__class__, self).request(*args, **kwargs)
 
         try:
-            json.loads(result.text)
+            result_from_json = json.loads(result.text)
         except JSONDecodeError:
             print(result.text)
             raise ExchangeDecodeException
+
+        if type(result_from_json) is dict and 'result' in result_from_json \
+                and result_from_json['result'].lower() == 'error':
+            raise ExchangeException(result_from_json)
+        elif type(result_from_json) is dict and 'result' in result_from_json \
+                and result_from_json['result'] != 'success':
+            raise ExchangeException(result_from_json)
+
         return result
 
     #
