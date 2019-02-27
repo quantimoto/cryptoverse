@@ -100,7 +100,7 @@ class ExchangeInterface(object):
     def get_account_trades(self, pair, limit, credentials=None):
         raise NotImplementedError
 
-    def get_account_trades_for_order(self, pair, order_id, credentials=None):
+    def get_account_trades_for_order(self, order_id, pair, credentials=None):
         raise NotImplementedError
 
     def get_account_positions(self, credentials=None):
@@ -109,7 +109,10 @@ class ExchangeInterface(object):
     def get_account_offers(self, credentials=None):
         raise NotImplementedError
 
-    def get_account_lends(self, instrument, limit=100, credentials=None):
+    def get_account_active_lends(self, instrument, limit=100, credentials=None):
+        raise NotImplementedError
+
+    def get_account_lending_history(self, begin=None, end=None, limit=100):
         raise NotImplementedError
 
     def get_account_lends_for_offer(self, instrument, offer_id, credentials=None):
@@ -150,7 +153,7 @@ class ExchangeInterface(object):
     def cancel_all_orders(self, credentials=None):
         raise NotImplementedError
 
-    def place_single_offer(self, instrument, amount, annual_rate, period, side, credentials=None):
+    def place_single_offer(self, instrument, amount, daily_rate, duration, side, credentials=None):
         raise NotImplementedError
 
     def place_multiple_offers(self, offers, credentials=None):

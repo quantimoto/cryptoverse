@@ -353,7 +353,7 @@ class Bl3pInterface(ExchangeInterface):
     def get_account_trades(self, pair, limit=100, begin=None, end=None, credentials=None):
         raise NotImplementedError  # todo: implement
 
-    def get_account_trades_for_order(self, pair, order_id, credentials=None):
+    def get_account_trades_for_order(self, order_id, pair, credentials=None):
         raise NotImplementedError  # todo: implement
 
     def get_account_positions(self, credentials=None):

@@ -580,19 +580,24 @@ class BitfinexInterface(ExchangeInterface):
 
     def get_account_trades(self, pair, limit=100, begin=None, end=None, credentials=None):
         symbol = '{}{}'.format(*pair.split('/'))
-        response = self.rest_client.mytrades(symbol=symbol, limit_trades=limit, timestamp=begin, until=end,
-                                             credentials=credentials)
+        response = self.rest_client.mytrades(
+            symbol=symbol,
+            limit_trades=limit,
+            timestamp=begin,
+            until=end,
+            credentials=credentials,
+        )
 
         result = list()
         for entry in response:
             trade = {
                 'pair': pair,
+                'id': str(entry['tid']),
+                'order_id': str(entry['order_id']),
                 'amount': float(entry['amount']),
+                'price': float(entry['price']),
                 'fees': max(float(entry['fee_amount']), -float(entry['fee_amount'])),
                 'fee_instrument': 'USD',
-                'order_id': str(entry['order_id']),
-                'price': float(entry['price']),
-                'id': str(entry['tid']),
                 'timestamp': float(entry['timestamp']),
                 'side': str(entry['type']).lower(),
             }
@@ -600,11 +605,15 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_trades_for_order(self, pair, order_id, credentials=None):
+    def get_account_trades_for_order(self, order_id, pair, credentials=None):
         symbol = 't{}{}'.format(*pair.split('/'))
-        response = self.rest_client.auth_order_trades(symbol=symbol, order_id=order_id, credentials=credentials)
+        response = self.rest_client.auth_order_trades(
+            symbol=symbol,
+            order_id=order_id,
+            credentials=credentials
+        )
 
-        trades = list()
+        result = list()
         for entry in response:
             trade = {
                 'id': str(entry[0]),
@@ -614,17 +623,21 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': max(float(entry[4]), -float(entry[4])),
                 'side': 'buy' if entry[4] > 0 else 'sell',
                 'price': float(entry[5]),
-                'maker': True if entry[8] == 1 else False,
+                # 'maker': True if entry[8] == 1 else False,
                 'type': 'market' if entry[8] > 0 else 'limit',
                 'fees': max(float(entry[9]), -float(entry[9])),
                 'fee_instrument': entry[10],
             }
 
-            trades.append(trade)
+            result.append(trade)
 
-        if not trades:
+        if not result:
             symbol = '{}{}'.format(*pair.split('/'))
-            response = self.rest_client.mytrades(symbol=symbol, limit_trades=1000, credentials=credentials)
+            response = self.rest_client.mytrades(
+                symbol=symbol,
+                limit_trades=1000,
+                credentials=credentials
+            )
 
             for entry in response:
                 if str(entry['order_id']) == str(order_id):
@@ -639,9 +652,9 @@ class BitfinexInterface(ExchangeInterface):
                         'timestamp': float(entry['timestamp']),
                         'side': str(entry['type']).lower(),
                     }
-                    trades.append(trade)
+                    result.append(trade)
 
-        return trades
+        return result
 
     def get_account_positions(self, credentials=None):
         raise NotImplementedError  # todo: implement
@@ -667,9 +680,10 @@ class BitfinexInterface(ExchangeInterface):
                 },
             }
             result.append(offer)
+
         return result
 
-    def get_account_lends(self, instrument, limit=100, credentials=None):
+    def get_account_active_lends(self, instrument, limit=100, credentials=None):
         symbol = '{}'.format(instrument)
         response = self.rest_client.mytrades_funding(symbol=symbol, limit_trades=limit, credentials=credentials)
 
@@ -1200,14 +1214,13 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def cancel_all_orders(self, credentials=None):
-        response = self.rest_client.order_cancel_all(credentials=credentials)
-        return response
+        return self.rest_client.order_cancel_all(credentials=credentials)
 
-    def place_single_offer(self, instrument, amount, annual_rate, duration, side, credentials=None):
+    def place_single_offer(self, instrument, amount, daily_rate, duration, side, credentials=None):
         response = self.rest_client.offer_new(
             currency=instrument,
             amount=amount,
-            rate=annual_rate,
+            rate=multiply(daily_rate, 365),
             period=duration,
             direction='lend' if side == 'sell' else 'loan',
             credentials=credentials,
