@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 
 from requests import ReadTimeout
 
-from cryptoverse.utilities.decorators import formatter, RateLimit, Retry
+from ...utilities.decorators import formatter, RateLimit, Retry
 from ...base.rest import RESTClient
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeException
 
