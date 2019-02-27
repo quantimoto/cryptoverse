@@ -1,3 +1,5 @@
+from calendar import timegm
+from datetime import datetime
 from decimal import Decimal
 
 from termcolor import colored
@@ -204,3 +206,7 @@ def range_steps(a, b, max_steps=None):
     if a > b:
         result.reverse()
     return result
+
+
+def date_string_to_timestamp(date_string, format_='%Y-%m-%d %H:%M:%S'):
+    return float(timegm(datetime.strptime(date_string, format_).timetuple()))
