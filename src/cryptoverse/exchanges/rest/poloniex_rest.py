@@ -6,9 +6,10 @@ from urllib.parse import urlencode
 
 from requests import ReadTimeout, ConnectionError
 
-from cryptoverse.utilities.decorators import formatter, Retry, RateLimit, Memoize
 from ...base.rest import RESTClient
-from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeException
+from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeException, \
+    ExchangeOrderNotFoundException
+from ...utilities.decorators import formatter, Retry, RateLimit, Memoize
 
 
 class PoloniexREST(RESTClient):
@@ -67,7 +68,15 @@ class PoloniexREST(RESTClient):
             print(result.text)
             raise ExchangeDecodeException
 
-        if type(result_from_json) is dict and 'error' in result_from_json:
+        if type(result_from_json) is dict and 'error' in result_from_json \
+                and result_from_json == {'error': 'Order not found, or you are not the person who placed it.'}:
+            raise ExchangeOrderNotFoundException(result_from_json)
+        elif type(result_from_json) is dict and 'error' in result_from_json:
+            raise ExchangeException(result_from_json)
+        elif type(result_from_json) is dict and 'success' in result_from_json and result_from_json['success'] == 0 \
+                and 'result' in result_from_json and result_from_json['result'] == {'error': 'Order not found.'}:
+            raise ExchangeOrderNotFoundException(result_from_json)
+        elif type(result_from_json) is dict and 'success' in result_from_json and result_from_json['success'] != 1:
             raise ExchangeException(result_from_json)
 
         return result

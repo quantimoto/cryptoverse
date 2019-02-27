@@ -1,4 +1,4 @@
-from cryptoverse.exceptions import ExchangeFunctionalityNotAvailableException
+from ...exceptions import ExchangeFunctionalityNotAvailableException
 from ..rest import Bl3pREST
 from ...base.interface import ExchangeInterface
 from ...utilities import multiply_as_decimals as multiply, divide_as_decimals as divide
