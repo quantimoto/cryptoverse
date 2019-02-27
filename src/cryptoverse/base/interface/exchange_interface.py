@@ -131,8 +131,7 @@ class ExchangeInterface(object):
     def place_multiple_orders(self, orders, credentials=None):
         raise NotImplementedError
 
-    def replace_single_order(self, order_id, pair, amount, price, side, context='spot', type_='limit', hidden=False,
-                             post_only=None, credentials=None):
+    def replace_single_order(self, order_id, amount, price, type_='limit', post_only=None, credentials=None):
         raise NotImplementedError
 
     def replace_multiple_orders(self, *args, credentials=None, **kwargs):
