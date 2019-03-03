@@ -13,3 +13,6 @@ class TestRoundDown(TestCase):
         self.assertEqual(2.9e-09, round_down(x, 10))
         self.assertEqual(2e-09, round_down(x, 9))
         self.assertEqual(0.0, round_down(x, 8))
+
+        x = 1e-6
+        self.assertEqual(1e-6, round_down(x, 8))

@@ -56,7 +56,7 @@ def round_down(x, ndigits=8):
     1.987
     """
     if x is not None:
-        split = '{:.100f}'.format(x).split('.')
+        split = '{:.{decimals}f}'.format(x, decimals=ndigits * 2).split('.')
         split[1] = split[1].rstrip('0')
         return float('{}.{:.{decimal_truncate}}'.format(*split, decimal_truncate=ndigits))
 
