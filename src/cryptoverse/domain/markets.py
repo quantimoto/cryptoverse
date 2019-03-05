@@ -212,4 +212,5 @@ class Markets(ObjectList):
                     break
             if candidate:
                 result.append(candidate)
+
         return result

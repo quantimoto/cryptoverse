@@ -1019,15 +1019,29 @@ class Order(object):
             return self.account.replace(self, new_order)
 
     def sleep_while_active(self, interval=5):
+        # This method will stop looping as soon is the order is no longer active.
         while self.is_active:
-            self.update()
-            sleep(interval)
+            try:
+                sleep(interval)
+            except KeyboardInterrupt:
+                print()
+                print("User cancelled sleep.")
+                break
+            finally:
+                self.update()
         return self
 
     def sleep_while_unfilled(self, interval=5):
+        # This method will stop sleeping as soon as the order is partially filled.
         while self.is_unfilled:
-            self.update()
-            sleep(interval)
+            try:
+                sleep(interval)
+            except KeyboardInterrupt:
+                print()
+                print("User cancelled sleep.")
+                break
+            finally:
+                self.update()
         return self
 
     def followup(self, output='100%'):

@@ -145,7 +145,7 @@ class Account(object):
             raise ValueError("Invalid value for 'market' supplied: {}".format(market))
 
         response = self.exchange.interface.get_account_active_lends(instrument=instrument_str, limit=limit,
-                                                             credentials=self.credentials)
+                                                                    credentials=self.credentials)
 
         result = Lends()
         for entry in response:
