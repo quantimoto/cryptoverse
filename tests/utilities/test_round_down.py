@@ -6,13 +6,13 @@ from cryptoverse.utilities import round_down
 class TestRoundDown(TestCase):
 
     def test_round_down(self):
-        x = 2.9115832281587436e-09
-        self.assertEqual(2.9115832281e-09, round_down(x, 19))
-        self.assertEqual(2.911e-09, round_down(x, 12))
-        self.assertEqual(2.91e-09, round_down(x, 11))
-        self.assertEqual(2.9e-09, round_down(x, 10))
-        self.assertEqual(2e-09, round_down(x, 9))
-        self.assertEqual(0.0, round_down(x, 8))
+        value = 2.9115832281587436e-09
+        self.assertEqual(2.9115832281e-09, round_down(value, 19))
+        self.assertEqual(2.911e-09, round_down(value, 12))
+        self.assertEqual(2.91e-09, round_down(value, 11))
+        self.assertEqual(2.9e-09, round_down(value, 10))
+        self.assertEqual(2e-09, round_down(value, 9))
+        self.assertEqual(0.0, round_down(value, 8))
 
-        x = 1e-6
-        self.assertEqual(1e-6, round_down(x, 8))
+        value = 1e-6
+        self.assertEqual(1e-6, round_down(value, 8))

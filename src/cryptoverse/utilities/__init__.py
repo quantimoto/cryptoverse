@@ -48,18 +48,34 @@ def strip_empty(data):
         return result
 
 
-def round_down(x, ndigits=8):
+def round_down(value, decimals=8):
     """
-    >>> round(1.987654321, ndigits=3)
+    >>> round(1.987654321, decimals=3)
     1.988
-    >>> round_down(1.987654321, ndigits=3)
+    >>> round_down(1.987654321, decimals=3)
     1.987
     """
-    if x is not None:
-        split = '{:.{decimals}f}'.format(x, decimals=ndigits * 2).split('.')
+    if value is not None:
+        split = '{:.{decimals}f}'.format(value, decimals=decimals * 2).split('.')
         split[1] = split[1].rstrip('0')
-        return float('{}.{:.{decimal_truncate}}'.format(*split, decimal_truncate=ndigits))
+        return float('{}.{:.{decimal_truncate}}'.format(*split, decimal_truncate=decimals))
 
+    else:
+        return None
+
+
+def round_up(value, decimals=8):
+    if value is not None:
+        value_parts = float_to_unscientific_string(value).split('.')
+        if len(value_parts[1]) > decimals:
+            truncated_value = float('.'.join([value_parts[0], value_parts[1][:decimals]]))
+            if truncated_value < value:
+                result = add_as_decimals(truncated_value, '1e-{}'.format(decimals))
+            else:
+                result = truncated_value
+        else:
+            result = value
+        return result
     else:
         return None
 
