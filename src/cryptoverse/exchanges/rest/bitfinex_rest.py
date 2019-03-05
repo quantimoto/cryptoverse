@@ -6,6 +6,7 @@ from json.decoder import JSONDecodeError
 
 from requests.exceptions import ReadTimeout, ConnectionError
 
+from cryptoverse.utilities import float_to_unscientific_string
 from cryptoverse.utilities.decorators import RateLimit, Memoize, Retry, formatter
 from ...base.rest import RESTClient
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeRateLimitException, \
@@ -705,8 +706,8 @@ class BitfinexREST(RESTClient):
             },
             data={
                 'symbol': symbol,
-                'amount': str(float(amount)),
-                'price': '{:.15f}'.format(float(price)).rstrip('0'),
+                'amount': float_to_unscientific_string(amount),
+                'price': float_to_unscientific_string(price),
                 'side': side,
                 'type': type_,
                 'exchange': exchange,

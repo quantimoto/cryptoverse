@@ -8,7 +8,7 @@ from .markets import Market, Markets
 from .object_list import ObjectList
 from .pairs import Pair, Pairs
 from ..utilities import add_as_decimals as add, divide_as_decimals as divide, multiply_as_decimals as multiply, \
-    subtract_as_decimals as subtract
+    subtract_as_decimals as subtract, float_to_unscientific_string, round_up
 from ..utilities import round_significant, strip_none, remove_keys, strip_empty, round_down, filter_keys, side_colored
 
 
@@ -61,6 +61,20 @@ class Order(object):
             elif kw == 'status':
                 arg = getattr(self, kw)
                 arguments.append(self._status_colored('{}={!r}'.format(kw, arg)))
+            elif kw == 'amount':
+                if kw in self._get_argument('market').limits and 'precision' in self._get_argument('market').limits[kw]:
+                    precision = self._get_argument('market').limits[kw]['precision']
+                else:
+                    precision = None
+                arg = float_to_unscientific_string(arg, decimals=precision)
+                arguments.append('{}={}'.format(kw, arg))
+            elif kw == 'price':
+                if kw in self._get_argument('market').limits and 'precision' in self._get_argument('market').limits[kw]:
+                    precision = self._get_argument('market').limits[kw]['precision']
+                else:
+                    precision = None
+                arg = float_to_unscientific_string(arg, decimals=precision)
+                arguments.append('{}={}'.format(kw, arg))
             else:
                 arguments.append('{}={!r}'.format(kw, arg))
 
@@ -256,7 +270,10 @@ class Order(object):
                     if 'precision' in kwargs['market'].limits[key]:
                         precision = kwargs['market'].limits[key]['precision']
                         if precision is not None:
-                            value = round_down(value, precision) if value is not None else value
+                            if kwargs['side'] is not None and kwargs['side'] == 'sell':
+                                value = round_up(value, precision) if value is not None else value
+                            else:
+                                value = round_down(value, precision) if value is not None else value
             return value
 
         def get_total(kwargs):

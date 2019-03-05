@@ -1,3 +1,4 @@
+from cryptoverse.utilities import float_to_unscientific_string
 from .instruments import Instrument, Instruments
 from .markets import Markets
 from .object_list import ObjectList
@@ -5,8 +6,8 @@ from .orders import Order
 
 
 class Balance(object):
-    amount = None
-    available = None
+    _amount = None
+    _available = None
     _instrument = None
     wallet = None
 
@@ -17,9 +18,13 @@ class Balance(object):
         self.wallet = wallet
 
     def __repr__(self):
-        return '{}(instrument={instrument}, ' \
-               'amount={amount:.8f}, ' \
-               'available={available:.8f})'.format(self.__class__.__name__, **self.as_dict())
+        result = list()
+        for kw in ['instrument', 'amount', 'available']:
+            arg = self.as_dict()[kw]
+            if kw in ['amount', 'available']:
+                arg = float_to_unscientific_string(arg)
+            result.append('{}={}'.format(kw, arg))
+        return '{}({})'.format(self.__class__.__name__, ', '.join(result))
 
     def as_dict(self):
         dict_obj = dict()
@@ -27,6 +32,8 @@ class Balance(object):
             value = getattr(self, key)
             if value is not None:
                 dict_obj.update({key: value})
+            elif value is None and key in ['amount', 'available']:
+                dict_obj.update({key: float()})
         return dict_obj
 
     @property
@@ -42,6 +49,22 @@ class Balance(object):
                 self._instrument = Instrument.from_dict(value)
             elif type(value) is str:
                 self._instrument = Instrument.from_str(value)
+
+    @property
+    def amount(self):
+        return self._amount or float()
+
+    @amount.setter
+    def amount(self, value):
+        self._amount = value
+
+    @property
+    def available(self):
+        return self._available or float()
+
+    @available.setter
+    def available(self, value):
+        self._available = value
 
     def markets(self, quote_instrument):
         if self.instrument == quote_instrument:
