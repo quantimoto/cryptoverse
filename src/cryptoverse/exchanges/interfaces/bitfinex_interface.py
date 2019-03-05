@@ -684,22 +684,28 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_active_lends(self, instrument, limit=100, credentials=None):
-        symbol = '{}'.format(instrument)
-        response = self.rest_client.mytrades_funding(symbol=symbol, limit_trades=limit, credentials=credentials)
+    def get_account_active_lends(self, instrument=None, limit=100, credentials=None):
+        if instrument is None:
+            funding_instruments = [x['code'] for x in self.get_funding_instruments()]
+        else:
+            funding_instruments = [instrument]
 
-        result = list()
-        for entry in response:
-            lend = {
-                'amount': float(entry['amount']),
-                'duration': float(entry['period']),
-                'daily_rate': float(entry['rate']),
-                'timestamp': float(entry['timestamp']),
-                'side': str(entry['type']).lower(),
-                'id': str(entry['tid']),
-                'offer_id': str(entry['offer_id']),
-            }
-            result.append(lend)
+        for instrument in funding_instruments:
+            symbol = '{}'.format(instrument)
+            response = self.rest_client.mytrades_funding(symbol=symbol, limit_trades=limit, credentials=credentials)
+
+            result = list()
+            for entry in response:
+                lend = {
+                    'amount': float(entry['amount']),
+                    'duration': float(entry['period']),
+                    'daily_rate': float(entry['rate']),
+                    'timestamp': float(entry['timestamp']),
+                    'side': str(entry['type']).lower(),
+                    'id': str(entry['tid']),
+                    'offer_id': str(entry['offer_id']),
+                }
+                result.append(lend)
 
         return result
 
