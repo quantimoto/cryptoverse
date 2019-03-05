@@ -134,7 +134,7 @@ class RESTClient(object):
         Returns a nonce
         Used in authentication
         """
-        return str(int(time.time() * 1000000))
+        return str(int(time.time() * 100000))
 
     def sign(self, request_obj, credentials):
         """
