@@ -1,6 +1,7 @@
 from dict_recursive_update import recursive_update
 
-from cryptoverse.utilities import strip_empty, strip_none
+from .instruments import Instruments
+from ..utilities import strip_empty, strip_none
 from .object_list import ObjectList
 
 
@@ -214,3 +215,11 @@ class Markets(ObjectList):
                 result.append(candidate)
 
         return result
+
+    def instruments(self):
+        result = Instruments()
+        for entry in self:
+            if entry.instruments:
+                result += entry.instruments
+
+        return result.get_unique()
