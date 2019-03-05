@@ -178,7 +178,8 @@ class PoloniexInterface(ExchangeInterface):
 
         return result
 
-    @Memoize(expires=3600)  # Retrieving available funding markets has to be done by brute-force. It takes a long time.
+    @Memoize(expires=3600, persistent=True, instance_bound=False)
+    # Retrieving available funding markets has to be done by brute-force. It takes a long time.
     def get_funding_markets(self):
         currencies = self.rest_client.return_currencies()
 
@@ -448,6 +449,9 @@ class PoloniexInterface(ExchangeInterface):
                 result['bids'].append(offer)
 
         return result
+
+    def get_market_lends(self, instrument, limit=100):
+        raise ExchangeFunctionalityNotAvailableException
 
     def get_market_candles(self, pair, period, limit=100):  # todo: add start and end
         if '/' in pair:
