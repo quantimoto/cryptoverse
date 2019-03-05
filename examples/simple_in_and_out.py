@@ -1,7 +1,7 @@
 import cryptoverse
 
 """
-This example shows two ways of writing automating a simple trade. Don't blindly run this script on your actual account.
+This example script automates a simple trade. Don't blindly run this script on your actual account.
 You can use PyCharm's cell execution on the code blocks to play with this script.
 """
 
