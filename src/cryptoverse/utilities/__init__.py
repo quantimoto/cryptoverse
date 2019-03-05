@@ -226,3 +226,45 @@ def range_steps(a, b, max_steps=None):
 
 def date_string_to_timestamp(date_string, format_='%Y-%m-%d %H:%M:%S'):
     return float(timegm(datetime.strptime(date_string, format_).timetuple()))
+
+
+def float_to_unscientific_string(value, digits=None, decimals=None):
+    if 'e-' in str(value) or 'e+' in str(value):
+        value_parts = '{:0{digits}.{decimals}f}'.format(value, digits=1000, decimals=1000).split('.')
+    else:
+        value_parts = str(float(value)).split('.')
+    value_parts[0] = value_parts[0].lstrip('0')
+    value_parts[1] = value_parts[1].rstrip('0')
+
+    if 'e-' in str(value):
+        derived_decimals = int(str(value).split('e-')[1])
+        if '.' in str(value).split('e-')[0]:
+            derived_decimals += len(str(value).split('e-')[0].split('.')[1])
+    else:
+        derived_decimals = len(value_parts[1])
+    derived_decimals = derived_decimals if derived_decimals > 0 else 1
+
+    if decimals is None:
+        decimals = derived_decimals
+    decimals = min(decimals, derived_decimals)
+
+    if digits is None:
+        derived_digits = decimals + len(value_parts[0])
+        if derived_digits == decimals:
+            derived_digits += 1
+    if digits is None:
+        digits = derived_digits
+    digits = min(digits, derived_digits)
+
+    result = '{:0{digits}.{decimals}f}'.format(
+        value,
+        digits=digits,
+        decimals=decimals,
+    )
+
+    if len(result.split('.')[1]) > 1:
+        result = result.rstrip('0')
+        if result[-1] == '.':
+            result += '0'
+
+    return result
