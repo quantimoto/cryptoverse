@@ -6,7 +6,7 @@ from .lends import Lends, Lend
 from .markets import Market
 from .object_list import ObjectList
 from .offers import Offer, Offers
-from .orders import Order, Orders
+from .orders import Order, Orders, OrderChain
 from .pairs import Pair
 from .wallets import ExchangeWallet, Wallets
 
@@ -287,7 +287,7 @@ class Account(object):
                 trade = Trade.from_dict(entry)
                 obj.trades.append(trade)
 
-        elif type(obj) is Orders:
+        elif type(obj) is Orders or type(obj) is OrderChain:
             orders_to_update = obj.find(is_placed=True)
             orders_list = list()
             for entry in orders_to_update:

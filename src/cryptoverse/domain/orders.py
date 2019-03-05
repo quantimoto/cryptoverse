@@ -1175,7 +1175,7 @@ class Orders(ObjectList):
             else:
                 raise ValueError("List lengths must match")
 
-        super(self.__class__, self).__init__(obj_list)
+        super(ObjectList, self).__init__(obj_list)
 
     @property
     def instruments(self):
@@ -1226,11 +1226,11 @@ class Orders(ObjectList):
         accounts = self.get_unique_values('account')
         if len(accounts) > 1:
             for account in accounts:
-                orders_for_account = self.find(account=account, is_placed=True)
+                orders_for_account = self.find(account=account, is_executed=False, is_placed=True)
                 orders_for_account.update()
         elif len(accounts) == 1:
             account = accounts.first
-            account.update(self.find(is_placed=True))
+            account.update(self.find(is_active=True))
 
         return self
 
@@ -1300,7 +1300,43 @@ class Orders(ObjectList):
 
 
 class OrderChain(Orders):
-    pass
+
+    def has_active(self):
+        return len(self.find(is_active=True)) > 0
+
+    def get_next(self):
+        if self.find(is_cancelled=True):
+            raise Exception("OrderChain can't continue, because it contains a cancelled order.")
+
+        if self.find(is_placed=False):
+            return self.find(is_placed=False).first
+
+    def place(self):
+        # In the OrderChain object, only 1 order can be active at a time. This method only places a new order if no
+        # other order is active. If a previous order has not been successfully executed, the next order will not be
+        # placed.
+
+        if self.find(is_active=False):
+            unplaced_orders = self.find(is_placed=False)
+            placed_orders = self.find(is_placed=True)
+            if placed_orders and not placed_orders.last.is_executed:
+                return self
+            elif unplaced_orders:
+                unplaced_orders.first.place()
+
+        return self
+
+    @property
+    def is_idle(self):
+        return not self.has_active()
+
+    @property
+    def is_completed(self):
+        return len(self.find(is_executed=True)) == len(self)
+
+    @property
+    def is_cancelled(self):
+        return self.find(is_placed=True).last.is_cancelled
 
 
 class OrderBook(object):
