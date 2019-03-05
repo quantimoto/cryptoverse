@@ -8,7 +8,7 @@ from requests import ReadTimeout, ConnectionError
 
 from ...base.rest import RESTClient
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeException, \
-    ExchangeOrderNotFoundException
+    ExchangeOrderNotFoundException, ExchangeInvalidOrderException
 from ...utilities.decorators import formatter, Retry, RateLimit, Memoize
 
 
@@ -71,6 +71,9 @@ class PoloniexREST(RESTClient):
         if type(result_from_json) is dict and 'error' in result_from_json \
                 and result_from_json == {'error': 'Order not found, or you are not the person who placed it.'}:
             raise ExchangeOrderNotFoundException(result_from_json)
+        elif type(result_from_json) is dict and 'error' in result_from_json \
+                and 'Invalid order number' in result_from_json['error']:
+            raise ExchangeInvalidOrderException(result_from_json)
         elif type(result_from_json) is dict and 'error' in result_from_json:
             raise ExchangeException(result_from_json)
         elif type(result_from_json) is dict and 'success' in result_from_json and result_from_json['success'] == 0 \

@@ -903,7 +903,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def replace_single_order(self, order_id, amount, price, context='spot', type_='limit', hidden=False,
+    def replace_single_order(self, order_id, pair, amount, price, side, context='spot', type_='limit', hidden=False,
                              post_only=None, credentials=None):
         if context not in ['spot', 'margin']:
             raise ValueError("'context' attribute must be either 'spot' or 'margin', not: {}".format(context))

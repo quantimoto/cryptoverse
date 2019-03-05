@@ -1,8 +1,11 @@
 import time
 
-from cryptoverse.utilities.decorators import Memoize
 from ..rest import PoloniexREST
 from ...base.interface import ExchangeInterface
+from ...exceptions import ExchangeOrderNotFoundException, ExchangeFunctionalityNotAvailableException, \
+    ExchangeInvalidOrderException
+from ...utilities import add_as_decimals as add, date_string_to_timestamp
+from ...utilities.decorators import Memoize
 
 
 class PoloniexInterface(ExchangeInterface):
@@ -92,7 +95,7 @@ class PoloniexInterface(ExchangeInterface):
         result = list()
 
         order_limits = {
-            'amount': {'min': 0.00000001,
+            'amount': {'min': 0.000001,
                        'precision': 8},
             'price': {'min': 0.00000001,
                       'precision': 8},
@@ -136,7 +139,7 @@ class PoloniexInterface(ExchangeInterface):
         currencies = self.rest_client.return_currencies()
 
         order_limits = {
-            'amount': {'min': 0.00000001,
+            'amount': {'min': 0.000001,
                        'precision': 8},
             'price': {'min': 0.00000001,
                       'precision': 8},

@@ -39,3 +39,7 @@ class ExchangeFunctionalityNotAvailableException(BaseException):
 
 class ExchangeOrderNotFoundException(BaseException):
     pass
+
+
+class ExchangeInvalidOrderException(BaseException):
+    pass
