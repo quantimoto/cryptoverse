@@ -906,7 +906,7 @@ class Order(object):
 
     @property
     def output(self):
-        if self.is_executed and self.trades is not None:
+        if self.is_executed and self.has_trades:
             if self.side == 'buy':
                 return subtract(self.trades.get_sum('amount'), self.trades.get_sum('fees'))
             elif self.side == 'sell':
