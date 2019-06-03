@@ -383,6 +383,27 @@ class Order(object):
             if kwargs[key] is not None:
                 value = kwargs[key]
 
+            # if fee_instrument is provided and equal to output_instrument, then
+            # fee_percentage = fees / gross
+            elif kwargs['fee_instrument'] is not None and kwargs['output_instrument'] is not None and \
+                    kwargs['fee_instrument'] == kwargs['output_instrument'] and \
+                    kwargs['fees'] is not None and kwargs['gross'] is not None:
+                value = divide(kwargs['fees'], kwargs['gross'])
+
+            # if fee_instrument is provided and equal to input_instrument and side equals 'buy', then
+            # fee_percentage = fees / total
+            elif kwargs['fee_instrument'] is not None and kwargs['input_instrument'] is not None and \
+                    kwargs['side'] == 'buy' and \
+                    kwargs['fees'] is not None and kwargs['total'] is not None:
+                value = divide(kwargs['fees'], kwargs['total'])
+
+            # if fee_instrument is provided and equal to instrument and side equals 'sell', then
+            # fee_percentage = fees / amount
+            elif kwargs['fee_instrument'] is not None and kwargs['input_instrument'] is not None and \
+                    kwargs['side'] == 'sell' and \
+                    kwargs['fees'] is not None and kwargs['amount'] is not None:
+                value = divide(kwargs['fees'], kwargs['amount'])
+
             # fee_percentage = fees / gross
             elif kwargs['gross'] is not None and kwargs['fees'] is not None:
                 value = divide(kwargs['fees'], kwargs['gross'])
@@ -882,6 +903,8 @@ class Order(object):
 
     @property
     def fees(self):
+        if self.is_executed and self.has_trades:
+            return self.trades.get_sum('fees')
         return self._get_argument('fees')
 
     @fees.setter
@@ -898,6 +921,8 @@ class Order(object):
 
     @property
     def input(self):
+        if self.is_executed and self.has_trades:
+            return self.trades.get_sum('input')
         return self._get_argument('input')
 
     @input.setter
@@ -907,11 +932,7 @@ class Order(object):
     @property
     def output(self):
         if self.is_executed and self.has_trades:
-            if self.side == 'buy':
-                return subtract(self.trades.get_sum('amount'), self.trades.get_sum('fees'))
-            elif self.side == 'sell':
-                return subtract(self.trades.get_sum('total'), self.trades.get_sum('fees'))
-
+            return self.trades.get_sum('output')
         return self._get_argument('output')
 
     @output.setter
@@ -976,6 +997,11 @@ class Order(object):
 
     @property
     def fee_instrument(self):
+        if self.is_executed and self.has_trades:
+            result = self.trades.get_unique_values('fee_instrument')
+            if len(result) == 1:
+                return result.first
+            return result
         return self._get_argument('fee_instrument')
 
     @fee_instrument.setter
@@ -1266,16 +1292,22 @@ class Orders(ObjectList):
             for exchange in self.find(account=account).get_unique_values('exchange'):
                 for market in self.find(account=account, exchange=exchange).get_unique_values('market'):
                     for side in self.find(account=account, exchange=exchange).get_unique_values('side'):
-                        selected_orders = self.find(account=account, exchange=exchange, market=market, side=side)
-                        if selected_orders:
-                            result.append_order(
-                                account=account,
-                                exchange=exchange,
-                                market=market,
-                                side=side,
-                                input=selected_orders.get_sum('input'),
-                                output=selected_orders.get_sum('output'),
-                            )
+                        for context in self.find(account=account, exchange=exchange).get_unique_values('context'):
+                            for fee_instrument in self.find(account=account, exchange=exchange).get_unique_values(
+                                    'fee_instrument'):
+                                selected_orders = self.find(account=account, exchange=exchange, market=market,
+                                                            side=side)
+                                if selected_orders:
+                                    result.append_order(
+                                        account=account,
+                                        exchange=exchange,
+                                        market=market,
+                                        side=side,
+                                        context=context,
+                                        input=selected_orders.get_sum('input'),
+                                        output=selected_orders.get_sum('output'),
+                                        fee_instrument=fee_instrument,
+                                    )
         return result
 
     def inputs(self):

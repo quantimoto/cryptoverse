@@ -729,10 +729,9 @@ class BitfinexInterface(ExchangeInterface):
 
         if context == 'spot':
             context = 'exchange'
+            order_type = '{} {}'.format(context, type_)
         elif context == 'margin':
-            context = 'margin'
-        elif context == 'funding':
-            context = 'funding'
+            order_type = '{}'.format(type_)
         else:
             context = None
 
@@ -741,7 +740,7 @@ class BitfinexInterface(ExchangeInterface):
             amount=amount,
             price=price,
             side=side,
-            type_='{} {}'.format(context, type_),
+            type_=order_type,
             exchange='bitfinex',
             is_hidden=hidden,
             is_postonly=post_only,
@@ -827,10 +826,12 @@ class BitfinexInterface(ExchangeInterface):
         for entry in orders:
             if entry['context'] == 'spot':
                 context = 'exchange'
+                order_type = '{} {}'.format(context, entry['type'])
             elif entry['context'] == 'margin':
-                context = 'margin'
+                order_type = '{}'.format(entry['type'])
             elif entry['funding'] == 'funding':
                 context = 'funding'
+                '{} {}'.format(context, entry['type'])
             else:
                 context = None
 
@@ -843,14 +844,15 @@ class BitfinexInterface(ExchangeInterface):
                     available_balance = float(available_balance[0]) if available_balance else float()
                     available_balances[input_instrument] = available_balance
 
-            if available_balances[input_instrument] and available_balances[input_instrument] > 0:
+            if entry['context'] == 'spot' and input_instrument in available_balances.keys() and \
+                    available_balances[input_instrument] > 0:
                 order = {  # todo: can we add postonly here?
                     'symbol': '{}{}'.format(*entry['pair'].split('/')),
                     'amount': str(entry['amount']),
                     'price': str(entry['price']),
                     'exchange': 'bitfinex',
                     'side': entry['side'],
-                    'type': '{} {}'.format(context, entry['type']),
+                    'type': order_type,
                 }
                 remaining = subtract(
                     available_balances[input_instrument],
@@ -862,6 +864,16 @@ class BitfinexInterface(ExchangeInterface):
                         available_balances[input_instrument],
                         order['amount'] if order['side'] == 'sell' else multiply(order['amount'], order['price'])
                     )
+            elif entry['context'] == 'margin':
+                order = {
+                    'symbol': '{}{}'.format(*entry['pair'].split('/')),
+                    'amount': str(entry['amount']),
+                    'price': str(entry['price']),
+                    'exchange': 'bitfinex',
+                    'side': entry['side'],
+                    'type': order_type,
+                }
+                order_list.append(order)
 
         max_orders = 10
         result = list()

@@ -1,6 +1,6 @@
 from .object_list import ObjectList
 from ..utilities import side_colored, multiply_as_decimals as multiply, subtract_as_decimals as subtract, \
-    divide_as_decimals as divide
+    divide_as_decimals as divide, add_as_decimals as add
 
 
 class Trade(object):
@@ -56,7 +56,8 @@ class Trade(object):
         if 'fees' in kwargs:
             self.fees = kwargs['fees']
         if 'fee_instrument' in kwargs:
-            self.fee_instrument = kwargs['fee_instrument']
+            from cryptoverse.domain import Instrument
+            self.fee_instrument = Instrument(kwargs['fee_instrument'])
         if 'timestamp' in kwargs:
             self.timestamp = kwargs['timestamp']
         if 'account' in kwargs:
@@ -64,7 +65,8 @@ class Trade(object):
         if 'exchange' in kwargs:
             self.exchange = kwargs['exchange']
         if 'pair' in kwargs:
-            self.pair = kwargs['pair']
+            from cryptoverse.domain import Pair
+            self.pair = Pair(kwargs['pair'])
         if 'order_id' in kwargs:
             self.order_id = kwargs['order_id']
 
@@ -78,10 +80,14 @@ class Trade(object):
 
     @property
     def input(self):
-        if self.side == 'buy':
+        if self.side == 'buy' and self.fee_instrument == self.pair.base:
             return self.total
-        elif self.side == 'sell':
+        elif self.side == 'sell' and self.fee_instrument == self.pair.quote:
             return self.amount
+        elif self.side == 'buy' and self.fee_instrument == self.pair.quote:
+            return add(self.total, self.fees)
+        elif self.side == 'sell' and self.fee_instrument == self.pair.base:
+            return add(self.amount, self.fees)
 
     @property
     def gross(self):
@@ -92,7 +98,14 @@ class Trade(object):
 
     @property
     def net(self):
-        return subtract(self.gross, self.fees)
+        # If the fee instrument is not the same as the instrument we receive, then the fee is added to the input
+        # instead of subtracted from the output
+        if self.side == 'buy' and self.fee_instrument == self.pair.base or \
+                self.side == 'sell' and self.fee_instrument == self.pair.quote:
+            return subtract(self.gross, self.fees)
+        elif self.side == 'buy' and self.fee_instrument == self.pair.quote or \
+                self.side == 'sell' and self.fee_instrument == self.pair.base:
+            return self.gross
 
     @property
     def output(self):
