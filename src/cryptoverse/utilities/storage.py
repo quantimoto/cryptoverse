@@ -75,3 +75,6 @@ class Storage(object):
 
     def __contains__(self, item):
         return self._data_store.__contains__(item)
+
+    def __delitem__(self, key):
+        return self._data_store.__delitem__(key)
