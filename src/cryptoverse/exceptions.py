@@ -43,3 +43,6 @@ class ExchangeOrderNotFoundException(BaseException):
 
 class ExchangeInvalidOrderException(BaseException):
     pass
+
+class ExchangeBalanceEvaluationException(BaseException):
+    pass

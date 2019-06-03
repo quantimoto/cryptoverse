@@ -10,7 +10,8 @@ from cryptoverse.utilities import float_to_unscientific_string
 from cryptoverse.utilities.decorators import RateLimit, Memoize, Retry, formatter
 from ...base.rest import RESTClient
 from ...exceptions import MissingCredentialsException, ExchangeDecodeException, ExchangeRateLimitException, \
-    ExchangeException, ExchangeUnavailableException, ExchangeInvalidResponseException
+    ExchangeException, ExchangeUnavailableException, ExchangeInvalidResponseException, \
+    ExchangeBalanceEvaluationException
 
 
 class BitfinexREST(RESTClient):
@@ -116,8 +117,10 @@ class BitfinexREST(RESTClient):
             raise ExchangeRateLimitException(result_from_json)
         elif type(result_from_json) is list and 'error' in result_from_json:
             raise ExchangeException(result.json())
+        elif type(result) is dict and 'message' in result_from_json and 'Cannot evaluate your available balance' in result_from_json['message']:
+            raise ExchangeBalanceEvaluationException(result_from_json['message'], args, kwargs)
         elif type(result_from_json) is dict and len(result_from_json) == 1 and 'message' in result_from_json:
-            raise ExchangeException(result_from_json['message'])
+            raise ExchangeException(result_from_json['message'], args, kwargs)
 
         return result
 
@@ -724,6 +727,7 @@ class BitfinexREST(RESTClient):
         return response
 
     @RateLimit(calls=45, period=60)
+    @Retry(ExchangeBalanceEvaluationException, wait=5, max_tries=3)
     def order_new_multi(self, orders, credentials=None):
         # https://docs.bitfinex.com/v1/reference#rest-auth-multiple-new-orders
         """
