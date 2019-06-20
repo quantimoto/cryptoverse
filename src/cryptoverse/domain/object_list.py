@@ -101,3 +101,11 @@ class ObjectList(list):
         return type(self)(sorted(self,
                                  key=lambda entry: getattr(entry, key, None) or entry[key],
                                  reverse=reverse))
+
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            return super().__getitem__(index)
+        elif isinstance(index, slice):
+            return self.__class__(super().__getitem__(index))
+        else:
+            raise TypeError("index must be int or slice")
