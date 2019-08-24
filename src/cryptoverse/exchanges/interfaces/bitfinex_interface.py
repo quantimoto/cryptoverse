@@ -1,7 +1,7 @@
 import math
 import time
 
-from cryptoverse.exceptions import ExchangeInvalidOrderException
+from cryptoverse.exceptions import ExchangeInvalidOrderException, ExchangeInvalidResponseException
 from ..rest import BitfinexREST
 from ..scrape import BitfinexScrape
 from ...base.interface import ExchangeInterface
@@ -598,7 +598,7 @@ class BitfinexInterface(ExchangeInterface):
                 'amount': float(entry['amount']),
                 'price': float(entry['price']),
                 'fees': max(float(entry['fee_amount']), -float(entry['fee_amount'])),
-                'fee_instrument': 'USD',
+                'fee_instrument': str(entry['fee_currency']),
                 'timestamp': float(entry['timestamp']),
                 'side': str(entry['type']).lower(),
             }
@@ -1089,7 +1089,13 @@ class BitfinexInterface(ExchangeInterface):
 
     def update_multiple_orders(self, orders, credentials=None):
         active_orders = self.rest_client.orders(credentials=credentials)
-        order_history = self.rest_client.orders_hist(limit=100, credentials=credentials)
+        try:
+            order_history = self.rest_client.orders_hist(limit=100, credentials=credentials)
+        except ExchangeInvalidResponseException:
+            # The above command sometimes return empty response. This is not a great solution.
+            # We rather wouldn't even require the historical order lookup. Looking up status of inactive orders is an
+            # issue on bitfinex
+            order_history = list()
 
         result = list()
         for order in orders:
@@ -1215,20 +1221,24 @@ class BitfinexInterface(ExchangeInterface):
         return result
 
     def cancel_multiple_orders(self, order_ids, credentials=None):
-        response = self.rest_client.order_cancel_multi(order_ids=order_ids, credentials=credentials)
-
         result = list()
-        if 'result' in response:
-            expected_response = 'All ({}) submitted for cancellation; waiting for confirmation.'.format(len(order_ids))
-            if response['result'] == expected_response:
-                for order_id in order_ids:
-                    order = {
-                        'id': order_id,
-                        'cancelled': True,
-                    }
-                    result.append(order)
-            elif response['result'] == 'None to cancel':
-                pass
+
+        if order_ids:
+            response = self.rest_client.order_cancel_multi(order_ids=order_ids, credentials=credentials)
+
+            if 'result' in response:
+                expected_response = 'All ({}) submitted for cancellation; waiting for confirmation.'.format(
+                    len(order_ids))
+                if response['result'] == expected_response:
+                    for order_id in order_ids:
+                        order = {
+                            'id': order_id,
+                            'cancelled': True,
+                            'active': False,
+                        }
+                        result.append(order)
+                elif response['result'] == 'None to cancel':
+                    pass
 
         return result
 
