@@ -98,6 +98,7 @@ class BitfinexREST(RESTClient):
             result_from_json = json.loads(result.text)
         except JSONDecodeError:
             if result.text == '':
+                print(result.text)
                 raise ExchangeInvalidResponseException(result.text)
             else:
                 print(result.text)
