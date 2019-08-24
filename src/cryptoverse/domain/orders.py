@@ -62,18 +62,22 @@ class Order(object):
                 arg = getattr(self, kw)
                 arguments.append(self._status_colored('{}={!r}'.format(kw, arg)))
             elif kw == 'amount':
-                if kw in self._get_argument('market').limits and 'precision' in self._get_argument('market').limits[kw]:
-                    precision = self._get_argument('market').limits[kw]['precision']
-                else:
-                    precision = None
-                arg = float_to_unscientific_string(arg, decimals=precision)
+                precision = None
+                if self._get_argument('market') is not None:
+                    if kw in self._get_argument('market').limits and \
+                            'precision' in self._get_argument('market').limits[kw]:
+                        precision = self._get_argument('market').limits[kw]['precision']
+                if arg is not None:
+                    arg = float_to_unscientific_string(arg, decimals=precision)
                 arguments.append('{}={}'.format(kw, arg))
             elif kw == 'price':
-                if kw in self._get_argument('market').limits and 'precision' in self._get_argument('market').limits[kw]:
-                    precision = self._get_argument('market').limits[kw]['precision']
-                else:
-                    precision = None
-                arg = float_to_unscientific_string(arg, decimals=precision)
+                precision = None
+                if self._get_argument('market') is not None:
+                    if kw in self._get_argument('market').limits and \
+                            'precision' in self._get_argument('market').limits[kw]:
+                        precision = self._get_argument('market').limits[kw]['precision']
+                if arg is not None:
+                    arg = float_to_unscientific_string(arg, decimals=precision)
                 arguments.append('{}={}'.format(kw, arg))
             else:
                 arguments.append('{}={!r}'.format(kw, arg))
@@ -1087,6 +1091,8 @@ class Order(object):
             side='sell' if self.side == 'buy' else 'buy',
             input=self.output,
             output=output,
+            context=self.context,
+            fee_instrument=self.fee_instrument,
         )
         return result
 
@@ -1293,21 +1299,18 @@ class Orders(ObjectList):
                 for market in self.find(account=account, exchange=exchange).get_unique_values('market'):
                     for side in self.find(account=account, exchange=exchange).get_unique_values('side'):
                         for context in self.find(account=account, exchange=exchange).get_unique_values('context'):
-                            for fee_instrument in self.find(account=account, exchange=exchange).get_unique_values(
-                                    'fee_instrument'):
-                                selected_orders = self.find(account=account, exchange=exchange, market=market,
-                                                            side=side)
-                                if selected_orders:
-                                    result.append_order(
-                                        account=account,
-                                        exchange=exchange,
-                                        market=market,
-                                        side=side,
-                                        context=context,
-                                        input=selected_orders.get_sum('input'),
-                                        output=selected_orders.get_sum('output'),
-                                        fee_instrument=fee_instrument,
-                                    )
+                            selected_orders = self.find(account=account, exchange=exchange, market=market,
+                                                        side=side, is_cancelled=False)
+                            if selected_orders:
+                                result.append_order(
+                                    account=account,
+                                    exchange=exchange,
+                                    market=market,
+                                    side=side,
+                                    context=context,
+                                    input=selected_orders.get_sum('input'),
+                                    output=selected_orders.get_sum('output'),
+                                )
         return result
 
     def inputs(self):
