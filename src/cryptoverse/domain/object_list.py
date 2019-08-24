@@ -69,10 +69,16 @@ class ObjectList(list):
         return sum_(self.get_values(key))
 
     def get_min(self, key):
-        return min(self.get_values(key))
+        try:
+            return min(self.get_values(key))
+        except ValueError:
+            return
 
     def get_max(self, key):
-        return max(self.get_values(key))
+        try:
+            return max(self.get_values(key))
+        except ValueError:
+            return
 
     def get_average(self, key):
         return divide(self.get_sum(key), len(self))
