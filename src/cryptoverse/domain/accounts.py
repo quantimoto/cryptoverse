@@ -357,12 +357,19 @@ class Account(object):
         elif type(obj) is Orders:
             orders_to_cancel = obj.find(is_placed=True, is_active=True, is_cancelled=False)
             order_ids = orders_to_cancel.get_values('id')
-            response = self.exchange.interface.cancel_multiple_orders(order_ids=order_ids, credentials=self.credentials)
-            if len(response) > 0:
-                while orders_to_cancel.find(is_cancelled=False):
-                    orders_to_cancel.update()
-                    time.sleep(2)
-            return response
+            if len(order_ids) > 0:
+                response = self.exchange.interface.cancel_multiple_orders(order_ids=order_ids,
+                                                                          credentials=self.credentials)
+
+                for entry in response:
+                    order_to_cancel = orders_to_cancel.get(id=entry['id'])
+                    order_to_cancel.update_arguments(**entry)
+                    pass
+
+                if len(response) > 0:
+                    while orders_to_cancel.find(is_cancelled=False):
+                        orders_to_cancel.update()
+                        time.sleep(20)
 
         elif type(obj) is Offer:
             response = self.exchange.interface.cancel_single_offer(obj.id, credentials=self.credentials)
@@ -374,7 +381,7 @@ class Account(object):
         elif type(obj) is Offers:
             response = self.exchange.interface.cancel_multiple_offers(obj.get_values('id'),
                                                                       credentials=self.credentials)
-            return response
+            return response  # remove after implementationn
 
         return obj
 
