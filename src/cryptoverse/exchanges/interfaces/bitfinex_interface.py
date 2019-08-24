@@ -657,7 +657,7 @@ class BitfinexInterface(ExchangeInterface):
 
         return result
 
-    def get_account_positions(self, credentials=None):
+    def get_account_positions(self, market=None, credentials=None):
         raise NotImplementedError  # todo: implement
 
     def get_account_offers(self, credentials=None):
