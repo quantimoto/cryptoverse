@@ -56,7 +56,7 @@ class Memoize(object):
                         stored_response = cache[timestamp]
                         if float(timestamp) >= now - self.expires:
                             response = stored_response
-                            logger.info('Returning stored response from disk for: {} {}'.format(key_hash, key))
+                            logger.info('Returning stored response from disk at "{}" for: {} {}'.format(filepath, key_hash, key))
             elif key_hash in self.store.keys():
                 timestamp = max(self.store[key_hash].keys())
                 response = self.store[key_hash][timestamp]

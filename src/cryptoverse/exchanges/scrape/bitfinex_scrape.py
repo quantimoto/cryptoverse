@@ -31,7 +31,7 @@ class BitfinexScrape(ScrapeClient):
 
         #
         # select table rows with deposit fees
-        deposit_html = fees_page_html[2].find('tbody').find_all('tr')
+        deposit_html = fees_page_html[3].find('tbody').find_all('tr')
         deposit_fees = list()
 
         # extract currency, deposit and small deposit fees
@@ -45,7 +45,7 @@ class BitfinexScrape(ScrapeClient):
 
         #
         # select table rows with withdrawal fees
-        withdrawal_html = fees_page_html[3].find('tbody').find_all('tr')
+        withdrawal_html = fees_page_html[4].find('tbody').find_all('tr')
         withdrawal_fees = list()
 
         # extract currency and fees
@@ -58,7 +58,7 @@ class BitfinexScrape(ScrapeClient):
 
         #
         # select table rows with margin funding fees
-        margin_funding_html = fees_page_html[4].find('tbody').find_all('tr')
+        margin_funding_html = fees_page_html[5].find('tbody').find_all('tr')
         margin_funding_fees = list()
 
         # extract normal and hidden funding fees
