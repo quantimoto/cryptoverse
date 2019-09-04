@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="cryptoverse",
-    version="0.0.1.dev5",
+    version="0.0.1.dev6",
     description="Cryptocurrency focused quantitative finance tools.",
     url="https://github.com/quantimoto/cryptoverse",
     maintainer='Bruteque',
@@ -26,6 +26,7 @@ setup(
         'dict-recursive-update==1.0.1',
         'libkeepass==0.2.0',
         'matplotlib==2.2.2',
+        'memoized-property==1.0.3',
         'mpl-finance==0.10.0',
         'pandas==0.23.4',
         'pytest==3.4.1',
@@ -45,4 +46,7 @@ setup(
     zip_safe=True,
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    scripts=[
+        'bin/cryptobot',
+    ],
 )
