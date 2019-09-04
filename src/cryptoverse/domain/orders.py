@@ -442,9 +442,19 @@ class Order(object):
             elif kwargs['output'] is not None:
                 value = kwargs['output']
 
+            # if output_instrument is equal to fee_instrument
             # net = gross - fees
-            elif kwargs['gross'] is not None and kwargs['fees'] is not None:
+            elif kwargs['fee_instrument'] is not None and kwargs['output_instrument'] is not None and \
+                    kwargs['fee_instrument'] == kwargs['output_instrument'] and \
+                    kwargs['gross'] is not None and kwargs['fees'] is not None:
                 value = subtract(kwargs['gross'], kwargs['fees'])
+
+            # if output_instrument is not equal to fee_instrument
+            # net = gross
+            elif kwargs['fee_instrument'] is not None and kwargs['output_instrument'] is not None and \
+                    kwargs['fee_instrument'] != kwargs['output_instrument'] and \
+                    kwargs['gross'] is not None and kwargs['fees'] is not None:
+                value = kwargs['gross']
 
             else:
                 value = None
